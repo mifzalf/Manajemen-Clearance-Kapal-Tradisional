@@ -8,6 +8,9 @@ const daerahPelabuhan = db.define('daerah_pelabuhan', {
         autoIncrement: true
     },
     nama_daerah_pelabuhan: DataTypes.INTEGER
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = daerahPelabuhan

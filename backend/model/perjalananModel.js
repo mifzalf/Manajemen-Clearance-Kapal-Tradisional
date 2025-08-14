@@ -103,6 +103,9 @@ const perjalanan = db.define("perjalanan", {
     pukul_agen_clearance: DataTypes.TIME,
     pukul_kapal_berangkat: DataTypes.STRING,
     status_muatan_berangkat: DataTypes.ENUM("NIHIL", "SESUAI MANIFEST")
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = perjalanan

@@ -8,6 +8,9 @@ const nahkoda = db.define('nahkoda', {
         autoIncrement: true
     },
     nama_nahkoda: DataTypes.INTEGER
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = nahkoda

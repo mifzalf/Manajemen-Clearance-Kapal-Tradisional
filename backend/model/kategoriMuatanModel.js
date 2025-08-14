@@ -9,6 +9,9 @@ const kategoriMuatan = db.define("kategori_muatan", {
     },
     nama_kategori_muatan: DataTypes.STRING,
     status_kategori_muatan: DataTypes.STRING
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = kategoriMuatan

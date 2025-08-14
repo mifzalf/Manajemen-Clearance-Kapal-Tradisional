@@ -7,7 +7,10 @@ const agen = db.define('agen', {
         primaryKey: true,
         autoIncrement: true
     },
-    nama_agen: DataTypes.INTEGER
+    nama_agen: DataTypes.INTEGER,
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = agen

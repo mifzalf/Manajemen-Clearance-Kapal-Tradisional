@@ -8,6 +8,9 @@ const jenis = db.define("jenis", {
         autoIncrement: true
     },
     nama_jenis: DataTypes.STRING
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = jenis

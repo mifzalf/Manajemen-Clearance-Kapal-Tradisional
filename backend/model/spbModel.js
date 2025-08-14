@@ -9,6 +9,9 @@ const spb = db.define('spb', {
         },
     no_spb: DataTypes.STRING,
     no_spb_asal: DataTypes.STRING
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = spb

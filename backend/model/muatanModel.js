@@ -30,6 +30,9 @@ const muatan = db.define("muatan", {
     jenis_perjalanan: DataTypes.ENUM("berangkat", "datang"),
     satuan_muatan: DataTypes.STRING,
     jumlah_muatan: DataTypes.INTEGER
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = muatan

@@ -25,6 +25,9 @@ const kapal = db.define('kapal', {
     tanda_selar: DataTypes.STRING,
     nomor_selar: DataTypes.STRING,
     nomor_selar: DataTypes.STRING,
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = kapal

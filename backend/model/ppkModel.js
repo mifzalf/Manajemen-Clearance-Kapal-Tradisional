@@ -8,6 +8,9 @@ const ppk = db.define('ppk', {
         autoIncrement: true
     },
     nama_ppk: DataTypes.STRING
+}, 
+{
+    freezeTableName: true
 })
 
 module.exports = ppk
