@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-// Pastikan Anda menggunakan "export const" di sini
 export const DropdownItem = ({ to, onItemClick, className, children, tag = 'link' }) => {
   const commonProps = {
     className,
