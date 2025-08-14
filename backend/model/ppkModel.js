@@ -7,7 +7,7 @@ const ppk = db.define('ppk', {
         primaryKey: true,
         autoIncrement: true
     },
-    kode_ppk: DataTypes.INTEGER
+    nama_ppk: DataTypes.STRING
 })
 
 module.exports = ppk

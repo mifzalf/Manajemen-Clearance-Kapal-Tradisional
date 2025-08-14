@@ -4,6 +4,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var { db, configDb } = require("./config/db")
+var { agen, daerahPelabuhan, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, ppk, spb } = require('./model/association')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -20,16 +22,26 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+(async () => {
+  try {
+    // db.sync({ force: true })
+    configDb()
+    console.log("berhasil sync")
+  } catch (error) {
+    console.log(error)
+  }
+})()
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
