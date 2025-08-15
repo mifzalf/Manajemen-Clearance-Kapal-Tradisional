@@ -14,6 +14,7 @@ import Agen from "./pages/master/Agen";
 import Pelabuhan from "./pages/master/Pelabuhan";
 import KategoriMuatan from "./pages/master/KategoriMuatan";
 import FormMuatan from "./pages/master/FormMuatan";
+import FormAgen from "./pages/master/FormAgen";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/master/pelabuhan" element={<Pelabuhan />} />
           <Route path="/master/muatan" element={<KategoriMuatan />} />
           <Route path="/master/muatan/add" element={<FormMuatan />} />
+          <Route path="/master/agen/add" element={<FormAgen />} />
         </Route>
         
         <Route path="/signin" element={<SignIn />} />
