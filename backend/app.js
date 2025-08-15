@@ -10,6 +10,7 @@ var { agen, daerahPelabuhan, jenis, kapal, kategoriMuatan, muatan, nahkoda, perj
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var ppkRouter = require('./routes/ppk')
+var nahkodaRouter = require('./routes/nahkoda')
 
 var app = express();
 
@@ -38,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/ppk', ppkRouter);
+app.use('/nahkoda', nahkodaRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
