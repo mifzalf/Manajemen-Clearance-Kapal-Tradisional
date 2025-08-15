@@ -29,7 +29,7 @@ const AppSidebar = () => {
         { name: 'Kapal', path: '/master/kapal' },
         { name: 'Nahkoda', path: '/master/nahkoda' },
         { name: 'Agen', path: '/master/agen' },
-        { name: 'Pelabuhan', path: '/master/pelabuhan' },
+        { name: 'Daerah', path: '/master/daerah' },
         { name: 'Kategori Muatan', path: '/master/muatan' },
       ],
     },

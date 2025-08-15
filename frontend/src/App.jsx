@@ -11,10 +11,11 @@ import Settings from "./pages/profile/Settings";
 import Kapal from "./pages/master/Kapal";
 import Nahkoda from "./pages/master/Nahkoda";
 import Agen from "./pages/master/Agen";
-import Pelabuhan from "./pages/master/Pelabuhan";
+import FormAgen from "./pages/master/FormAgen";
 import KategoriMuatan from "./pages/master/KategoriMuatan";
 import FormMuatan from "./pages/master/FormMuatan";
-import FormAgen from "./pages/master/FormAgen";
+import Daerah from "./pages/master/Daerah";
+import FormNahkoda from "./pages/master/FormNahkoda";
 
 function App() {
   return (
@@ -31,10 +32,11 @@ function App() {
           <Route path="/master/kapal" element={<Kapal />} />
           <Route path="/master/nahkoda" element={<Nahkoda />} />
           <Route path="/master/agen" element={<Agen />} />
-          <Route path="/master/pelabuhan" element={<Pelabuhan />} />
+          <Route path="/master/agen/add" element={<FormAgen />} />
           <Route path="/master/muatan" element={<KategoriMuatan />} />
           <Route path="/master/muatan/add" element={<FormMuatan />} />
-          <Route path="/master/agen/add" element={<FormAgen />} />
+          <Route path="/master/daerah" element={<Daerah />} />
+          <Route path="/master/nahkoda/add" element={<FormNahkoda />} />
         </Route>
         
         <Route path="/signin" element={<SignIn />} />

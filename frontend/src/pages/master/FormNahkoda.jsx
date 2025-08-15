@@ -4,7 +4,7 @@ import Label from '../../components/form/Label';
 import InputField from '../../components/form/InputField';
 import Button from '../../components/ui/Button';
 
-function FormAgen() {
+function FormNahkoda() {
   const [formData, setFormData] = useState({
     nama: '',
   });
@@ -17,39 +17,39 @@ function FormAgen() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.nama) {
-      alert('Nama agen wajib diisi!');
+      alert('Nama nahkoda wajib diisi!');
       return;
     }
-    console.log("Data Agen Baru:", formData);
-    alert('Data Agen Berhasil Disimpan!');
-    navigate('/master/agen');
+    console.log("Data Nahkoda Baru:", formData);
+    alert('Data Nahkoda Berhasil Disimpan!');
+    navigate('/master/nahkoda');
   };
 
   return (
     <div className="space-y-6">
-          <Link to="/master/agen" className="text-sm text-gray-500 hover:text-indigo-600 inline-flex items-center gap-2">
+          <Link to="/master/nahkoda" className="text-sm text-gray-500 hover:text-indigo-600 inline-flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Kembali ke Master Muatan
           </Link>
-      <h1 className="text-2xl font-bold text-gray-800">Formulir Data Agen</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Formulir Data Nahkoda</h1>
       
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <Label htmlFor="nama">Nama Agen</Label>
+            <Label htmlFor="nama">Nama Nahkoda</Label>
             <InputField
               id="nama"
               name="nama"
               value={formData.nama}
               onChange={handleChange}
-              placeholder="Contoh: PT. Laut Biru Nusantara"
+              placeholder="Contoh: Capt. Budi Santoso"
               required
             />
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button to="/master/agen" variant="secondary">Batal</Button>
+            <Button to="/master/nahkoda" variant="secondary">Batal</Button>
             <Button type="submit">Simpan Data</Button>
           </div>
         </form>
@@ -58,4 +58,4 @@ function FormAgen() {
   );
 }
 
-export default FormAgen;
+export default FormNahkoda;
