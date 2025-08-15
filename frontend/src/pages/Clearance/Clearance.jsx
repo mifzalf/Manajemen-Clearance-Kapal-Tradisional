@@ -17,16 +17,16 @@ const customStyles = {
   multiValue: (styles, { data }) => {
     return {
       ...styles,
-      backgroundColor: '#E0E7FF', // Warna biru muda (mirip indigo-100 di Tailwind)
+      backgroundColor: '#E0E7FF', 
     };
   },
   multiValueLabel: (styles, { data }) => ({
     ...styles,
-    color: '#374151', // Warna teks (mirip gray-700 di Tailwind)
+    color: '#374151', 
   }),
   multiValueRemove: (styles, { data }) => ({
     ...styles,
-    color: '#4F46E5', // Warna ikon 'x' (mirip indigo-600 di Tailwind)
+    color: '#4F46E5', 
     ':hover': {
       backgroundColor: '#4F46E5',
       color: 'white',

@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import MuatanTable from '../../components/table/MuatanTable';
 
-const KategoriMuatan = () => {
+const sampleMuatanData = [
+  { id: 1, nama: 'LPG (Liquefied Petroleum Gas)', status: 'Berbahaya' },
+  { id: 2, nama: 'Semen Curah', status: 'Umum' },
+  { id: 3, nama: 'Bahan Kimia Cair (Amonia)', status: 'Berbahaya' },
+  { id: 4, nama: 'Batu Bara', status: 'Umum' },
+  { id: 5, nama: 'Minyak Kelapa Sawit (CPO)', status: 'Umum' },
+  { id: 6, nama: 'Kontainer Pendingin (Reefer)', status: 'Lainnya' },
+];
+
+function KategoriMuatan() {
+  const [muatanData, setMuatanData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setMuatanData(sampleMuatanData);
+      setLoading(false);
+    }, 500);
+  }, []);
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-800">Kelola Kategori Muatan</h1>
-      {/* Konten untuk halaman kategori muatan akan ditambahkan di sini */}
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Data Muatan</h1>
+        <Link 
+          to="/master/muatan/add" 
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
+        >
+          + Tambah Data
+        </Link>
+      </div>
+
+      {loading ? (
+        <p className="text-center text-gray-500">Memuat data...</p>
+      ) : (
+        <MuatanTable muatanItems={muatanData} />
+      )}
     </div>
   );
-};
+}
 
 export default KategoriMuatan;
