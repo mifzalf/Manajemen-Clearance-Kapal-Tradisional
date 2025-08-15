@@ -12,6 +12,7 @@ var usersRouter = require('./routes/users');
 var ppkRouter = require('./routes/ppk')
 var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
+var spbRouter = require('./routes/spb')
 
 var app = express();
 
@@ -42,6 +43,7 @@ app.use('/users', usersRouter);
 app.use('/ppk', ppkRouter);
 app.use('/nahkoda', nahkodaRouter);
 app.use('/agen', agenRouter);
+app.use('/spb', spbRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
