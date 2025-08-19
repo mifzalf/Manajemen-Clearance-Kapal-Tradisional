@@ -27,8 +27,9 @@ var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
 var spbRouter = require('./routes/spb')
 var negaraRouter = require('./routes/negara')
-var kabupatenRouter = require('./routes/kabupaten')
 var provinsiRouter = require('./routes/provinsi')
+var kabupatenRouter = require('./routes/kabupaten')
+var kecamatanRouter = require('./routes/kecamatan')
 
 var app = express();
 
@@ -63,6 +64,7 @@ app.use('/spb', spbRouter);
 app.use('/negara', negaraRouter);
 app.use('/provinsi', provinsiRouter);
 app.use('/kabupaten', kabupatenRouter);
+app.use('/kecamatan', kecamatanRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
