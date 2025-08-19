@@ -60,6 +60,7 @@ app.use('/nahkoda', nahkodaRouter);
 app.use('/agen', agenRouter);
 app.use('/spb', spbRouter);
 app.use('/negara', negaraRouter);
+app.use('/kabupaten', kabupatenRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
