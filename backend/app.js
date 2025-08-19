@@ -5,7 +5,20 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var { db, configDb } = require("./config/db")
-var { agen, daerahPelabuhan, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, ppk, spb } = require('./model/association')
+var { 
+  agen, 
+  kabupaten, 
+  kecamatan, 
+  negara, 
+  jenis, 
+  kapal, 
+  kategoriMuatan, 
+  muatan, 
+  nahkoda, 
+  perjalanan, 
+  ppk, 
+  spb 
+} = require('./model/association')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -13,6 +26,7 @@ var ppkRouter = require('./routes/ppk')
 var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
 var spbRouter = require('./routes/spb')
+var negaraRouter = require('./routes/negara')
 
 var app = express();
 
@@ -28,9 +42,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 (async () => {
   try {
-    await db.query('SET FOREIGN_KEY_CHECKS = 0');
-    await db.sync({ force: true });
-    await db.query('SET FOREIGN_KEY_CHECKS = 1');
+    // await db.query('SET FOREIGN_KEY_CHECKS = 0');
+    // await db.sync({ force: true });
+    // await db.query('SET FOREIGN_KEY_CHECKS = 1');
     configDb()
     console.log("berhasil sync")
   } catch (error) {
@@ -44,6 +58,7 @@ app.use('/ppk', ppkRouter);
 app.use('/nahkoda', nahkodaRouter);
 app.use('/agen', agenRouter);
 app.use('/spb', spbRouter);
+app.use('/negara', negaraRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
