@@ -30,6 +30,7 @@ var negaraRouter = require('./routes/negara')
 var provinsiRouter = require('./routes/provinsi')
 var kabupatenRouter = require('./routes/kabupaten')
 var kecamatanRouter = require('./routes/kecamatan')
+var jenisRouter = require('./routes/jenis')
 
 var app = express();
 
@@ -65,6 +66,7 @@ app.use('/negara', negaraRouter);
 app.use('/provinsi', provinsiRouter);
 app.use('/kabupaten', kabupatenRouter);
 app.use('/kecamatan', kecamatanRouter);
+app.use('/jenis', jenisRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
