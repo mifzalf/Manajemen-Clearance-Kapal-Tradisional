@@ -1,19 +1,19 @@
 const { DataTypes } = require('sequelize')
 const {db} = require('../config/db')
-const kabupaten = require('./kabupatenModel')
+const negara = require('./negaraModel')
 
-const kecamatan = db.define('kecamatan', {
-    id_kecamatan: {
+const provinsi = db.define('provinsi', {
+    id_provinsi: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    nama_kecamatan: DataTypes.STRING,
-    id_kabupaten: {
+    nama_provinsi: DataTypes.STRING,
+    id_negara: {
         type: DataTypes.INTEGER,
         references: {
-            model: kabupaten,
-            key: "id_kabupaten"
+            model: negara,
+            key: "id_negara"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
@@ -23,4 +23,4 @@ const kecamatan = db.define('kecamatan', {
     freezeTableName: true
 })
 
-module.exports = kecamatan
+module.exports = provinsi

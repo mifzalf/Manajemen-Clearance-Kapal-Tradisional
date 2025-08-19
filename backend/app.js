@@ -27,6 +27,7 @@ var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
 var spbRouter = require('./routes/spb')
 var negaraRouter = require('./routes/negara')
+var kabupatenRouter = require('./routes/kabupaten')
 
 var app = express();
 

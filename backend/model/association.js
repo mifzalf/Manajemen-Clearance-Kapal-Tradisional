@@ -10,6 +10,7 @@ const ppk = require("./ppkModel");
 const spb = require("./spbModel");
 const kabupaten = require("./kabupatenModel");
 const negara = require("./negaraModel");
+const provinsi = require("./provinsiModel");
 
 jenis.hasMany(kapal, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -34,6 +35,18 @@ perjalanan.belongsTo(kapal, {foreignKey: "id_kapal", onDelete: "CASCADE", onUpda
 nahkoda.hasMany(perjalanan, {foreignKey: "id_nahkoda", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 perjalanan.belongsTo(nahkoda, {foreignKey: "id_nahkoda", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+negara.hasMany(provinsi, {foreignKey: "id_negara", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+provinsi.belongsTo(negara, {foreignKey: "id_negara", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+provinsi.hasMany(kabupaten, {foreignKey: "id_provinsi", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+kabupaten.belongsTo(provinsi, {foreignKey: "id_provinsi", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+kabupaten.hasMany(kecamatan, {foreignKey: "id_kabupaten", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+kecamatan.belongsTo(kabupaten, {foreignKey: "id_kabupaten", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kabupaten.hasMany(perjalanan, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
