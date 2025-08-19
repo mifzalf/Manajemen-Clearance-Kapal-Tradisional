@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize")
-const {db} = require("../config/db")
+const { db } = require("../config/db")
 const jenis = require("./jenisModel")
+const negara = require("./negaraModel")
 
 const kapal = db.define('kapal', {
     id_kapal: {
@@ -18,16 +19,24 @@ const kapal = db.define('kapal', {
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
     },
-    bendera: DataTypes.ENUM("RI"),
+    id_bendera: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: negara,
+            key: "id_negara"
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE"
+    },
     gt: DataTypes.INTEGER,
     nt: DataTypes.INTEGER,
     nomor_selar: DataTypes.INTEGER,
     tanda_selar: DataTypes.STRING,
     nomor_selar: DataTypes.STRING,
     nomor_selar: DataTypes.STRING,
-}, 
-{
-    freezeTableName: true
-})
+},
+    {
+        freezeTableName: true
+    })
 
 module.exports = kapal

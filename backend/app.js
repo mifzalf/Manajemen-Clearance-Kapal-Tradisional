@@ -28,9 +28,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 (async () => {
   try {
-    // await db.query('SET FOREIGN_KEY_CHECKS = 0');
-    // await db.sync({ force: true });
-    // await db.query('SET FOREIGN_KEY_CHECKS = 1');
+    await db.query('SET FOREIGN_KEY_CHECKS = 0');
+    await db.sync({ force: true });
+    await db.query('SET FOREIGN_KEY_CHECKS = 1');
     configDb()
     console.log("berhasil sync")
   } catch (error) {

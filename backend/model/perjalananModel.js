@@ -4,8 +4,9 @@ const ppk = require('./ppkModel')
 const spb = require('./spbModel')
 const kapal = require('./kapalModel')
 const nahkoda = require('./nahkodaModel')
-const daerahPelabuhan = require('./daerahPelabuhanModel')
+const kecamatan = require('./kecamatanModel')
 const agen = require('./agenModel')
+const kabupaten = require('./kabupatenModel')
 
 const perjalanan = db.define("perjalanan", {
     id_perjalanan: {
@@ -55,8 +56,8 @@ const perjalanan = db.define("perjalanan", {
     id_kedudukan_kapal: {
         type: DataTypes.INTEGER,
         references: {
-            model: daerahPelabuhan,
-            key: "id_daerah_pelabuhan"
+            model: kabupaten,
+            key: "id_kabupaten"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
@@ -65,8 +66,8 @@ const perjalanan = db.define("perjalanan", {
     id_datang_dari: {
         type: DataTypes.INTEGER,
         references: {
-            model: daerahPelabuhan,
-            key: "id_daerah_pelabuhan"
+            model: kecamatan,
+            key: "id_kecamatan"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
@@ -75,8 +76,8 @@ const perjalanan = db.define("perjalanan", {
     id_tempat_singgah: {
         type: DataTypes.INTEGER,
         references: {
-            model: daerahPelabuhan,
-            key: "id_daerah_pelabuhan"
+            model: kecamatan,
+            key: "id_kecamatan"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
@@ -84,8 +85,8 @@ const perjalanan = db.define("perjalanan", {
     id_tujuan_akhir: {
         type: DataTypes.INTEGER,
         references: {
-            model: daerahPelabuhan,
-            key: "id_daerah_pelabuhan"
+            model: kecamatan,
+            key: "id_kecamatan"
         },
         onDelete: "CASCADE",
         onUpdate: "CASCADE"
