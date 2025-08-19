@@ -1,16 +1,16 @@
 const { DataTypes } = require('sequelize')
 const {db} = require('../config/db')
 
-const daerahPelabuhan = db.define('daerah_pelabuhan', {
-    id_daerah_pelabuhan: {
+const kabupaten = db.define('kabupaten', {
+    id_kabupaten: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    nama_daerah_pelabuhan: DataTypes.INTEGER
+    nama_kabupaten: DataTypes.STRING
 }, 
 {
     freezeTableName: true
 })
 
-module.exports = daerahPelabuhan
+module.exports = kabupaten

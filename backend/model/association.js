@@ -1,5 +1,5 @@
 const agen = require("./agenModel");
-const daerahPelabuhan = require("./daerahPelabuhanModel");
+const kecamatan = require("./kecamatanModel");
 const jenis = require("./jenisModel");
 const kapal = require("./kapalModel");
 const kategoriMuatan = require("./kategoriMuatanModel");
@@ -8,10 +8,16 @@ const nahkoda = require("./nahkodaModel");
 const perjalanan = require("./perjalananModel");
 const ppk = require("./ppkModel");
 const spb = require("./spbModel");
+const kabupaten = require("./kabupatenModel");
+const negara = require("./negaraModel");
 
 jenis.hasMany(kapal, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kapal.belongsTo(jenis, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+negara.hasMany(kapal, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+kapal.belongsTo(negara, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 ppk.hasMany(perjalanan, {foreignKey: "id_ppk", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -29,21 +35,21 @@ nahkoda.hasMany(perjalanan, {foreignKey: "id_nahkoda", onDelete: "CASCADE", onUp
 
 perjalanan.belongsTo(nahkoda, {foreignKey: "id_nahkoda", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-daerahPelabuhan.hasMany(perjalanan, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
+kabupaten.hasMany(perjalanan, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(daerahPelabuhan, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kabupaten, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-daerahPelabuhan.hasMany(perjalanan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
+kecamatan.hasMany(perjalanan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(daerahPelabuhan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-daerahPelabuhan.hasMany(perjalanan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
+kecamatan.hasMany(perjalanan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(daerahPelabuhan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-daerahPelabuhan.hasMany(perjalanan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
+kecamatan.hasMany(perjalanan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(daerahPelabuhan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 agen.hasMany(perjalanan, {foreignKey: "id_agen", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -57,4 +63,4 @@ kategoriMuatan.hasMany(muatan, {foreignKey: "id_kategori_muatan", onDelete: "CAS
 
 muatan.belongsTo(kategoriMuatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-module.exports = {agen, daerahPelabuhan, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, ppk, spb}
+module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, ppk, spb}
