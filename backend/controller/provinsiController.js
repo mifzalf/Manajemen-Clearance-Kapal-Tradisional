@@ -1,9 +1,9 @@
-const kabupaten = require("../model/kabupatenModel")
+const negara = require("../model/negaraModel")
 const provinsi = require("../model/provinsiModel")
 
-const getKabupaten = async (req, res) => {
+const getProvinsi = async (req, res) => {
     try {
-        const datas = await kabupaten.findAll()
+        const datas = await provinsi.findAll()
         return res.status(200).json({msg: "Berhasil mengambil data", datas})
     } catch (error) {
         console.log(error)
@@ -11,10 +11,10 @@ const getKabupaten = async (req, res) => {
     }
 }
 
-const getKabupatenById = async (req, res) => {
+const getProvinsiById = async (req, res) => {
     try {
         let id = req.params.id
-        let data = await kabupaten.findByPk(id)
+        let data = await provinsi.findByPk(id)
         
         if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
             
@@ -25,12 +25,12 @@ const getKabupatenById = async (req, res) => {
     }
 }
 
-const storeKabupaten = async (req, res) => {
+const storeProvinsi = async (req, res) => {
     try {
-        let data = await provinsi.findByPk(req.body.id_provinsi)
-        if(!data) return res.status(500).json({msg: "data provinsi tidak ditemukan"})
+        let data = await negara.findByPk(req.body.id_negara)
+        if(!data) return res.status(500).json({msg: "data negara tidak ditemukan"})
             
-        await kabupaten.create({...req.body})
+        await provinsi.create({...req.body})
 
         return res.status(200).json({msg: "Berhasil menambahkan data"})
     } catch (error) {
@@ -39,9 +39,9 @@ const storeKabupaten = async (req, res) => {
     }
 }
 
-const updateKabupaten = async (req, res) => {
+const updateProvinsi = async (req, res) => {
     try {
-        let result = await kabupaten.update({...req.body}, {where: {id_kabupaten: req.params.id}})
+        let result = await provinsi.update({...req.body}, {where: {id_provinsi: req.params.id}})
 
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
 
@@ -52,9 +52,9 @@ const updateKabupaten = async (req, res) => {
     }
 }
 
-const deleteKabupaten = async (req, res) => {
+const deleteProvinsi = async (req, res) => {
     try {
-        let result = await kabupaten.destroy({where: {id_kabupaten: req.params.id}})
+        let result = await provinsi.destroy({where: {id_provinsi: req.params.id}})
         
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
 
@@ -65,4 +65,4 @@ const deleteKabupaten = async (req, res) => {
     }
 }
 
-module.exports = {getKabupaten, getKabupatenById, storeKabupaten, updateKabupaten, deleteKabupaten}
+module.exports = {getProvinsi, getProvinsiById, storeProvinsi, updateProvinsi, deleteProvinsi}
