@@ -1,103 +1,132 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
+import { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import DetailItem from '../../components/ui/DetailItem';
+import MuatanDetailTable from '../../components/clearance/MuatanDetailTable';
+import Button from '../../components/ui/Button';
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-
-const dummyLetters = [
-  { id: 1, agendaId: 'AGD-001', sender: 'PT. Sejahtera Abadi', letterNumber: '123/SA/VI/2024', letterDate: '2024-06-01', receivedDate: '2024-06-02', summary: 'Pengajuan clearance kapal tongkang', classification: 'Penting', remarks: 'Segera proses', file: 'sample.pdf' },
-];
-
-const DetailItem = ({ label, value }) => (
-  <div className="break-words">
-    <p className="text-sm text-gray-500">{label}</p>
-    <p className="font-medium text-gray-800">{value || '-'}</p>
-  </div>
-);
+const sampleClearanceDetailData = {
+    id: 1,
+    jenisPkk: 'Dalam Negeri',
+    noSpbAsal: '123/SPB-LMG/08-2025',
+    noSpbKalianget: '456/SPB-KGT/08-2025',
+    registerBulan: '08-2025',
+    noUrut: 12,
+    tanggalClearance: '2025-08-20',
+    pukulClearance: '09:45',
+    pukulKapalBerangkat: '14:00',
+    kapal: {
+        nama: 'KM. Sejahtera Abadi',
+        jenis: 'General Cargo',
+        bendera: 'Indonesia',
+        gt: 2500,
+        nt: 1500,
+        nomorSelar: '123456',
+        tandaSelar: 'IND-01',
+        nomorImo: 'IMO12345',
+        callSign: 'YB123',
+    },
+    nahkoda: { nama: 'Capt. Andi Wijaya', jumlahCrew: 12 },
+    perjalanan: {
+        kedudukanKapal: 'Kalianget',
+        datangDari: 'Surabaya',
+        tanggalDatang: '2025-08-19',
+        tempatSinggah: 'Sapeken',
+        tujuanAkhir: 'Pamekasan',
+        agen: 'PT Laut Jaya',
+        statusMuatan: 'Ada Muatan',
+    },
+    barangDatang: [
+        { nama: 'BBM', satuan: 'Liter', jumlah: 20000 },
+        { nama: 'Semen', satuan: 'Ton', jumlah: 10 },
+    ],
+    barangBerangkat: [
+        { nama: 'Beras', satuan: 'Ton', jumlah: 15 },
+        { nama: 'Pupuk', satuan: 'Kg', jumlah: 8000 },
+    ]
+};
 
 const DetailClearance = () => {
-  const { id } = useParams();
-  const letter = dummyLetters.find(l => l.id.toString() === id);
-  const [numPages, setNumPages] = React.useState(null);
-  const [containerWidth, setContainerWidth] = React.useState(0);
-  const containerRef = React.useRef(null);
+    const { id } = useParams();
+    const [data, setData] = useState(null);
+    const [activeMuatanTab, setActiveMuatanTab] = useState('datang');
 
-  React.useEffect(() => {
-    const observer = new ResizeObserver(entries => {
-      const entry = entries[0];
-      if (entry) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => { if (containerRef.current) observer.unobserve(containerRef.current); };
-  }, []);
+    useEffect(() => {
+        setData(sampleClearanceDetailData);
+    }, [id]);
 
-  function onDocumentLoadSuccess({ numPages }) {
-    setNumPages(numPages);
-  }
+    if (!data) return <div className="p-6">Memuat data...</div>;
 
-  if (!letter) {
     return (
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Data tidak ditemukan</h2>
-        <Link to="/clearance" className="text-brand-500 hover:underline">Kembali ke daftar clearance</Link>
-      </div>
-    );
-  }
-
-  const fileUrl = `/files/${letter.file}`;
-
-  return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Link to="/clearance" className="text-sm text-gray-500 hover:text-brand-500">
-            &larr; Kembali ke Clearance
-          </Link>
-          <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">Detail Clearance: {letter.letterNumber}</h1>
-        </div>
-        <a href={fileUrl} download className="mt-4 sm:mt-0 inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600">
-          Download File
-        </a>
-      </div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-        <h3 className="mb-4 text-lg font-semibold text-gray-800">Detail</h3>
-        <div className="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-          <DetailItem label="ID Agenda" value={letter.agendaId} />
-          <DetailItem label="Nomor Surat" value={letter.letterNumber} />
-          <DetailItem label="Pengirim" value={letter.sender} />
-          <DetailItem label="Tanggal Surat" value={letter.letterDate} />
-          <DetailItem label="Tanggal Diterima" value={letter.receivedDate} />
-          <DetailItem label="Kode Klasifikasi" value={letter.classification} />
-          <DetailItem label="Ringkasan Isi" value={letter.summary} />
-          <DetailItem label="Keterangan Tambahan" value={letter.remarks} />
-        </div>
-      </div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-        <h3 className="mb-4 text-lg font-semibold text-gray-800">Pratinjau File</h3>
-        <div ref={containerRef} className="h-[70vh] w-full overflow-y-auto rounded-lg border bg-slate-800 p-2 sm:p-4">
-          <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading="Memuat PDF...">
-            <div className="flex flex-col items-center">
-              {Array.from(new Array(numPages || 0), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="mb-4 shadow-lg"
-                  width={containerWidth < 768 ? containerWidth * 0.95 : undefined}
-                />
-              ))}
+        <div className="space-y-6">
+            <div>
+                <Link to="/clearance" className="text-sm text-gray-500 hover:text-indigo-600 inline-flex items-center gap-2 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Kembali ke Daftar Clearance
+                </Link>
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800">Detail SPB: {data.noSpbKalianget}</h1>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Button>Edit Data</Button>
+                        <button className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
+                            Hapus Clearance
+                        </button>
+                        <Button variant="secondary">Cetak SPB</Button>
+                    </div>
+                </div>
             </div>
-          </Document>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
+                <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <DetailItem label="Jenis PKK" value={data.jenisPkk} />
+                    <DetailItem label="No SPB Asal" value={data.noSpbAsal} />
+                    <DetailItem label="Tanggal Clearance" value={new Date(data.tanggalClearance).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
+                    <DetailItem label="Pukul Clearance" value={data.pukulClearance} />
+                </div>
+                <div className="space-y-4 border-t pt-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <DetailItem label="Nama Kapal" value={data.kapal.nama} />
+                        <DetailItem label="Nahkoda" value={data.nahkoda.nama} />
+                        <DetailItem label="Jumlah Crew" value={data.nahkoda.jumlahCrew} />
+                        <DetailItem label="Agen" value={data.perjalanan.agen} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
+                <h3 className="text-xl font-bold text-gray-800">Informasi Perjalanan</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <DetailItem label="Kedudukan Kapal" value={data.perjalanan.kedudukanKapal} />
+                    <DetailItem label="Datang Dari" value={data.perjalanan.datangDari} />
+                    <DetailItem label="Tanggal Datang" value={new Date(data.perjalanan.tanggalDatang).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
+                    <DetailItem label="Pukul Kapal Berangkat" value={data.pukulKapalBerangkat} />
+                    <DetailItem label="Tujuan Akhir" value={data.perjalanan.tujuanAkhir} />
+                    <DetailItem label="Tempat Singgah" value={data.perjalanan.tempatSinggah} />
+                    <DetailItem label="Status Muatan Berangkat" value={data.perjalanan.statusMuatan} />
+                </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+                <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex gap-x-6 px-4" aria-label="Tabs">
+                        <button onClick={() => setActiveMuatanTab('datang')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeMuatanTab === 'datang' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            Barang Datang
+                        </button>
+                        <button onClick={() => setActiveMuatanTab('berangkat')} className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeMuatanTab === 'berangkat' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
+                            Barang Berangkat
+                        </button>
+                    </nav>
+                </div>
+                <div>
+                    {activeMuatanTab === 'datang' && <MuatanDetailTable data={data.barangDatang} />}
+                    {activeMuatanTab === 'berangkat' && <MuatanDetailTable data={data.barangBerangkat} />}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default DetailClearance;

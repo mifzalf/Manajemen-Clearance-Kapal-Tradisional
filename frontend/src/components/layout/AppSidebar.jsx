@@ -85,7 +85,7 @@ const AppSidebar = () => {
           <img
             src="/images/kementrianperhubungan.png"
             alt="KSOP Logo"
-            className="h-8 w-auto"
+            className="h-11 w-auto"
           />
           {isSidebarWide && (
             <span className="text-xl font-bold text-gray-800">

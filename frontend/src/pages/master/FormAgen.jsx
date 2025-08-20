@@ -33,7 +33,7 @@ function FormAgen() {
             </svg>
             Kembali ke Master Muatan
           </Link>
-      <h1 className="text-2xl font-bold text-gray-800">Formulir Data Agen</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Data Agen</h1>
       
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
