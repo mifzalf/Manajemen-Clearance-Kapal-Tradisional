@@ -20,18 +20,34 @@ const sampleJenisKapalData = [
 function Kapal() {
   const [activeTab, setActiveTab] = useState('kapal');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   const tabs = [
     { id: 'kapal', label: 'Daftar Kapal' },
     { id: 'jenisKapal', label: 'Jenis Kapal' },
   ];
+  
+  const handleOpenModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'kapal':
-        return <KapalTable data={sampleKapalData} />;
+        return <KapalTable data={sampleKapalData} onEdit={handleEdit} />;
       case 'jenisKapal':
-        return <JenisKapalTable data={sampleJenisKapalData} />;
+        return <JenisKapalTable data={sampleJenisKapalData} onEdit={handleEdit} />;
       default:
         return null;
     }
@@ -41,11 +57,8 @@ function Kapal() {
     <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Data Kapal</h1>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
-          >
+          <h1 className="text-2xl font-bold text-gray-800">Data Master Kapal</h1>
+          <button onClick={handleOpenModal} className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors">
             + Tambah Data
           </button>
         </div>
@@ -77,7 +90,8 @@ function Kapal() {
       {isModalOpen && (
         <KapalFormModal
           activeTab={activeTab}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseModal}
+          currentItem={editingItem}
           jenisKapalOptions={sampleJenisKapalData}
         />
       )}

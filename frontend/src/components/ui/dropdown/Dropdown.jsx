@@ -1,20 +1,36 @@
-import React, { useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 
-export const Dropdown = ({ isOpen, onClose, className, children, triggerRef }) => { // 1. Terima triggerRef
+export const Dropdown = ({ isOpen, onClose, triggerRef, children, className }) => {
   const dropdownRef = useRef(null);
+  const [style, setStyle] = useState({});
+
+  useLayoutEffect(() => {
+    if (isOpen && triggerRef.current && dropdownRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const dropdownRect = dropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+
+      const position = {
+        left: rect.right - dropdownRect.width + window.scrollX,
+      };
+
+      if (spaceBelow < dropdownRect.height && rect.top > dropdownRect.height) {
+        position.top = rect.top + window.scrollY - dropdownRect.height;
+      } else {
+        position.top = rect.bottom + window.scrollY;
+      }
+      
+      setStyle(position);
+    }
+  }, [isOpen, triggerRef]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // 2. Tambahkan pengecekan agar tidak menutup jika tombol trigger yang diklik
-      if (
-        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
-        triggerRef.current && !triggerRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && !triggerRef.current.contains(event.target)) {
         onClose();
       }
     };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -27,17 +43,10 @@ export const Dropdown = ({ isOpen, onClose, className, children, triggerRef }) =
     return null;
   }
 
-  return (
-    <div ref={dropdownRef} className={className}>
+  return createPortal(
+    <div ref={dropdownRef} className={className} style={{...style, position: 'absolute', zIndex: 50}} role="menu">
       {children}
-    </div>
+    </div>,
+    document.body
   );
-};
-
-Dropdown.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  className: PropTypes.string,
-  children: PropTypes.node.isRequired,
-  triggerRef: PropTypes.object, // 3. Tambahkan prop validation
 };

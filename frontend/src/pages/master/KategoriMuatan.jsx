@@ -13,21 +13,35 @@ function KategoriMuatan() {
   const [muatanData, setMuatanData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setMuatanData(sampleMuatanData);
-      setLoading(false);
-    }, 500);
+    setMuatanData(sampleMuatanData);
+    setLoading(false);
   }, []);
+
+  const handleOpenModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
 
   return (
     <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Data Muatan</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Data Master Muatan</h1>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenModal}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
           >
             + Tambah Data
@@ -37,10 +51,10 @@ function KategoriMuatan() {
         {loading ? (
           <p className="text-center text-gray-500">Memuat data...</p>
         ) : (
-          <MuatanTable muatanItems={muatanData} />
+          <MuatanTable muatanItems={muatanData} onEdit={handleEdit} />
         )}
       </div>
-      {isModalOpen && <MuatanFormModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && <MuatanFormModal onClose={handleCloseModal} currentItem={editingItem} />}
     </>
   );
 }

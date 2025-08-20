@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
@@ -23,7 +22,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const ActionDropdown = ({ item }) => {
+const ActionDropdown = ({ item, onEdit }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
 
@@ -42,7 +41,7 @@ const ActionDropdown = ({ item }) => {
         triggerRef={triggerRef}
         className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg"
       >
-        <DropdownItem onItemClick={() => alert(`Edit item ${item.id}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <DropdownItem onItemClick={() => onEdit(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Edit
         </DropdownItem>
         <DropdownItem onItemClick={() => confirm(`Hapus item ${item.id}?`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
@@ -53,7 +52,7 @@ const ActionDropdown = ({ item }) => {
   );
 };
 
-const MuatanTable = ({ muatanItems = [] }) => {
+const MuatanTable = ({ muatanItems = [], onEdit }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
@@ -75,7 +74,7 @@ const MuatanTable = ({ muatanItems = [] }) => {
                   <StatusBadge status={item.status} />
                 </td>
                 <td className="px-6 py-4 flex justify-end">
-                  <ActionDropdown item={item} />
+                  <ActionDropdown item={item} onEdit={onEdit} />
                 </td>
               </tr>
             ))

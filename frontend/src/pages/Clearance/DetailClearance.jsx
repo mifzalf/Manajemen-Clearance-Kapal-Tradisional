@@ -69,7 +69,7 @@ const DetailClearance = () => {
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <h1 className="text-2xl font-bold text-gray-800">Detail SPB: {data.noSpbKalianget}</h1>
                     <div className="flex flex-wrap items-center gap-3">
-                        <Button>Edit Data</Button>
+                        <Button to={`/clearance/edit/${data.id}`}>Edit Data</Button>
                         <button className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">
                             Hapus Clearance
                         </button>
