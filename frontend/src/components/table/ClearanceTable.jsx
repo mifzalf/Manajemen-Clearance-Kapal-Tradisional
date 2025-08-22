@@ -1,37 +1,13 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
 
-const ActionDropdown = ({ item, onEdit, onDelete }) => {
+const ActionDropdown = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [direction, setDirection] = useState('bottom');
   const triggerRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = 120; 
-
-      if (spaceBelow < dropdownHeight) {
-        setDirection('top');
-      } else {
-        setDirection('bottom');
-      }
-    }
-  }, [isOpen]);
-
-  const handleEdit = () => {
-    onEdit();
-    setIsOpen(false);
-  };
-
-  const handleDelete = () => {
-    onDelete();
-    setIsOpen(false);
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="relative">
@@ -46,17 +22,15 @@ const ActionDropdown = ({ item, onEdit, onDelete }) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         triggerRef={triggerRef}
-        className={`absolute right-0 z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg ${
-          direction === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
-        }`}
+        className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg"
       >
         <Link to={`/clearance/${item.id}`} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Lihat Detail
         </Link>
-        <DropdownItem onItemClick={handleEdit} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Edit
         </DropdownItem>
-        <DropdownItem onItemClick={handleDelete} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+        <DropdownItem onItemClick={() => confirm(`Hapus item ${item.id}?`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
           Hapus
         </DropdownItem>
       </Dropdown>
@@ -90,11 +64,7 @@ const ClearanceTable = ({ clearanceItems = [] }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.agen}</td>
                 <td className="px-6 py-4 flex justify-end">
-                  <ActionDropdown
-                    item={item}
-                    onEdit={() => alert(`Edit item ${item.id}`)}
-                    onDelete={() => confirm(`Hapus item ${item.id}?`)}
-                  />
+                  <ActionDropdown item={item} />
                 </td>
               </tr>
             ))

@@ -12,13 +12,27 @@ function Agen() {
   const [agenData, setAgenData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setAgenData(sampleAgenData);
-      setLoading(false);
-    }, 500);
+    setAgenData(sampleAgenData);
+    setLoading(false);
   }, []);
+
+  const handleOpenModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
 
   return (
     <>
@@ -26,7 +40,7 @@ function Agen() {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">Data Master Agen</h1>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenModal}
             className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
           >
             + Tambah Data
@@ -36,11 +50,11 @@ function Agen() {
         {loading ? (
           <p className="text-center text-gray-500">Memuat data...</p>
         ) : (
-          <AgenTable agenItems={agenData} />
+          <AgenTable agenItems={agenData} onEdit={handleEdit} />
         )}
       </div>
 
-      {isModalOpen && <AgenFormModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && <AgenFormModal onClose={handleCloseModal} currentItem={editingItem} />}
     </>
   );
 }

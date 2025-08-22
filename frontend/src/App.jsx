@@ -22,6 +22,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/clearance" element={<Clearance />} />
           <Route path="/clearance/add" element={<FormClearance />} />
+          <Route path="/clearance/edit/:id" element={<FormClearance />} />
           <Route path="/clearance/:id" element={<DetailClearance />} />
           <Route path="/laporan" element={<Laporan />} />
           <Route path="/profile" element={<UserProfiles />} />

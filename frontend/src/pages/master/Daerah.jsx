@@ -5,33 +5,15 @@ import KabupatenTable from '../../components/table/KabupatenTable';
 import KecamatanTable from '../../components/table/KecamatanTable';
 import DaerahFormModal from '../../components/modal/DaerahFormModal';
 
-const sampleNegaraData = [
-  { id: 1, kode: 'RI', nama: 'Indonesia' },
-  { id: 2, kode: 'MY', nama: 'Malaysia' },
-  { id: 3, kode: 'SG', nama: 'Singapura' },
-];
-
-const sampleProvinsiData = [
-  { id: 1, nama: 'Jawa Timur' },
-  { id: 2, nama: 'Jawa Tengah' },
-  { id: 3, nama: 'DKI Jakarta' },
-];
-
-const sampleKabupatenData = [
-    { id: 1, nama: 'Kabupaten Sumenep' },
-    { id: 2, nama: 'Kota Surabaya' },
-    { id: 3, nama: 'Kabupaten Sidoarjo' },
-];
-
-const sampleKecamatanData = [
-    { id: 1, nama: 'Kalianget' },
-    { id: 2, nama: 'Kota Sumenep' },
-    { id: 3, nama: 'Gayam' },
-];
+const sampleNegaraData = [ { id: 1, kode: 'RI', nama: 'Indonesia' }, { id: 2, kode: 'MY', nama: 'Malaysia' } ];
+const sampleProvinsiData = [ { id: 1, nama: 'Jawa Timur', negaraId: 1 }, { id: 2, nama: 'Jawa Tengah', negaraId: 1 }, { id: 3, nama: 'Selangor', negaraId: 2 } ];
+const sampleKabupatenData = [ { id: 1, nama: 'Kabupaten Sumenep', provinsiId: 1 }, { id: 2, nama: 'Kota Surabaya', provinsiId: 1 }, { id: 3, nama: 'Kota Semarang', provinsiId: 2 } ];
+const sampleKecamatanData = [ { id: 1, nama: 'Kalianget', kabupatenId: 1 }, { id: 2, nama: 'Kota Sumenep', kabupatenId: 1 }, { id: 3, nama: 'Gayam', kabupatenId: 1 } ];
 
 function Daerah() {
   const [activeTab, setActiveTab] = useState('negara');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   const tabs = [
     { id: 'negara', label: 'Negara' },
@@ -39,19 +21,29 @@ function Daerah() {
     { id: 'kabupaten', label: 'Kabupaten/Kota' },
     { id: 'kecamatan', label: 'Kecamatan' },
   ];
+  
+  const handleOpenModal = () => {
+    setEditingItem(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'negara':
-        return <NegaraTable data={sampleNegaraData} />;
-      case 'provinsi':
-        return <ProvinsiTable data={sampleProvinsiData} />;
-      case 'kabupaten':
-        return <KabupatenTable data={sampleKabupatenData} />;
-      case 'kecamatan':
-        return <KecamatanTable data={sampleKecamatanData} />;
-      default:
-        return null;
+      case 'negara': return <NegaraTable data={sampleNegaraData} onEdit={handleEdit} />;
+      case 'provinsi': return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} />;
+      case 'kabupaten': return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} />;
+      case 'kecamatan': return <KecamatanTable data={sampleKecamatanData} onEdit={handleEdit} />;
+      default: return null;
     }
   };
 
@@ -60,17 +52,14 @@ function Daerah() {
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-800">Data Master Daerah</h1>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
-          >
+          <button onClick={handleOpenModal} className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors">
             + Tambah Data
           </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="border-b border-gray-200">
-            <nav className="-mb-px flex gap-x-6 px-4" aria-label="Tabs">
+            <nav className="-mb-px flex gap-x-6 px-4 overflow-x-auto" aria-label="Tabs">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -86,16 +75,17 @@ function Daerah() {
               ))}
             </nav>
           </div>
-          <div className="p-4">
-            {renderContent()}
-          </div>
+          <div className="p-4">{renderContent()}</div>
         </div>
       </div>
-
       {isModalOpen && (
         <DaerahFormModal 
           activeTab={activeTab} 
-          onClose={() => setIsModalOpen(false)} 
+          onClose={handleCloseModal} 
+          currentItem={editingItem}
+          allNegara={sampleNegaraData}
+          allProvinsi={sampleProvinsiData}
+          allKabupaten={sampleKabupatenData}
         />
       )}
     </>
