@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import NahkodaTable from '../../components/table/NahkodaTable';
 import NahkodaFormModal from '../../components/modal/NahkodaFormModal';
+import axios from "axios"
 
-const sampleNahkodaData = [
-  { id: 1, nama: 'Capt. Budi Santoso' },
-  { id: 2, nama: 'Capt. Agus Wijaya' },
-];
 
 function Nahkoda() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [nahkodaData, setNahkodaData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [nahkoda, setNahkoda] = useState([])
 
   useEffect(() => {
-    setNahkodaData(sampleNahkodaData);
     setLoading(false);
+
+    setTimeout(() => {
+      fecthNahkoda()
+    }, 0);
   }, []);
+
+  async function fecthNahkoda() {
+    let response = await axios.get(`${API_URL}/nahkoda`)
+    setNahkodaData(response?.data?.datas)
+  }
 
   const handleOpenModal = () => {
     setEditingItem(null);
@@ -44,9 +49,9 @@ function Nahkoda() {
           </button>
         </div>
 
-        {loading ? <p>Memuat data...</p> : <NahkodaTable nahkodaItems={nahkodaData} onEdit={handleEdit} />}
+        {loading ? <p>Memuat data...</p> : <NahkodaTable nahkodaItems={nahkodaData} onEdit={handleEdit} onSuccess={fecthNahkoda} />}
       </div>
-      {isModalOpen && <NahkodaFormModal onClose={handleCloseModal} currentItem={editingItem} />}
+      {isModalOpen && <NahkodaFormModal onClose={handleCloseModal} currentItem={editingItem} onSuccess={fecthNahkoda} />}
     </>
   );
 }
