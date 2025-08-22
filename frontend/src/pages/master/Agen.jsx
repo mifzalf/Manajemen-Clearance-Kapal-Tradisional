@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import AgenTable from '../../components/table/AgenTable';
 import AgenFormModal from '../../components/modal/AgenFormModal';
-
-const sampleAgenData = [
-  { id: 1, nama: 'PT. Laut Biru Nusantara' },
-  { id: 2, nama: 'CV. Samudera Jaya' },
-  { id: 3, nama: 'PT. Pelayaran Nasional' },
-];
+import axios from 'axios';
 
 function Agen() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [agenData, setAgenData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    setAgenData(sampleAgenData);
+    fetchAgen()
     setLoading(false);
   }, []);
+
+  const fetchAgen = async() => {
+    let response = await axios.get(`${API_URL}/agen`)
+    setAgenData(response?.data?.datas)
+    console.log(response)
+  }
 
   const handleOpenModal = () => {
     setEditingItem(null);
@@ -50,11 +52,11 @@ function Agen() {
         {loading ? (
           <p className="text-center text-gray-500">Memuat data...</p>
         ) : (
-          <AgenTable agenItems={agenData} onEdit={handleEdit} />
+          <AgenTable agenItems={agenData} onEdit={handleEdit} onSuccess={fetchAgen} />
         )}
       </div>
 
-      {isModalOpen && <AgenFormModal onClose={handleCloseModal} currentItem={editingItem} />}
+      {isModalOpen && <AgenFormModal onClose={handleCloseModal} currentItem={editingItem} onSuccess={fetchAgen} />}
     </>
   );
 }
