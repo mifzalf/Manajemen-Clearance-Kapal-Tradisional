@@ -13,6 +13,7 @@ function Nahkoda() {
   const [nahkodaData, setNahkodaData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [nahkoda, setNahkoda] = useState([])
 
   useEffect(() => {
     setTimeout(() => {
