@@ -50,3 +50,38 @@ h1, h2, h3, h4, h5, h6 {
   -ms-overflow-style: none;  
   scrollbar-width: none; 
 }
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+@media print {
+  .screen-only {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}/* Tambahkan kode ini di bagian atas file CSS Anda atau bersama aturan @media print lainnya */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+@media print {
+  .screen-only {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ... sisa kode CSS Anda ... */
