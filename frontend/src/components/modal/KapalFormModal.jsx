@@ -3,8 +3,10 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
+import axios from 'axios';
 
-const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [] }) => {
+const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [], onSuccess }) => {
+  const API_URL = import.meta.env.VITE_API_URL
   const [formData, setFormData] = useState({});
   const isEditMode = Boolean(currentItem);
 
@@ -17,20 +19,20 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
 
   useEffect(() => {
     if (isEditMode && currentItem) {
-        if (activeTab === 'kapal') {
-            setFormData(currentItem);
-        } else {
-            setFormData({ nama: currentItem.nama });
-        }
+      if (activeTab === 'kapal') {
+        setFormData(currentItem);
+      } else {
+        setFormData({ nama_jenis: currentItem.nama_jenis });
+      }
     } else {
-        if (activeTab === 'kapal') {
-          setFormData({
-            nama: '', jenis: '', bendera: '', gt: '', nt: '',
-            nomorSelar: '', tandaSelar: '', nomorImo: '', callSign: ''
-          });
-        } else {
-          setFormData({ nama: '' });
-        }
+      if (activeTab === 'kapal') {
+        setFormData({
+          nama: '', jenis: '', bendera: '', gt: '', nt: '',
+          nomorSelar: '', tandaSelar: '', nomorImo: '', callSign: ''
+        });
+      } else {
+        setFormData({ nama_jenis: '' });
+      }
     }
   }, [activeTab, currentItem, isEditMode]);
 
@@ -43,13 +45,24 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(`Data ${isEditMode ? 'diperbarui' : 'baru'} untuk ${activeTab}:`, formData);
-    alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
-    onClose();
+    if (activeTab != 'kapal') {
+      let response = (isEditMode) ? await axios.patch(`${API_URL}/jenis/update/${currentItem.id_jenis}`, formData) : await axios.post(`${API_URL}/jenis/store`, formData)
+      console.log(response)
+      if (response.status == 200) {
+        console.log(`Data ${isEditMode ? 'diperbarui' : 'baru'} untuk ${activeTab}:`, formData);
+        alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+        onClose();
+        onSuccess()
+      } else {
+        console.log("Data Gagal Disimpan:", response.data.msg);
+        alert(`Terjadi Kesalahan saat ${isEditMode ? 'memperbarui' : 'menyimpan'} data jenis kapal!`);
+        onClose()
+      }
+    }
   };
-  
+
   const renderFormContent = () => {
     if (activeTab === 'kapal') {
       return (
@@ -66,16 +79,16 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
         </div>
       );
     }
-    
+
     if (activeTab === 'jenisKapal') {
       return (
         <div>
           <Label htmlFor="nama">Nama Jenis Kapal</Label>
-          <InputField name="nama" id="nama" value={formData.nama || ''} onChange={handleChange} placeholder="Contoh: General Cargo" required />
+          <InputField name="nama_jenis" id="nama" value={formData.nama_jenis || ''} onChange={handleChange} placeholder="Contoh: General Cargo" required />
         </div>
       );
     }
-    
+
     return null;
   };
 

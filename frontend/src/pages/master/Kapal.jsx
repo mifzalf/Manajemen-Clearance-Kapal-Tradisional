@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import KapalTable from '../../components/table/KapalTable';
 import JenisKapalTable from '../../components/table/JenisKapalTable';
 import KapalFormModal from '../../components/modal/KapalFormModal';
+import axios from 'axios'
 
 const sampleKapalData = [
   { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
@@ -18,14 +19,35 @@ const sampleJenisKapalData = [
 ];
 
 function Kapal() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [activeTab, setActiveTab] = useState('kapal');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [kapalData, setKapalData] = useState([])
+  const [jenisKapalData, setJenisKapalData] = useState([])
 
   const tabs = [
     { id: 'kapal', label: 'Daftar Kapal' },
     { id: 'jenisKapal', label: 'Jenis Kapal' },
   ];
+
+  useEffect(() => {
+    fecthJenisKapal()
+    // fecthKapal()
+    setKapalData(sampleKapalData)
+  }, [])
+
+  // async function fecthKapal() {
+  //   let response = await axios.get(`${API_URL}/kapal`)
+  //   console.log(response)
+  //   setKapalData(response?.data?.datas)
+  // }
+  
+  async function fecthJenisKapal() {
+    let response = await axios.get(`${API_URL}/jenis`)
+    console.log(response)
+    setJenisKapalData(response?.data?.datas)
+  }
   
   const handleOpenModal = () => {
     setEditingItem(null);
@@ -45,9 +67,9 @@ function Kapal() {
   const renderContent = () => {
     switch (activeTab) {
       case 'kapal':
-        return <KapalTable data={sampleKapalData} onEdit={handleEdit} />;
+        return <KapalTable data={kapalData} onEdit={handleEdit} />;
       case 'jenisKapal':
-        return <JenisKapalTable data={sampleJenisKapalData} onEdit={handleEdit} />;
+        return <JenisKapalTable data={jenisKapalData} onEdit={handleEdit} onSuccess={fecthJenisKapal}/>;
       default:
         return null;
     }
@@ -93,6 +115,7 @@ function Kapal() {
           onClose={handleCloseModal}
           currentItem={editingItem}
           jenisKapalOptions={sampleJenisKapalData}
+          onSuccess={fecthJenisKapal}
         />
       )}
     </>
