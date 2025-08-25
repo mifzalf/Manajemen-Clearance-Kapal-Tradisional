@@ -63,8 +63,7 @@ h1, h2, h3, h4, h5, h6 {
   .print-only {
     display: block !important;
   }
-}/* Tambahkan kode ini di bagian atas file CSS Anda atau bersama aturan @media print lainnya */
-@page {
+}@page {
   size: A4;
   margin: 0;
 }
@@ -84,4 +83,3 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* ... sisa kode CSS Anda ... */

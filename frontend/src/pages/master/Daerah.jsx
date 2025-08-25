@@ -39,11 +39,16 @@ function Daerah() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'negara': return <NegaraTable data={sampleNegaraData} onEdit={handleEdit} />;
-      case 'provinsi': return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} />;
-      case 'kabupaten': return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} />;
-      case 'kecamatan': return <KecamatanTable data={sampleKecamatanData} onEdit={handleEdit} />;
-      default: return null;
+      case 'negara': 
+        return <NegaraTable data={sampleNegaraData} onEdit={handleEdit} />;
+      case 'provinsi': 
+        return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} negaraList={sampleNegaraData} />;
+      case 'kabupaten': 
+        return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} provinsiList={sampleProvinsiData} />;
+      case 'kecamatan': 
+        return <KecamatanTable data={sampleKecamatanData} onEdit={handleEdit} kabupatenList={sampleKabupatenData} />;
+      default: 
+        return null;
     }
   };
 

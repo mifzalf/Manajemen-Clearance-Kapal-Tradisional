@@ -19,7 +19,12 @@ const ActionDropdown = ({ item, onEdit }) => {
   );
 };
 
-const ProvinsiTable = ({ data = [], onEdit }) => {
+const ProvinsiTable = ({ data = [], onEdit, negaraList = [] }) => {
+  const getNegaraName = (negaraId) => {
+    const negara = negaraList.find(n => n.id === negaraId);
+    return negara ? negara.nama : 'Tidak diketahui';
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -27,6 +32,7 @@ const ProvinsiTable = ({ data = [], onEdit }) => {
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">No.</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Provinsi</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Negara</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
         </thead>
@@ -35,6 +41,7 @@ const ProvinsiTable = ({ data = [], onEdit }) => {
             <tr key={item.id}>
               <td className="px-6 py-4 text-sm font-medium text-gray-900">{index + 1}</td>
               <td className="px-6 py-4 text-sm text-gray-500">{item.nama}</td>
+              <td className="px-6 py-4 text-sm text-gray-500">{getNegaraName(item.negaraId)}</td>
               <td className="px-6 py-4 flex justify-end">
                 <ActionDropdown item={item} onEdit={onEdit} />
               </td>
