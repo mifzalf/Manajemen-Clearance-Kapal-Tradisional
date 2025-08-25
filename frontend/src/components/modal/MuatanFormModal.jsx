@@ -3,23 +3,22 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
+import axios from 'axios';
 
 const statusOptions = [
   { value: '', label: 'Pilih Status Muatan', disabled: true },
   { value: 'Umum', label: 'Umum' },
   { value: 'Berbahaya', label: 'Berbahaya' },
-  { value: 'Cair', label: 'Cair' },
-  { value: 'Curah', label: 'Curah' },
-  { value: 'Lainnya', label: 'Lainnya' },
 ];
 
-const MuatanFormModal = ({ onClose, currentItem }) => {
-  const [formData, setFormData] = useState({ nama: '', status: '' });
+const MuatanFormModal = ({ onClose, currentItem, onSuccess }) => {
+  const API_URL = import.meta.env.VITE_API_URL
+  const [formData, setFormData] = useState({ nama_kategori_muatan: '', status_kategori_muatan: '' });
   const isEditMode = Boolean(currentItem);
 
   useEffect(() => {
     if (isEditMode) {
-      setFormData({ nama: currentItem.nama, status: currentItem.status });
+      setFormData({ nama_kategori_muatan: currentItem.nama_kategori_muatan, status: currentItem.status_kategori_muatan });
     }
   }, [currentItem, isEditMode]);
 
@@ -27,11 +26,20 @@ const MuatanFormModal = ({ onClose, currentItem }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Data Disimpan:", formData);
-    alert(`Data Muatan Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
-    onClose();
+    let response = (isEditMode) ? await axios.patch(`${API_URL}/kategori-muatan/update/${currentItem.id_kategori_muatan}`, formData) : await axios.post(`${API_URL}/kategori-muatan/store`, formData)
+    if (response.status == 200) {
+      console.log(response)
+      console.log(`Data ${isEditMode ? 'Diperbarui' : 'Disimpan'}: ` + formData);
+      alert(`Data Muatan Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
+      onClose();
+      onSuccess()
+    } else {
+      console.log("Data Gagal Disimpan:", response.data.msg);
+      alert(`Terjadi Kesalahan saat ${isEditMode ? 'memperbarui' : 'menyimpan'} data kategori muatan!`);
+      onClose()
+    }
   };
 
   return (
@@ -44,11 +52,11 @@ const MuatanFormModal = ({ onClose, currentItem }) => {
           <div className="p-5 space-y-4">
             <div>
               <Label htmlFor="nama">Nama Muatan</Label>
-              <InputField name="nama" id="nama" value={formData.nama} onChange={handleChange} placeholder="Contoh: LPG" required />
+              <InputField name="nama_kategori_muatan" id="nama" value={formData.nama_kategori_muatan} onChange={handleChange} placeholder="Contoh: LPG" required />
             </div>
             <div>
               <Label htmlFor="status">Status Muatan</Label>
-              <Select name="status" id="status" value={formData.status} onChange={handleChange} options={statusOptions} required />
+              <Select name="status_kategori_muatan" id="status" value={formData.status_kategori_muatan} onChange={handleChange} options={statusOptions} required />
             </div>
           </div>
           <div className="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">

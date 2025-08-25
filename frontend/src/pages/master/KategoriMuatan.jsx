@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import MuatanTable from '../../components/table/MuatanTable';
 import MuatanFormModal from '../../components/modal/MuatanFormModal';
-
-const sampleMuatanData = [
-  { id: 1, nama: 'LPG (Liquefied Petroleum Gas)', status: 'Berbahaya' },
-  { id: 2, nama: 'Semen Curah', status: 'Umum' },
-  { id: 3, nama: 'Bahan Kimia Cair (Amonia)', status: 'Berbahaya' },
-  { id: 4, nama: 'Batu Bara', status: 'Umum' },
-];
+import axios from 'axios'
 
 function KategoriMuatan() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [muatanData, setMuatanData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    setMuatanData(sampleMuatanData);
+    fetchKategoriMuatan()
     setLoading(false);
   }, []);
+
+  const fetchKategoriMuatan = async () => {
+    let response = await axios.get(`${API_URL}/kategori-muatan`) 
+    console.log(response)
+    setMuatanData(response.data.datas)
+  }
 
   const handleOpenModal = () => {
     setEditingItem(null);
@@ -51,10 +52,10 @@ function KategoriMuatan() {
         {loading ? (
           <p className="text-center text-gray-500">Memuat data...</p>
         ) : (
-          <MuatanTable muatanItems={muatanData} onEdit={handleEdit} />
+          <MuatanTable muatanItems={muatanData} onEdit={handleEdit} onSuccess={fetchKategoriMuatan} />
         )}
       </div>
-      {isModalOpen && <MuatanFormModal onClose={handleCloseModal} currentItem={editingItem} />}
+      {isModalOpen && <MuatanFormModal onClose={handleCloseModal} currentItem={editingItem} onSuccess={fetchKategoriMuatan} />}
     </>
   );
 }
