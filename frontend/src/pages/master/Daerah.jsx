@@ -16,6 +16,7 @@ function Daerah() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [negaraData, setNegaraData] = useState([])
+  const [provinsiData, setProvinsiData] = useState([])
 
   const tabs = [
     { id: 'negara', label: 'Negara' },
@@ -25,13 +26,24 @@ function Daerah() {
   ];
 
   useEffect(() => {
-    fetchNegara()
+    fetchAll()
   }, [])
   
   const fetchNegara = async () => {
     let response = await axios.get(`${API_URL}/negara`)
     console.log(response)
     setNegaraData(response.data.datas)
+  }
+
+  const fetchProvinsi = async () => {
+    let response = await axios.get(`${API_URL}/provinsi`)
+    console.log(response)
+    setProvinsiData(response.data.datas)
+  }
+
+  const fetchAll = () => {
+    fetchNegara()
+    fetchProvinsi()
   }
 
   const handleOpenModal = () => {
@@ -54,7 +66,7 @@ function Daerah() {
       case 'negara': 
         return <NegaraTable data={negaraData} onEdit={handleEdit} onSuccess={fetchNegara} />;
       case 'provinsi': 
-        return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} negaraList={negaraData} />;
+        return <ProvinsiTable data={provinsiData} onEdit={handleEdit} negaraList={negaraData} onSuccess={fetchProvinsi} />;
       case 'kabupaten': 
         return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} provinsiList={sampleProvinsiData} />;
       case 'kecamatan': 
@@ -101,9 +113,9 @@ function Daerah() {
           onClose={handleCloseModal} 
           currentItem={editingItem}
           allNegara={negaraData}
-          allProvinsi={sampleProvinsiData}
+          allProvinsi={provinsiData}
           allKabupaten={sampleKabupatenData}
-          onSuccess={fetchNegara}
+          onSuccess={fetchAll}
         />
       )}
     </>

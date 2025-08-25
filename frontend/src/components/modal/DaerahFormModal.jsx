@@ -5,32 +5,37 @@ import Select from '../form/Select';
 import Button from '../ui/Button';
 import axios from 'axios';
 
-const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allProvinsi = [], allKabupaten = [], onSuccess}) => {
+const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allProvinsi = [], allKabupaten = [], onSuccess }) => {
   const API_URL = import.meta.env.VITE_API_URL
   const [formData, setFormData] = useState({});
   const isEditMode = Boolean(currentItem);
+  const [parent, setParent] = useState("")
 
   useEffect(() => {
-    if (isEditMode && currentItem) {
-      let parentId;
-      if (activeTab === 'provinsi') parentId = currentItem.negaraId;
-      if (activeTab === 'kabupaten') parentId = currentItem.provinsiId;
-      if (activeTab === 'kecamatan') parentId = currentItem.kabupatenId;
+    if (activeTab === 'provinsi') setParent("negara");
+    if (activeTab === 'kabupaten') setParent("provinsi");
+    if (activeTab === 'kecamatan') setParent("kecamatan");
 
+    console.log(parent)
+    if (isEditMode && currentItem) {
       setFormData({
-        parentId: parentId || '',
+        [`id_${parent}`]: currentItem[`id_${parent}`] || '',
+        [`nama_${activeTab}`]: currentItem[`nama_${activeTab}`] || ''
+      });
+      if (activeTab == 'negara') setFormData({
         kode_negara: currentItem.kode_negara || '',
         nama_negara: currentItem.nama_negara || ''
       });
     } else {
-      setFormData({ kode_negara: '', nama_negara: '' });
+      setFormData({ [`nama_${activeTab}`]: '', [`id_${parent}`]: null })
+      if (activeTab == 'negara') setFormData({ kode_negara: '', nama_negara: '' });
     }
-  }, [activeTab, currentItem, isEditMode]);
+  }, [activeTab, currentItem, isEditMode, parent]);
 
   const parentOptions = useMemo(() => {
     switch (activeTab) {
       case 'provinsi':
-        return [{ value: '', label: 'Pilih Negara' }, ...allNegara.map(n => ({ value: n.id, label: n.nama }))];
+        return [{ value: '', label: 'Pilih Negara' }, ...allNegara.map(n => ({ value: n.id_negara, label: n.nama_negara }))];
       case 'kabupaten':
         return [{ value: '', label: 'Pilih Provinsi' }, ...allProvinsi.map(p => ({ value: p.id, label: p.nama }))];
       case 'kecamatan':
@@ -66,7 +71,8 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let response = (isEditMode) ? await axios.patch(`${API_URL}/negara/update/${currentItem.id_negara}`, formData) : await axios.post(`${API_URL}/negara/store`, formData)
+    console.log(formData)
+    let response = (isEditMode) ? await axios.patch(`${API_URL}/${activeTab}/update/${currentItem[`id_${activeTab}`]}`, formData) : await axios.post(`${API_URL}/${activeTab}/store`, formData)
     if (response.status == 200) {
       console.log(`Data ${isEditMode ? 'diperbarui' : 'baru'} untuk ${activeTab}:`, formData);
       alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
@@ -88,7 +94,7 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
             {activeTab !== 'negara' && (
               <div>
                 <Label htmlFor="parentId">{getParentLabel()}</Label>
-                <Select name="parentId" id="parentId" value={formData.parentId} onChange={handleChange} options={parentOptions} required />
+                <Select name={`id_${parent}`} id="parentId" value={formData[`id_${parent}`]} onChange={handleChange} options={parentOptions} required />
               </div>
             )}
             {activeTab === 'negara' && (
@@ -99,7 +105,7 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
             )}
             <div>
               <Label htmlFor="nama">Nama {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</Label>
-              <InputField name={`nama_${activeTab}`} id="nama" value={formData.nama_negara} onChange={handleChange} required />
+              <InputField name={`nama_${activeTab}`} id="nama" value={formData[`nama_${activeTab}`]} onChange={handleChange} required />
             </div>
           </div>
           <div className="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
