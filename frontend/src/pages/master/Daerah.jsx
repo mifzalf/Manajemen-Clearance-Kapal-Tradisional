@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NegaraTable from '../../components/table/NegaraTable';
 import ProvinsiTable from '../../components/table/ProvinsiTable';
 import KabupatenTable from '../../components/table/KabupatenTable';
 import KecamatanTable from '../../components/table/KecamatanTable';
 import DaerahFormModal from '../../components/modal/DaerahFormModal';
+import axios from 'axios';
 
-const sampleNegaraData = [ { id: 1, kode: 'RI', nama: 'Indonesia' }, { id: 2, kode: 'MY', nama: 'Malaysia' } ];
 const sampleProvinsiData = [ { id: 1, nama: 'Jawa Timur', negaraId: 1 }, { id: 2, nama: 'Jawa Tengah', negaraId: 1 }, { id: 3, nama: 'Selangor', negaraId: 2 } ];
 const sampleKabupatenData = [ { id: 1, nama: 'Kabupaten Sumenep', provinsiId: 1 }, { id: 2, nama: 'Kota Surabaya', provinsiId: 1 }, { id: 3, nama: 'Kota Semarang', provinsiId: 2 } ];
 const sampleKecamatanData = [ { id: 1, nama: 'Kalianget', kabupatenId: 1 }, { id: 2, nama: 'Kota Sumenep', kabupatenId: 1 }, { id: 3, nama: 'Gayam', kabupatenId: 1 } ];
 
 function Daerah() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [activeTab, setActiveTab] = useState('negara');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [negaraData, setNegaraData] = useState([])
 
   const tabs = [
     { id: 'negara', label: 'Negara' },
@@ -21,7 +23,17 @@ function Daerah() {
     { id: 'kabupaten', label: 'Kabupaten/Kota' },
     { id: 'kecamatan', label: 'Kecamatan' },
   ];
+
+  useEffect(() => {
+    fetchNegara()
+  }, [])
   
+  const fetchNegara = async () => {
+    let response = await axios.get(`${API_URL}/negara`)
+    console.log(response)
+    setNegaraData(response.data.datas)
+  }
+
   const handleOpenModal = () => {
     setEditingItem(null);
     setIsModalOpen(true);
@@ -40,9 +52,9 @@ function Daerah() {
   const renderContent = () => {
     switch (activeTab) {
       case 'negara': 
-        return <NegaraTable data={sampleNegaraData} onEdit={handleEdit} />;
+        return <NegaraTable data={negaraData} onEdit={handleEdit} onSuccess={fetchNegara} />;
       case 'provinsi': 
-        return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} negaraList={sampleNegaraData} />;
+        return <ProvinsiTable data={sampleProvinsiData} onEdit={handleEdit} negaraList={negaraData} />;
       case 'kabupaten': 
         return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} provinsiList={sampleProvinsiData} />;
       case 'kecamatan': 
@@ -88,9 +100,10 @@ function Daerah() {
           activeTab={activeTab} 
           onClose={handleCloseModal} 
           currentItem={editingItem}
-          allNegara={sampleNegaraData}
+          allNegara={negaraData}
           allProvinsi={sampleProvinsiData}
           allKabupaten={sampleKabupatenData}
+          onSuccess={fetchNegara}
         />
       )}
     </>

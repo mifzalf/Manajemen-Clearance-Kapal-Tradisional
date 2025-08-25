@@ -3,25 +3,27 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
+import axios from 'axios';
 
-const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allProvinsi = [], allKabupaten = [] }) => {
+const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allProvinsi = [], allKabupaten = [], onSuccess}) => {
+  const API_URL = import.meta.env.VITE_API_URL
   const [formData, setFormData] = useState({});
   const isEditMode = Boolean(currentItem);
 
   useEffect(() => {
     if (isEditMode && currentItem) {
-        let parentId;
-        if (activeTab === 'provinsi') parentId = currentItem.negaraId;
-        if (activeTab === 'kabupaten') parentId = currentItem.provinsiId;
-        if (activeTab === 'kecamatan') parentId = currentItem.kabupatenId;
+      let parentId;
+      if (activeTab === 'provinsi') parentId = currentItem.negaraId;
+      if (activeTab === 'kabupaten') parentId = currentItem.provinsiId;
+      if (activeTab === 'kecamatan') parentId = currentItem.kabupatenId;
 
-        setFormData({
-            parentId: parentId || '',
-            kode: currentItem.kode || '',
-            nama: currentItem.nama || ''
-        });
+      setFormData({
+        parentId: parentId || '',
+        kode_negara: currentItem.kode_negara || '',
+        nama_negara: currentItem.nama_negara || ''
+      });
     } else {
-        setFormData({ parentId: '', kode: '', nama: '' });
+      setFormData({ kode_negara: '', nama_negara: '' });
     }
   }, [activeTab, currentItem, isEditMode]);
 
@@ -62,11 +64,19 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(`Data ${isEditMode ? 'diperbarui' : 'baru'} untuk ${activeTab}:`, formData);
-    alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
-    onClose();
+    let response = (isEditMode) ? await axios.patch(`${API_URL}/negara/update/${currentItem.id_negara}`, formData) : await axios.post(`${API_URL}/negara/store`, formData)
+    if (response.status == 200) {
+      console.log(`Data ${isEditMode ? 'diperbarui' : 'baru'} untuk ${activeTab}:`, formData);
+      alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+      onSuccess()
+      onClose();
+    } else {
+      console.log("Error:", response.data.msg);
+      alert(`Terjadi kesalahaan saat ${isEditMode ? 'memperbarui' : 'menyimpan'} data`);
+      onClose();
+    }
   };
 
   return (
@@ -84,12 +94,12 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
             {activeTab === 'negara' && (
               <div>
                 <Label htmlFor="kode">Kode Negara</Label>
-                <InputField name="kode" id="kode" value={formData.kode} onChange={handleChange} placeholder="Contoh: RI" required />
+                <InputField name="kode_negara" id="kode" value={formData.kode_negara} onChange={handleChange} placeholder="Contoh: RI" required />
               </div>
             )}
             <div>
               <Label htmlFor="nama">Nama {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</Label>
-              <InputField name="nama" id="nama" value={formData.nama} onChange={handleChange} required />
+              <InputField name={`nama_${activeTab}`} id="nama" value={formData.nama_negara} onChange={handleChange} required />
             </div>
           </div>
           <div className="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
