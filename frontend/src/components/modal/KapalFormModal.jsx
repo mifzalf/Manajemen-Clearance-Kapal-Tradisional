@@ -10,6 +10,21 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
   const [formData, setFormData] = useState({});
   const isEditMode = Boolean(currentItem);
 
+  useEffect(() => {
+    if (isEditMode && currentItem) {
+      setFormData(currentItem);
+    } else {
+      if (activeTab === 'kapal') {
+        setFormData({
+          nama_kapal: '', id_jenis: null, id_bendera: null, gt: '', nt: '',
+          nomor_selar: '', tanda_selar: '', nomor_imo: null, call_sign: null
+        });
+      } else {
+        setFormData({ nama_jenis: '' });
+      }
+    }
+  }, [activeTab, currentItem, isEditMode]);
+  
   const formattedJenisKapalOptions = useMemo(() => {
     return [
       { value: '', label: 'Pilih Jenis Kapal', disabled: true },
@@ -17,27 +32,12 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
     ];
   }, [jenisKapalOptions]);
   
-  const formattedNegaraOptions = useMemo(() => {
+  const formattedBenderaOptions = useMemo(() => {
     return [
       { value: '', label: 'Pilih Bendera Negara', disabled: true },
-      ...negaraOptions.map(item => ({ value: item.nama, label: item.nama }))
+      ...negaraOptions.map(item => ({ value: item.id_negara, label: item.kode_negara }))
     ];
   }, [negaraOptions]);
-
-  useEffect(() => {
-    if (isEditMode && currentItem) {
-      setFormData(currentItem);
-    } else {
-      if (activeTab === 'kapal') {
-        setFormData({
-          nama_kapal: '', id_jenis: '', bendera: '', gt: '', nt: '',
-          nomor_selar: '', tanda_selar: '', nomor_imo: '', call_sign: ''
-        });
-      } else {
-        setFormData({ nama_jenis: '' });
-      }
-    }
-  }, [activeTab, currentItem, isEditMode]);
 
   const getTitle = () => {
     const action = isEditMode ? 'Edit' : 'Tambah';
@@ -49,6 +49,7 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
   };
 
   const handleSubmit = async (e) => {
+    console.log(formData)
     e.preventDefault();
     const endpoint = activeTab === 'kapal' ? 'kapal' : 'jenis';
     const idField = activeTab === 'kapal' ? 'id_kapal' : 'id_jenis';
@@ -75,11 +76,11 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2"><Label htmlFor="nama_kapal">Nama Kapal</Label><InputField name="nama_kapal" id="nama_kapal" value={formData.nama_kapal || ''} onChange={handleChange} required /></div>
           <div><Label htmlFor="id_jenis">Jenis Kapal</Label><Select name="id_jenis" id="id_jenis" value={formData.id_jenis || ''} onChange={handleChange} options={formattedJenisKapalOptions} required /></div>
-          <div><Label htmlFor="bendera">Bendera</Label><Select name="bendera" id="bendera" value={formData.bendera || ''} onChange={handleChange} options={formattedNegaraOptions} required /></div>
+          <div><Label htmlFor="bendera">Bendera</Label><Select name="id_bendera" id="bendera" value={formData.id_bendera || ''} onChange={handleChange} options={formattedBenderaOptions} required /></div>
           <div><Label htmlFor="gt">Gross Tonnage (GT)</Label><InputField type="number" name="gt" id="gt" value={formData.gt || ''} onChange={handleChange} required /></div>
           <div><Label htmlFor="nt">Net Tonnage (NT)</Label><InputField type="number" name="nt" id="nt" value={formData.nt || ''} onChange={handleChange} required /></div>
-          <div><Label htmlFor="nomor_selar">Nomor Selar</Label><InputField name="nomor_selar" id="nomor_selar" value={formData.nomor_selar || ''} onChange={handleChange} /></div>
-          <div><Label htmlFor="tanda_selar">Tanda Selar</Label><InputField name="tanda_selar" id="tanda_selar" value={formData.tanda_selar || ''} onChange={handleChange} /></div>
+          <div><Label htmlFor="nomor_selar">Nomor Selar</Label><InputField type="number" name="nomor_selar" id="nomor_selar" value={formData.nomor_selar || ''} onChange={handleChange} required /></div>
+          <div><Label htmlFor="tanda_selar">Tanda Selar</Label><InputField name="tanda_selar" id="tanda_selar" value={formData.tanda_selar || ''} onChange={handleChange} required/></div>
           <div><Label htmlFor="nomor_imo">Nomor IMO</Label><InputField name="nomor_imo" id="nomor_imo" value={formData.nomor_imo || ''} onChange={handleChange} /></div>
           <div><Label htmlFor="call_sign">Call Sign</Label><InputField name="call_sign" id="call_sign" value={formData.call_sign || ''} onChange={handleChange} /></div>
         </div>

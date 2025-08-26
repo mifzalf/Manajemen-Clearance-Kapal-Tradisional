@@ -25,6 +25,7 @@ function Kapal() {
   const [editingItem, setEditingItem] = useState(null);
   const [kapalData, setKapalData] = useState([])
   const [jenisKapalData, setJenisKapalData] = useState([])
+  const [negaraData, setNegaraData] = useState([])
 
   const tabs = [
     { id: 'kapal', label: 'Daftar Kapal' },
@@ -32,21 +33,31 @@ function Kapal() {
   ];
 
   useEffect(() => {
-    fecthJenisKapal()
-    // fecthKapal()
-    setKapalData(sampleKapalData)
+    fetchAll()
   }, [])
 
-  // async function fecthKapal() {
-  //   let response = await axios.get(`${API_URL}/kapal`)
-  //   console.log(response)
-  //   setKapalData(response?.data?.datas)
-  // }
+  async function fetchBendera() {
+    let response = await axios.get(`${API_URL}/negara`)
+    console.log(response)
+    setNegaraData(response?.data?.datas)
+  }
+
+  async function fetchKapal() {
+    let response = await axios.get(`${API_URL}/kapal`)
+    console.log(response)
+    setKapalData(response?.data?.datas)
+  }
   
-  async function fecthJenisKapal() {
+  async function fetchJenisKapal() {
     let response = await axios.get(`${API_URL}/jenis`)
     console.log(response)
     setJenisKapalData(response?.data?.datas)
+  }
+
+  async function fetchAll() {
+    fetchJenisKapal()
+    fetchKapal()
+    fetchBendera()
   }
   
   const handleOpenModal = () => {
@@ -67,9 +78,9 @@ function Kapal() {
   const renderContent = () => {
     switch (activeTab) {
       case 'kapal':
-        return <KapalTable data={kapalData} onEdit={handleEdit} />;
+        return <KapalTable data={kapalData} onEdit={handleEdit} jenisList={jenisKapalData} benderaList={negaraData} onSuccess={fetchKapal} />;
       case 'jenisKapal':
-        return <JenisKapalTable data={jenisKapalData} onEdit={handleEdit} onSuccess={fecthJenisKapal}/>;
+        return <JenisKapalTable data={jenisKapalData} onEdit={handleEdit} onSuccess={fetchJenisKapal}/>;
       default:
         return null;
     }
@@ -114,8 +125,9 @@ function Kapal() {
           activeTab={activeTab}
           onClose={handleCloseModal}
           currentItem={editingItem}
-          jenisKapalOptions={sampleJenisKapalData}
-          onSuccess={fecthJenisKapal}
+          jenisKapalOptions={jenisKapalData}
+          negaraOptions={negaraData}
+          onSuccess={fetchAll}
         />
       )}
     </>

@@ -2,10 +2,26 @@ import React, { useState, useRef } from 'react';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
+import axios from 'axios';
 
-const ActionDropdown = ({ item, onEdit }) => {
+const ActionDropdown = ({ item, onEdit, onSuccess }) => {
+  const API_URL = import.meta.env.VITE_API_URL
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
+
+  const onDelete = async () => {
+    setIsOpen(!isOpen)
+    if(confirm(`Hapus item ${item.nama_kapal}?`)){
+      let response = await axios.delete(`${API_URL}/kapal/delete/${item.id_kapal}`)
+      if(response?.status == 200){
+        alert("Berhasil menghapus data")
+        onSuccess()
+      }else {
+        alert("Terjadi kesalahan saat menghapus data")
+      }
+    }
+  }
+
   return (
     <div className="relative">
       <button ref={triggerRef} onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-md hover:bg-gray-100 focus:outline-none">
@@ -13,13 +29,25 @@ const ActionDropdown = ({ item, onEdit }) => {
       </button>
       <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} triggerRef={triggerRef} className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg">
         <DropdownItem onItemClick={() => onEdit(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit</DropdownItem>
-        <DropdownItem onItemClick={() => confirm(`Hapus item ${item.id}?`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">Hapus</DropdownItem>
+        <DropdownItem onItemClick={onDelete} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">Hapus</DropdownItem>
       </Dropdown>
     </div>
   );
 };
 
-const KapalTable = ({ data = [], onEdit }) => {
+const KapalTable = ({ data = [], onEdit, jenisList = [], benderaList = [], onSuccess }) => {
+
+  function getkapalName(jenisId) {
+    let jenis = jenisList.find(j => j.id_jenis === jenisId)
+    return jenis ? jenis.nama_jenis : "Tidak diketahui"
+  }
+
+  function getBendera(benderaId) {
+    let bendera = benderaList.find(b => b.id_negara === benderaId)
+    console.log(benderaId)
+    return bendera ? bendera.kode_negara : "Tidak diketahui"
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -37,14 +65,14 @@ const KapalTable = ({ data = [], onEdit }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((item) => (
             <tr key={item.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nama}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.jenis}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.bendera}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nama_kapal}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getkapalName(item.id_jenis)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getBendera(item.id_bendera)}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.gt} / {item.nt}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nomorSelar} / {item.tandaSelar}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nomorImo} / {item.callSign}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nomor_selar} / {item.tanda_selar}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nomor_imo} / {item.call_sign}</td>
               <td className="px-6 py-4 flex justify-end">
-                <ActionDropdown item={item} onEdit={onEdit} />
+                <ActionDropdown item={item} onEdit={onEdit} onSuccess={onSuccess} />
               </td>
             </tr>
           ))}

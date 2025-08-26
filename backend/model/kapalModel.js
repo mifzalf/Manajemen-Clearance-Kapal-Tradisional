@@ -32,8 +32,8 @@ const kapal = db.define('kapal', {
     nt: DataTypes.INTEGER,
     nomor_selar: DataTypes.INTEGER,
     tanda_selar: DataTypes.STRING,
-    nomor_selar: DataTypes.STRING,
-    nomor_selar: DataTypes.STRING,
+    nomor_imo: DataTypes.STRING,
+    call_sign: DataTypes.STRING,
 },
     {
         freezeTableName: true
