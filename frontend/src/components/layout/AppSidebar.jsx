@@ -33,7 +33,6 @@ const AppSidebar = () => {
         { name: 'Kategori Muatan', path: '/master/muatan' },
       ],
     },
-    { name: 'Laporan', path: '/laporan', icon: <PieChartIcon /> },
   ];
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
