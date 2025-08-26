@@ -18,7 +18,7 @@ const MuatanFormModal = ({ onClose, currentItem, onSuccess }) => {
 
   useEffect(() => {
     if (isEditMode) {
-      setFormData({ nama_kategori_muatan: currentItem.nama_kategori_muatan, status: currentItem.status_kategori_muatan });
+      setFormData({ nama_kategori_muatan: currentItem.nama_kategori_muatan, status_kategori_muatan: currentItem.status_kategori_muatan });
     }
   }, [currentItem, isEditMode]);
 
