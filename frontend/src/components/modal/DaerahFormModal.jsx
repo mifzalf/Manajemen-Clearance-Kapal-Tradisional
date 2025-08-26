@@ -14,7 +14,7 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
   useEffect(() => {
     if (activeTab === 'provinsi') setParent("negara");
     if (activeTab === 'kabupaten') setParent("provinsi");
-    if (activeTab === 'kecamatan') setParent("kecamatan");
+    if (activeTab === 'kecamatan') setParent("kabupaten");
 
     console.log(parent)
     if (isEditMode && currentItem) {
@@ -39,7 +39,7 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
       case 'kabupaten':
         return [{ value: '', label: 'Pilih Provinsi' }, ...allProvinsi.map(p => ({ value: p.id_provinsi, label: p.nama_provinsi }))];
       case 'kecamatan':
-        return [{ value: '', label: 'Pilih Kabupaten/Kota' }, ...allKabupaten.map(k => ({ value: k.id, label: k.nama }))];
+        return [{ value: '', label: 'Pilih Kabupaten/Kota' }, ...allKabupaten.map(k => ({ value: k.id_kabupaten, label: k.nama_kabupaten }))];
       default:
         return [];
     }
