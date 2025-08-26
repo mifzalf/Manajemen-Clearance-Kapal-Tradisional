@@ -6,7 +6,6 @@ import KecamatanTable from '../../components/table/KecamatanTable';
 import DaerahFormModal from '../../components/modal/DaerahFormModal';
 import axios from 'axios';
 
-const sampleProvinsiData = [ { id: 1, nama: 'Jawa Timur', negaraId: 1 }, { id: 2, nama: 'Jawa Tengah', negaraId: 1 }, { id: 3, nama: 'Selangor', negaraId: 2 } ];
 const sampleKabupatenData = [ { id: 1, nama: 'Kabupaten Sumenep', provinsiId: 1 }, { id: 2, nama: 'Kota Surabaya', provinsiId: 1 }, { id: 3, nama: 'Kota Semarang', provinsiId: 2 } ];
 const sampleKecamatanData = [ { id: 1, nama: 'Kalianget', kabupatenId: 1 }, { id: 2, nama: 'Kota Sumenep', kabupatenId: 1 }, { id: 3, nama: 'Gayam', kabupatenId: 1 } ];
 
@@ -17,6 +16,7 @@ function Daerah() {
   const [editingItem, setEditingItem] = useState(null);
   const [negaraData, setNegaraData] = useState([])
   const [provinsiData, setProvinsiData] = useState([])
+  const [kabupatenData, setKabupatenData] = useState([])
 
   const tabs = [
     { id: 'negara', label: 'Negara' },
@@ -41,9 +41,16 @@ function Daerah() {
     setProvinsiData(response.data.datas)
   }
 
+  const fetchKabupaten = async () => {
+    let response = await axios.get(`${API_URL}/kabupaten`)
+    console.log(response)
+    setKabupatenData(response.data.datas)
+  }
+
   const fetchAll = () => {
     fetchNegara()
     fetchProvinsi()
+    fetchKabupaten()
   }
 
   const handleOpenModal = () => {
@@ -68,7 +75,7 @@ function Daerah() {
       case 'provinsi': 
         return <ProvinsiTable data={provinsiData} onEdit={handleEdit} negaraList={negaraData} onSuccess={fetchProvinsi} />;
       case 'kabupaten': 
-        return <KabupatenTable data={sampleKabupatenData} onEdit={handleEdit} provinsiList={sampleProvinsiData} />;
+        return <KabupatenTable data={kabupatenData} onEdit={handleEdit} provinsiList={provinsiData} onSuccess={fetchKabupaten} />;
       case 'kecamatan': 
         return <KecamatanTable data={sampleKecamatanData} onEdit={handleEdit} kabupatenList={sampleKabupatenData} />;
       default: 

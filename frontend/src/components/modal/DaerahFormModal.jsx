@@ -37,7 +37,7 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
       case 'provinsi':
         return [{ value: '', label: 'Pilih Negara' }, ...allNegara.map(n => ({ value: n.id_negara, label: n.nama_negara }))];
       case 'kabupaten':
-        return [{ value: '', label: 'Pilih Provinsi' }, ...allProvinsi.map(p => ({ value: p.id, label: p.nama }))];
+        return [{ value: '', label: 'Pilih Provinsi' }, ...allProvinsi.map(p => ({ value: p.id_provinsi, label: p.nama_provinsi }))];
       case 'kecamatan':
         return [{ value: '', label: 'Pilih Kabupaten/Kota' }, ...allKabupaten.map(k => ({ value: k.id, label: k.nama }))];
       default:
