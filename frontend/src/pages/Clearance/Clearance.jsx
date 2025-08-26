@@ -9,7 +9,6 @@ import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
 import PrintableClearanceList from '../../components/clearance/PrintableClearanceList';
 
-// ... (sampleClearanceData, customStyles, dan rowsPerPageOptions tetap sama) ...
 const sampleClearanceData = [
     { id: 1, nomorSpb: 'SPB/08/001', namaKapal: 'KM. Sejahtera Abadi', tujuan: 'Surabaya', tglBerangkat: '2025-08-15', agen: 'PT. Laut Biru', kategoriBarang: 'Umum', muatan: ['Semen', 'Kerupuk'] },
     { id: 2, nomorSpb: 'SPB/08/002', namaKapal: 'KM. Sentosa', tujuan: 'Makassar', tglBerangkat: '2025-08-16', agen: 'CV. Samudera', kategoriBarang: 'Berbahaya', muatan: ['Solar'] },
@@ -24,13 +23,14 @@ const sampleClearanceData = [
     { id: 11, nomorSpb: 'SPB/08/011', namaKapal: 'KM. Pelita Jaya', tujuan: 'Jakarta', tglBerangkat: '2025-08-25', agen: 'PT. Pelita', kategoriBarang: 'Umum', muatan: ['Semen'] },
     { id: 12, nomorSpb: 'SPB/08/012', namaKapal: 'KM. Sentosa', tujuan: 'Bali', tglBerangkat: '2025-08-26', agen: 'CV. Samudera', kategoriBarang: 'Berbahaya', muatan: ['Solar'] },
 ];
+
 const customStyles = {
   multiValue: (styles) => ({ ...styles, backgroundColor: '#E0E7FF' }),
   multiValueLabel: (styles) => ({ ...styles, color: '#374151' }),
   multiValueRemove: (styles) => ({ ...styles, color: '#4F46E5', ':hover': { backgroundColor: '#4F46E5', color: 'white' } }),
 };
-const rowsPerPageOptions = ['5', '10', '20'];
 
+const rowsPerPageOptions = ['5', '10', '20', 'All'];
 
 function Clearance() {
   const [clearanceData, setClearanceData] = useState([]);
@@ -41,7 +41,6 @@ function Clearance() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const exportRef = useRef(null);
   
-  // ... (semua fungsi useEffect, handler, dan useMemo Anda tetap sama) ...
   useEffect(() => {
     setClearanceData(sampleClearanceData);
     setLoading(false);
@@ -63,7 +62,11 @@ function Clearance() {
   };
   
   const handleRowsPerPageChange = (value) => {
-    setRowsPerPage(parseInt(value, 10));
+    if (value === 'Semua') {
+      setRowsPerPage(filteredData.length);
+    } else {
+      setRowsPerPage(parseInt(value, 10));
+    }
     setCurrentPage(1);
   };
 
@@ -106,6 +109,8 @@ function Clearance() {
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
 
   return (
     <>
@@ -155,7 +160,12 @@ function Clearance() {
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
               <div className="flex items-center gap-2 text-sm">
                 <span>Tampilkan</span>
-                <FilterDropdown direction="up" selectedValue={String(rowsPerPage)} setSelectedValue={handleRowsPerPageChange} options={rowsPerPageOptions} />
+                <FilterDropdown
+                  direction="up"
+                  selectedValue={selectedRowsPerPage}
+                  setSelectedValue={handleRowsPerPageChange}
+                  options={rowsPerPageOptions}
+                />
                 <span>baris</span>
               </div>
               {totalPages > 1 && (
