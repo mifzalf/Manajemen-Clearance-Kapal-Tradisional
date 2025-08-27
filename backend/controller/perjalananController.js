@@ -3,8 +3,10 @@ const kapal = require("../model/kapalModel")
 const nahkoda = require("../model/nahkodaModel")
 const perjalanan = require("../model/perjalananModel")
 const kabupaten = require("../model/kabupatenModel")
-const { Op } = require("sequelize")
+const { Op, Sequelize } = require("sequelize")
 const agen = require("../model/agenModel")
+let spbController = require("./spbController")
+const { db } = require("../config/db")
 
 const getPerjalanan = async (req, res) => {
     try {
@@ -30,6 +32,7 @@ const getPerjalananById = async (req, res) => {
 }
 
 const storePerjalanan = async (req, res) => {
+    const t = await db.transaction()
     try {
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
@@ -76,18 +79,22 @@ const storePerjalanan = async (req, res) => {
 
         req.body.status_muatan_berangkat = (String(req.body.status_muatan_berangkat).toLowerCase() == "kosong") ? "NIHIL" : "SESUAI MANIFEST"
 
+        let spb = await spbController.storeSpb(req.body.no_spb_asal, t)
 
-        await perjalanan.create({ ...req.body, no_urut })
-
+        await perjalanan.create({ ...req.body, no_urut, id_spb: spb.id_spb }, {transaction: t})
+        t.commit()
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
+        t.rollback
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
 const updatePerjalanan = async (req, res) => {
+    const t = await db.transaction()
     try {
+        let perjalananData = await perjalanan.findByPk(req.params.id)
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -114,25 +121,33 @@ const updatePerjalanan = async (req, res) => {
 
         req.body.status_muatan_berangkat = (String(req.body.status_muatan_berangkat).toLowerCase() == "kosong") ? "NIHIL" : "SESUAI MANIFEST"
 
-        let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id } })
+        await spbController.updateSpb(req.body.no_spb_asal, perjalananData.id_spb, t)
+
+        let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t})
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
-
+        t.commit()
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
+        t.rollback()
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
 const deletePerjalanan = async (req, res) => {
+    const t = await db.transaction()
     try {
-        let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id } })
+        let data = await perjalanan.findByPk(req.params.id)
+        let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+        await spbController.deleteSpb(data.id_spb, t)
+        t.commit()
 
         return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
+        t.rollback()
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }

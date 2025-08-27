@@ -25,48 +25,44 @@ const getSpbById = async (req, res) => {
     }
 }
 
-const storeSpb = async (req, res) => {
+const storeSpb = async (no_spb_asal, t) => {
     try {
-        if (req.body.no_spb_asal == "") req.body.no_spb_asal = null
+        if (no_spb_asal == "") no_spb_asal = null
         let latestData = await spb.findOne({ order: [["createdAt", "DESC"]] })
-        req.body.no_spb = "0000001"
+        no_spb = "0000001"
         if (latestData) {
             let num = String(parseInt(latestData.no_spb) + 1)
-            req.body.no_spb = num.padStart(latestData.no_spb.length, "0")
+            no_spb = num.padStart(latestData.no_spb.length, "0")
         }
-        await spb.create({ ...req.body })
+        let newSpb = await spb.create({ no_spb_asal, no_spb }, {transaction: t})
 
-        return res.status(200).json({ msg: "Berhasil menambahkan data" })
+        return newSpb
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+        throw error;
     }
 }
 
-const updateSpb = async (req, res) => {
+const updateSpb = async (no_spb_asal, id, t) => {
     try {
-        if (req.body.no_spb_asal == "") req.body.no_spb_asal = null
-        let result = await spb.update({ ...req.body }, { where: { id_spb: req.params.id } })
-        console.log(result, req.params.id)
-        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
-
-        return res.status(200).json({ msg: "Berhasil memperbarui data" })
+        if (no_spb_asal == "") no_spb_asal = null
+        let result = await spb.update({ no_spb_asal }, { where: { id_spb: id }, transaction: t })
+        console.log(result, id)
+        if (result == 0) throw new Error("Data spb tidak ditemukan")
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+        throw new Error("terjadi kesalahan pada fungsi")
     }
 }
 
-const deleteSpb = async (req, res) => {
+const deleteSpb = async (id, t) => {
     try {
-        let result = await spb.destroy({ where: { id_spb: req.params.id } })
-
-        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
-
-        return res.status(200).json({ msg: "Berhasil menghapus data" })
+        let result = await spb.destroy({ where: { id_spb: id }, transaction: t })
+        
+        if (result == 0) throw new Error("Data spb tidak ditemukan")
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+        throw new Error(error.message)
     }
 }
 
