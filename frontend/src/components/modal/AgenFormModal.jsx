@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Button from '../ui/Button';
 import axios from 'axios';
 
 const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL
+  const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({ nama_agen: '' });
   const isEditMode = Boolean(currentItem);
 
@@ -21,15 +22,19 @@ const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-    let response = (isEditMode) ? await axios.patch(`${API_URL}/agen/update/${currentItem.id_agen}`, formData) : await axios.post(`${API_URL}/agen/store`, formData)
-    if(response.status == 200){
-      console.log("Data Disimpan:", formData);
-      alert(`Data Agen Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
-      onSuccess()
-      onClose();
-    }else {
-      console.log("Error:", response.data.msg);
-      alert(`Terjadi kesalahaan saat ${isEditMode ? 'memperbarui' : 'menyimpan'} data`);
+    try {
+      const response = isEditMode 
+        ? await axios.patch(`${API_URL}/agen/update/${currentItem.id_agen}`, formData) 
+        : await axios.post(`${API_URL}/agen/store`, formData);
+
+      if(response.status === 200){
+        toast.success(`Data Agen Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
+        onSuccess();
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error:", error.response?.data?.msg || error.message);
+      toast.error(`Terjadi kesalahan saat menyimpan data.`);
       onClose();
     }
   };

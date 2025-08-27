@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
@@ -14,29 +15,19 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
     const getInitialData = () => {
       if (isEditMode && currentItem) {
         switch (activeTab) {
-          case 'negara':
-            return { kode_negara: currentItem.kode_negara || '', nama_negara: currentItem.nama_negara || '' };
-          case 'provinsi':
-            return { id_negara: currentItem.id_negara || '', nama_provinsi: currentItem.nama_provinsi || '' };
-          case 'kabupaten':
-            return { id_provinsi: currentItem.id_provinsi || '', nama_kabupaten: currentItem.nama_kabupaten || '' };
-          case 'kecamatan':
-            return { id_kabupaten: currentItem.id_kabupaten || '', nama_kecamatan: currentItem.nama_kecamatan || '' };
-          default:
-            return {};
+          case 'negara': return { kode_negara: currentItem.kode_negara || '', nama_negara: currentItem.nama_negara || '' };
+          case 'provinsi': return { id_negara: currentItem.id_negara || '', nama_provinsi: currentItem.nama_provinsi || '' };
+          case 'kabupaten': return { id_provinsi: currentItem.id_provinsi || '', nama_kabupaten: currentItem.nama_kabupaten || '' };
+          case 'kecamatan': return { id_kabupaten: currentItem.id_kabupaten || '', nama_kecamatan: currentItem.nama_kecamatan || '' };
+          default: return {};
         }
       } else {
         switch (activeTab) {
-          case 'negara':
-            return { kode_negara: '', nama_negara: '' };
-          case 'provinsi':
-            return { id_negara: '', nama_provinsi: '' };
-          case 'kabupaten':
-            return { id_provinsi: '', nama_kabupaten: '' };
-          case 'kecamatan':
-            return { id_kabupaten: '', nama_kecamatan: '' };
-          default:
-            return {};
+          case 'negara': return { kode_negara: '', nama_negara: '' };
+          case 'provinsi': return { id_negara: '', nama_provinsi: '' };
+          case 'kabupaten': return { id_provinsi: '', nama_kabupaten: '' };
+          case 'kecamatan': return { id_kabupaten: '', nama_kecamatan: '' };
+          default: return {};
         }
       }
     };
@@ -45,14 +36,10 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
 
   const parentOptions = useMemo(() => {
     switch (activeTab) {
-      case 'provinsi':
-        return [{ value: '', label: 'Pilih Negara', disabled: true }, ...allNegara.map(n => ({ value: n.id_negara, label: n.nama_negara }))];
-      case 'kabupaten':
-        return [{ value: '', label: 'Pilih Provinsi', disabled: true }, ...allProvinsi.map(p => ({ value: p.id_provinsi, label: p.nama_provinsi }))];
-      case 'kecamatan':
-        return [{ value: '', label: 'Pilih Kabupaten/Kota', disabled: true }, ...allKabupaten.map(k => ({ value: k.id_kabupaten, label: k.nama_kabupaten }))];
-      default:
-        return [];
+      case 'provinsi': return [{ value: '', label: 'Pilih Negara', disabled: true }, ...allNegara.map(n => ({ value: n.id_negara, label: n.nama_negara }))];
+      case 'kabupaten': return [{ value: '', label: 'Pilih Provinsi', disabled: true }, ...allProvinsi.map(p => ({ value: p.id_provinsi, label: p.nama_provinsi }))];
+      case 'kecamatan': return [{ value: '', label: 'Pilih Kabupaten/Kota', disabled: true }, ...allKabupaten.map(k => ({ value: k.id_kabupaten, label: k.nama_kabupaten }))];
+      default: return [];
     }
   }, [activeTab, allNegara, allProvinsi, allKabupaten]);
 
@@ -79,13 +66,13 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
             : await axios.post(`${API_URL}/${activeTab}/store`, formData);
         
         if (response.status === 200) {
-            alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+            toast.success(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
             onSuccess();
             onClose();
         }
     } catch (error) {
         console.error("Error:", error.response?.data?.msg || error.message);
-        alert(`Terjadi kesalahan saat menyimpan data.`);
+        toast.error(`Terjadi kesalahan saat menyimpan data.`);
         onClose();
     }
   };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { SidebarProvider, useSidebar } from '../../context/SidebarContext';
 import AppHeader from './AppHeader';
 import AppSidebar from './AppSidebar';
@@ -34,6 +35,10 @@ const LayoutContent = () => {
 const AppLayout = () => {
   return (
     <SidebarProvider>
+      <Toaster 
+        position="top-right"
+        reverseOrder={false}
+      />
       <LayoutContent />
     </SidebarProvider>
   );

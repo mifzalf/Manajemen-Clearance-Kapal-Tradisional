@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
@@ -49,7 +50,6 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
   };
 
   const handleSubmit = async (e) => {
-    console.log(formData)
     e.preventDefault();
     const endpoint = activeTab === 'kapal' ? 'kapal' : 'jenis';
     const idField = activeTab === 'kapal' ? 'id_kapal' : 'id_jenis';
@@ -60,13 +60,13 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
         : await axios.post(`${API_URL}/${endpoint}/store`, formData);
 
       if (response.status === 200) {
-        alert(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+        toast.success(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
         onSuccess();
         onClose();
       }
     } catch (error) {
       console.error("Gagal menyimpan data:", error.response?.data?.msg || error.message);
-      alert(`Terjadi Kesalahan saat menyimpan data!`);
+      toast.error(`Terjadi Kesalahan saat menyimpan data!`);
     }
   };
 

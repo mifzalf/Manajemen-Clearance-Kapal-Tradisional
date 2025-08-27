@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Button from '../ui/Button';
 import axios from 'axios';
 
 const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL
+  const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({ nama_nahkoda: '' });
   const isEditMode = Boolean(currentItem);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && currentItem) {
       setFormData({ nama_nahkoda: currentItem.nama_nahkoda });
+    } else {
+      setFormData({ nama_nahkoda: '' });
     }
   }, [currentItem, isEditMode]);
 
@@ -21,16 +24,20 @@ const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let response = (isEditMode) ? await axios.patch(`${API_URL}/nahkoda/update/${currentItem.id_nahkoda}`, formData) : await axios.post(`${API_URL}/nahkoda/store`, formData)
-    if(response?.status == 200) {
-      console.log(response)
-      console.log(`Data ${isEditMode ? 'Diperbarui' : 'Disimpan'}: ` + formData);
-      alert(`Data Nahkoda Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
-      onSuccess()
+    try {
+      const response = isEditMode
+        ? await axios.patch(`${API_URL}/nahkoda/update/${currentItem.id_nahkoda}`, formData)
+        : await axios.post(`${API_URL}/nahkoda/store`, formData);
+
+      if (response.status === 200) {
+        toast.success(`Data Nahkoda Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
+        onSuccess();
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error:", error.response?.data?.msg || error.message);
+      toast.error(`Terjadi kesalahan saat menyimpan data.`);
       onClose();
-    }else{
-      console.log("Error " + response?.data?.msg);
-      alert(`terjadi kesalahan saat ${isEditMode} menyimpan data : memperbarui data`);
     }
   };
 
