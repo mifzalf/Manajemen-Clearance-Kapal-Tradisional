@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize')
 const {db} = require('../config/db')
-const ppk = require('./ppkModel')
 const spb = require('./spbModel')
 const kapal = require('./kapalModel')
 const nahkoda = require('./nahkodaModel')
@@ -14,16 +13,7 @@ const perjalanan = db.define("perjalanan", {
         primaryKey: true,
         autoIncrement: true
     },
-    register_bulan: DataTypes.ENUM("januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"),
-    id_ppk: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: ppk,
-            key: "id_ppk"
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE"
-    },
+    ppk: DataTypes.ENUM("27", "29"),
     id_spb: {
         type: DataTypes.INTEGER,
         references: {

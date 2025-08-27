@@ -17,13 +17,11 @@ var {
   muatan, 
   nahkoda, 
   perjalanan, 
-  ppk, 
   spb 
 } = require('./model/association')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var ppkRouter = require('./routes/ppk')
 var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
 var spbRouter = require('./routes/spb')
@@ -34,6 +32,7 @@ var kecamatanRouter = require('./routes/kecamatan')
 var jenisRouter = require('./routes/jenis')
 var kategoriMuatanRouter = require('./routes/kategoriMuatan')
 var kapalRouter = require('./routes/kapal')
+var perjalananRouter = require('./routes/perjalanan')
 
 var app = express();
 
@@ -62,7 +61,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/ppk', ppkRouter);
 app.use('/nahkoda', nahkodaRouter);
 app.use('/agen', agenRouter);
 app.use('/spb', spbRouter);
@@ -73,6 +71,7 @@ app.use('/kecamatan', kecamatanRouter);
 app.use('/jenis', jenisRouter);
 app.use('/kategori-muatan', kategoriMuatanRouter);
 app.use('/kapal', kapalRouter);
+app.use('/perjalanan', perjalananRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
