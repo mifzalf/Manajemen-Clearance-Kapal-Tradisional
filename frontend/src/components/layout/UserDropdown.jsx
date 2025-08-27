@@ -1,7 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { DropdownItem } from '../ui/dropdown/DropdownItem';
-import { Dropdown } from '../ui/dropdown/Dropdown';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+      });
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  
+  return windowSize;
+};
 
 const currentUser = {
   name: "Budi Santoso",
@@ -9,52 +26,104 @@ const currentUser = {
   photo: "/images/user/owner.jpeg",
 };
 
+const UserMenuContent = ({ onClose }) => (
+  <>
+    <div className="p-4 border-b">
+      <span className="block font-semibold text-gray-800">{currentUser.name}</span>
+      <span className="block mt-0.5 text-sm text-gray-500">{currentUser.email}</span>
+    </div>
+    <ul className="p-2">
+      <li>
+        <Link to="/profile" onClick={onClose} className="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-gray-700 hover:bg-gray-100">
+          Profil Saya
+        </Link>
+      </li>
+      <li>
+        <Link to="/settings" onClick={onClose} className="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-gray-700 hover:bg-gray-100">
+          Pengaturan
+        </Link>
+      </li>
+    </ul>
+    <div className="p-2 border-t">
+      <button 
+        onClick={() => { alert('Sign Out!'); onClose(); }} 
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-red-600 hover:bg-red-50"
+      >
+        Keluar (Sign Out)
+      </button>
+    </div>
+  </>
+);
+
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef(null);
+  const { width } = useWindowSize();
+  const isMobile = width < 1024;
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="static lg:relative">
+    <div ref={dropdownRef} className="relative">
+      {/* Tombol Trigger */}
       <button 
-        ref={triggerRef}
-        onClick={() => setIsOpen(!isOpen)} 
+        onClick={() => setIsOpen((prev) => !prev)} 
         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-800 shadow-sm hover:bg-gray-50"
       >
         <img src={currentUser.photo} alt="User" className="h-8 w-8 rounded-full" />
         <span className="hidden font-medium sm:block">{currentUser.name.split(' ')[0]}</span>
-        <svg className={`stroke-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg 
+          className={`stroke-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} 
+          width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg"
+        >
           <path d="M4.3125 8.65625L9 13.3437L13.6875 8.65625" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
 
-      <Dropdown 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)} 
-        triggerRef={triggerRef}
-        className="fixed top-30 right-4 left-4 z-50 flex w-auto flex-col rounded-2xl border bg-white p-3 shadow-lg lg:absolute lg:top-full lg:left-auto lg:right-0 lg:mt-4 lg:w-[260px]"
-      >
-        <div>
-          <span className="block font-medium text-gray-700">{currentUser.name}</span>
-          <span className="block mt-0.5 text-sm text-gray-500">{currentUser.email}</span>
-        </div>
-
-        <ul className="my-3 flex flex-col gap-1 border-y py-3">
-          <li>
-            <DropdownItem to="/profile" onItemClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium hover:bg-gray-100">
-              Profil Saya
-            </DropdownItem>
-          </li>
-          <li>
-            <DropdownItem to="/settings" onItemClick={() => setIsOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium hover:bg-gray-100">
-              Pengaturan
-            </DropdownItem>
-          </li>
-        </ul>
-        
-        <DropdownItem tag="button" onItemClick={() => alert('Sign Out!')} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left font-medium hover:bg-gray-100">
-          Keluar (Sign Out)
-        </DropdownItem>
-      </Dropdown>
+      <AnimatePresence>
+        {isOpen && (
+          isMobile ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60"
+            >
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute bottom-0 w-full rounded-t-2xl bg-white"
+              >
+                <div className="mx-auto my-3 h-1.5 w-12 rounded-full bg-gray-300" />
+                <UserMenuContent onClose={() => setIsOpen(false)} />
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.1 }}
+              className="absolute top-full right-0 mt-2 z-50 w-[260px] origin-top-right rounded-2xl border bg-white shadow-lg"
+            >
+              <UserMenuContent onClose={() => setIsOpen(false)} />
+            </motion.div>
+          )
+        )}
+      </AnimatePresence>
     </div>
   );
 }
