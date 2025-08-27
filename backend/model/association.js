@@ -6,7 +6,6 @@ const kategoriMuatan = require("./kategoriMuatanModel");
 const muatan = require("./muatanModel");
 const nahkoda = require("./nahkodaModel");
 const perjalanan = require("./perjalananModel");
-const ppk = require("./ppkModel");
 const spb = require("./spbModel");
 const kabupaten = require("./kabupatenModel");
 const negara = require("./negaraModel");
@@ -19,10 +18,6 @@ kapal.belongsTo(jenis, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "
 negara.hasMany(kapal, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kapal.belongsTo(negara, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
-
-ppk.hasMany(perjalanan, {foreignKey: "id_ppk", onDelete: "CASCADE", onUpdate: "CASCADE"})
-
-perjalanan.belongsTo(ppk, {foreignKey: "id_ppk", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 spb.hasOne(perjalanan, {foreignKey: "id_spb", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -76,4 +71,4 @@ kategoriMuatan.hasMany(muatan, {foreignKey: "id_kategori_muatan", onDelete: "CAS
 
 muatan.belongsTo(kategoriMuatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, ppk, spb}
+module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, spb}
