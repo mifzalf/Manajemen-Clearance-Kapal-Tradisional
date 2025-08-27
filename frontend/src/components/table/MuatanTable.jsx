@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
-import axios from 'axios';
 
 const StatusBadge = ({ status }) => {
   let styleClass = '';
@@ -23,43 +22,25 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const ActionDropdown = ({ item, onEdit, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL
+const ActionDropdown = ({ item, onEdit, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
 
-  const onDelete = async () => {
-    setIsOpen(!isOpen)
-    if (confirm(`Hapus item ${item.nama_kategori_muatan}?`)) {
-      let response = await axios.delete(`${API_URL}/kategori-muatan/delete/${item.id_kategori_muatan}`)
-      if (response?.status == 200) {
-        alert("Berhasil menghapus data")
-        onSuccess()
-      } else {
-        alert("Terjadi kesalahan saat menghapus data")
-      }
-    }
-  }
+  const handleEditClick = () => {
+    onEdit(item);
+    setIsOpen(false);
+  };
 
   return (
     <div className="relative">
-      <button
-        ref={triggerRef}
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-md hover:bg-gray-100 focus:outline-none"
-      >
+      <button ref={triggerRef} onClick={() => setIsOpen(!isOpen)} className="p-2 rounded-md hover:bg-gray-100 focus:outline-none">
         <MoreDotIcon className="h-5 w-5 text-gray-500" />
       </button>
-      <Dropdown
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        triggerRef={triggerRef}
-        className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg"
-      >
-        <DropdownItem onItemClick={() => onEdit(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+      <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} triggerRef={triggerRef} className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg">
+        <DropdownItem onItemClick={handleEditClick} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Edit
         </DropdownItem>
-        <DropdownItem onItemClick={onDelete} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+        <DropdownItem onItemClick={() => onDelete(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
           Hapus
         </DropdownItem>
       </Dropdown>
@@ -67,7 +48,7 @@ const ActionDropdown = ({ item, onEdit, onSuccess }) => {
   );
 };
 
-const MuatanTable = ({ muatanItems = [], onEdit, onSuccess }) => {
+const MuatanTable = ({ muatanItems = [], onEdit, onDelete }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
@@ -82,14 +63,14 @@ const MuatanTable = ({ muatanItems = [], onEdit, onSuccess }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {muatanItems.length > 0 ? (
             muatanItems.map((item, index) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+              <tr key={item.id_kategori_muatan} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nama_kategori_muatan}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <StatusBadge status={item.status_kategori_muatan} />
                 </td>
                 <td className="px-6 py-4 flex justify-end">
-                  <ActionDropdown item={item} onEdit={onEdit} onSuccess={onSuccess} />
+                  <ActionDropdown item={item} onEdit={onEdit} onDelete={onDelete} />
                 </td>
               </tr>
             ))

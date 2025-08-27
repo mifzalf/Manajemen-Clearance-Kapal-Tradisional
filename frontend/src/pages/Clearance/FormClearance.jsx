@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Step1DataKapal from '../../components/clearance/Step1DataKapal';
 import Step2DataMuatan from '../../components/clearance/Step2DataMuatan';
 
-// ... (semua data contoh Anda tetap sama) ...
+// ... (semua data contoh Anda tetap sama)
 const sampleKapalData = [
   { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
   { id: 2, nama: 'MT. Cahaya Bintang', jenis: 'Tanker', bendera: 'Indonesia', gt: 1200, nt: 800, nomorSelar: '456/Def', tandaSelar: 'GT.1200', nomorImo: 'IMO1234567', callSign: 'EFGH' },
@@ -45,7 +46,6 @@ const FormClearance = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(initialState);
   
-  // ... (semua fungsi lain seperti useEffect, handleKapalChange, nextStep, prevStep tetap sama) ...
   useEffect(() => {
     if (isEditMode) {
       const dataToEdit = { ...initialState, ...sampleClearanceDetailData };
@@ -76,7 +76,7 @@ const FormClearance = () => {
         return;
     }
     console.log("Formulir Lengkap Disubmit:", formData);
-    alert(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+    toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
     if (isEditMode) {
       navigate(`/clearance/${id}`);
     } else {
@@ -88,7 +88,14 @@ const FormClearance = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">{isEditMode ? 'Edit' : 'Formulir'} Surat Persetujuan Berlayar</h1>
       <div className="w-full">
-        {/* ... (kode stepper Anda tetap sama) ... */}
+        <ol className="flex items-center w-full">
+          <li className={`flex w-full items-center ${step >= 1 ? 'text-blue-600' : 'text-gray-500'} after:content-[''] after:w-full after:h-1 after:border-b ${step > 1 ? 'after:border-blue-600' : 'after:border-gray-200'} after:border-4 after:inline-block`}>
+            <span className={`flex items-center justify-center w-10 h-10 ${step >= 1 ? 'bg-blue-100' : 'bg-gray-100'} rounded-full lg:h-12 lg:w-12 shrink-0`}>1</span>
+          </li>
+          <li className={`flex items-center w-auto`}>
+            <span className={`flex items-center justify-center w-10 h-10 ${step >= 2 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'} rounded-full lg:h-12 lg:w-12 shrink-0`}>2</span>
+          </li>
+        </ol>
       </div>
       <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <form ref={formRef} onSubmit={handleSubmit}>

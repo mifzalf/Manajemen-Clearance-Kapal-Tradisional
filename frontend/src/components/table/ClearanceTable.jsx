@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
@@ -8,6 +9,37 @@ const ActionDropdown = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleDelete = (item) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p>Apakah Anda yakin ingin menghapus <strong>{item.nomorSpb}</strong>?</p>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => {
+              console.log('Menghapus item:', item.id);
+              // Di sini Anda akan memanggil API hapus, contoh:
+              // axios.delete(`/api/clearance/${item.id}`);
+              toast.dismiss(t.id);
+              toast.success('Data berhasil dihapus!');
+              // Panggil fungsi refresh data tabel di sini jika perlu
+            }}
+            className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+          >
+            Ya, Hapus
+          </button>
+          <button 
+            onClick={() => toast.dismiss(t.id)}
+            className="w-full px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: 6000, // Toast akan hilang setelah 6 detik jika tidak ada interaksi
+    });
+  };
 
   return (
     <div className="relative">
@@ -30,7 +62,7 @@ const ActionDropdown = ({ item }) => {
         <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Edit
         </DropdownItem>
-        <DropdownItem onItemClick={() => confirm(`Hapus item ${item.id}?`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+        <DropdownItem onItemClick={() => handleDelete(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
           Hapus
         </DropdownItem>
       </Dropdown>
@@ -40,7 +72,7 @@ const ActionDropdown = ({ item }) => {
 
 const ClearanceTable = ({ clearanceItems = [] }) => {
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -71,7 +103,7 @@ const ClearanceTable = ({ clearanceItems = [] }) => {
           ) : (
             <tr>
               <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                Tidak ada data clearance yang tersedia.
+                Tidak ada data clearance yang cocok dengan filter.
               </td>
             </tr>
           )}

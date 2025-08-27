@@ -1,9 +1,11 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import DetailItem from '../../components/ui/DetailItem';
 import MuatanDetailTable from '../../components/clearance/MuatanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
+import ConfirmationModal from '../../components/modal/ConfirmationModal';
 
 const sampleClearanceDetailData = {
     id: 1, jenisPkk: 'Dalam Negeri', noSpbAsal: '123/SPB-LMG/08-2025', noSpbKalianget: '456/SPB-KGT/08-2025', registerBulan: '08-2025', noUrut: 12, tanggalClearance: '2025-08-20', pukulClearance: '09:45', pukulKapalBerangkat: '14:00',
@@ -16,8 +18,10 @@ const sampleClearanceDetailData = {
 
 const DetailClearance = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [activeMuatanTab, setActiveMuatanTab] = useState('datang');
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
     useEffect(() => {
         setData(sampleClearanceDetailData);
@@ -25,6 +29,22 @@ const DetailClearance = () => {
 
     const handlePrint = () => {
         window.print();
+    };
+    
+    const handleConfirmDelete = () => {
+        if (data) {
+            console.log("Menghapus item:", data.id);
+            // Di sini Anda akan memanggil API untuk menghapus
+            // axios.delete(`/api/clearance/${data.id}`);
+            
+            setIsConfirmOpen(false); // Tutup modal dulu
+            toast.success(`Data SPB ${data.noSpbKalianget} berhasil dihapus.`);
+            
+            // Arahkan kembali ke daftar setelah beberapa saat
+            setTimeout(() => {
+                navigate('/clearance');
+            }, 1500);
+        }
     };
 
     if (!data) return <div className="p-6">Memuat data...</div>;
@@ -46,7 +66,7 @@ const DetailClearance = () => {
                                 <Link to={`/clearance/edit/${data.id}`} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors">
                                     Edit Data
                                 </Link>
-                                <button className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">Hapus Clearance</button>
+                                <button onClick={() => setIsConfirmOpen(true)} className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">Hapus Clearance</button>
                                 <button onClick={handlePrint} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                                     Cetak SPB
                                 </button>
@@ -103,6 +123,14 @@ const DetailClearance = () => {
             <div className="print-only">
                 <PrintableSPB data={data} />
             </div>
+
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Konfirmasi Hapus"
+                message={`Apakah Anda yakin ingin menghapus data clearance dengan SPB ${data?.noSpbKalianget}?`}
+            />
         </>
     );
 };

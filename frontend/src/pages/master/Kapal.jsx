@@ -1,31 +1,18 @@
 import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import KapalTable from '../../components/table/KapalTable';
 import JenisKapalTable from '../../components/table/JenisKapalTable';
 import KapalFormModal from '../../components/modal/KapalFormModal';
-import axios from 'axios'
-
-const sampleKapalData = [
-  { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
-  { id: 2, nama: 'MT. Cahaya Bintang', jenis: 'Tanker', bendera: 'Indonesia', gt: 1200, nt: 800, nomorSelar: '456/Def', tandaSelar: 'GT.1200', nomorImo: 'IMO1234567', callSign: 'EFGH' },
-  { id: 3, nama: 'KMP. Fajar Sentosa', jenis: 'Ferry (Ro-Ro)', bendera: 'Indonesia', gt: 2500, nt: 1800, nomorSelar: '789/Ghi', tandaSelar: 'GT.2500', nomorImo: 'IMO8765432', callSign: 'IJKL' },
-];
-
-const sampleJenisKapalData = [
-    { id: 1, nama: 'General Cargo' },
-    { id: 2, nama: 'Tanker' },
-    { id: 3, nama: 'Ferry (Ro-Ro)' },
-    { id: 4, nama: 'Kapal Tunda (Tugboat)'},
-    { id: 5, nama: 'Tongkang (Barge)'},
-];
+import axios from 'axios';
 
 function Kapal() {
-  const API_URL = import.meta.env.VITE_API_URL
+  const API_URL = import.meta.env.VITE_API_URL;
   const [activeTab, setActiveTab] = useState('kapal');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [kapalData, setKapalData] = useState([])
-  const [jenisKapalData, setJenisKapalData] = useState([])
-  const [negaraData, setNegaraData] = useState([])
+  const [kapalData, setKapalData] = useState([]);
+  const [jenisKapalData, setJenisKapalData] = useState([]);
+  const [negaraData, setNegaraData] = useState([]);
 
   const tabs = [
     { id: 'kapal', label: 'Daftar Kapal' },
@@ -33,32 +20,29 @@ function Kapal() {
   ];
 
   useEffect(() => {
-    fetchAll()
-  }, [])
+    fetchAll();
+  }, []);
 
-  async function fetchBendera() {
-    let response = await axios.get(`${API_URL}/negara`)
-    console.log(response)
-    setNegaraData(response?.data?.datas)
-  }
+  const fetchBendera = async () => {
+    let response = await axios.get(`${API_URL}/negara`);
+    setNegaraData(response?.data?.datas);
+  };
 
-  async function fetchKapal() {
-    let response = await axios.get(`${API_URL}/kapal`)
-    console.log(response)
-    setKapalData(response?.data?.datas)
-  }
+  const fetchKapal = async () => {
+    let response = await axios.get(`${API_URL}/kapal`);
+    setKapalData(response?.data?.datas);
+  };
   
-  async function fetchJenisKapal() {
-    let response = await axios.get(`${API_URL}/jenis`)
-    console.log(response)
-    setJenisKapalData(response?.data?.datas)
-  }
+  const fetchJenisKapal = async () => {
+    let response = await axios.get(`${API_URL}/jenis`);
+    setJenisKapalData(response?.data?.datas);
+  };
 
-  async function fetchAll() {
-    fetchJenisKapal()
-    fetchKapal()
-    fetchBendera()
-  }
+  const fetchAll = () => {
+    fetchJenisKapal();
+    fetchKapal();
+    fetchBendera();
+  };
   
   const handleOpenModal = () => {
     setEditingItem(null);
@@ -75,12 +59,50 @@ function Kapal() {
     setEditingItem(null);
   };
 
+  const handleDelete = (item) => {
+    const isKapalTab = activeTab === 'kapal';
+    const itemName = isKapalTab ? item.nama_kapal : item.nama_jenis;
+    const itemId = isKapalTab ? item.id_kapal : item.id_jenis;
+    const endpoint = isKapalTab ? 'kapal' : 'jenis';
+
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p>Apakah Anda yakin ingin menghapus <strong>{itemName}</strong>?</p>
+        <div className="flex gap-2">
+          <button 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                const response = await axios.delete(`${API_URL}/${endpoint}/delete/${itemId}`);
+                if (response.status === 200) {
+                  toast.success('Data berhasil dihapus!');
+                  fetchAll();
+                }
+              } catch (error) {
+                toast.error('Gagal menghapus data.');
+              }
+            }}
+            className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+          >
+            Ya, Hapus
+          </button>
+          <button 
+            onClick={() => toast.dismiss(t.id)}
+            className="w-full px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    ));
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'kapal':
-        return <KapalTable data={kapalData} onEdit={handleEdit} jenisList={jenisKapalData} benderaList={negaraData} onSuccess={fetchKapal} />;
+        return <KapalTable data={kapalData} onEdit={handleEdit} onDelete={handleDelete} jenisList={jenisKapalData} benderaList={negaraData} />;
       case 'jenisKapal':
-        return <JenisKapalTable data={jenisKapalData} onEdit={handleEdit} onSuccess={fetchJenisKapal}/>;
+        return <JenisKapalTable data={jenisKapalData} onEdit={handleEdit} onDelete={handleDelete} />;
       default:
         return null;
     }
@@ -90,7 +112,7 @@ function Kapal() {
     <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Data Kapal</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Data Master Kapal</h1>
           <button onClick={handleOpenModal} className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors">
             + Tambah Data
           </button>
