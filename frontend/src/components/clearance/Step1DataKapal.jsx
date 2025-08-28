@@ -1,10 +1,9 @@
-import React from 'react';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
 
-const Step1DataKapal = ({ formData, setFormData, nextStep, handleSubmit, handleKapalChange, kapalOptions, nahkodaOptions, kabupatenOptions, kecamatanOptions, agenOptions, jenisPkkOptions }) => {
+const Step1DataKapal = ({ formData, setFormData, nextStep, handleKapalChange, kapalOptions, nahkodaOptions, kabupatenOptions, kecamatanOptions, agenOptions, jenisPpkOptions }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -14,19 +13,14 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleSubmit, handleK
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
-
+  
   const handleNext = () => {
     const form = document.querySelector('form');
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
-
-    if (formData.statusMuatan === 'Ada Muatan') {
-        nextStep();
-    } else {
-        handleSubmit(new Event('submit', { cancelable: true }));
-    }
+    nextStep();
   };
   
   const createOptions = (items, placeholder) => [
@@ -39,14 +33,13 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleSubmit, handleK
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800">Data Clearance</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-          <div><Label htmlFor="jenisPpk">Jenis PKK</Label><Select id="jenisPpk" name="jenisPpk" value={formData.jenisPpk} onChange={handleChange} options={createOptions(jenisPkkOptions, 'Pilih Jenis PKK')} required /></div>
+          <div><Label htmlFor="jenisPpk">Jenis PPK</Label><Select id="jenisPpk" name="jenisPpk" value={formData.jenisPpk} onChange={handleChange} options={createOptions(jenisPpkOptions, 'Pilih Jenis PPK')} required /></div>
           <div><Label htmlFor="noSpbAsal">No SPB Asal</Label><InputField id="noSpbAsal" name="noSpbAsal" value={formData.noSpbAsal} onChange={handleChange} required /></div>
           <div><Label htmlFor="tanggalClearance">Tanggal Clearance</Label><InputField id="tanggalClearance" name="tanggalClearance" type="date" value={formData.tanggalClearance} onChange={handleChange} required /></div>
           <div><Label htmlFor="pukulClearance">Pukul Clearance</Label><InputField id="pukulClearance" name="pukulClearance" type="time" value={formData.pukulClearance} onChange={handleChange} required /></div>
         </div>
-      </div>
-      
-       <div className="border-b pb-4">
+      </div>      
+      <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800">Data Kapal & Awak</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div><Label htmlFor="kapalId">Nama Kapal</Label><Select id="kapalId" name="kapalId" value={formData.kapalId} onChange={handleChange} options={createOptions(kapalOptions, 'Pilih Kapal')} required /></div>
@@ -55,7 +48,7 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleSubmit, handleK
         </div>
       </div>
       
-       <div className="border-b pb-4">
+      <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800">Data Perjalanan</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div><Label htmlFor="kedudukanKapal">Kedudukan Kapal</Label><Select id="kedudukanKapal" name="kedudukanKapal" value={formData.kedudukanKapal} onChange={handleChange} options={createOptions(kabupatenOptions, 'Pilih Kedudukan')} required/></div>
@@ -78,7 +71,7 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleSubmit, handleK
       
       <div className="flex justify-end">
         <Button type="button" onClick={handleNext}>
-          {formData.statusMuatan === 'Ada Muatan' ? 'Berikutnya' : 'Simpan'}
+          Berikutnya
         </Button>
       </div>
     </div>
