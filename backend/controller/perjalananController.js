@@ -6,6 +6,7 @@ const kabupaten = require("../model/kabupatenModel")
 const { Op, Sequelize } = require("sequelize")
 const agen = require("../model/agenModel")
 let spbController = require("./spbController")
+let muatanController = require("./muatanController")
 const { db } = require("../config/db")
 
 const getPerjalanan = async (req, res) => {
@@ -34,6 +35,8 @@ const getPerjalananById = async (req, res) => {
 const storePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
+        let { muatan } = req.body
+        console.log(req.body)
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -81,7 +84,16 @@ const storePerjalanan = async (req, res) => {
 
         let spb = await spbController.storeSpb(req.body.no_spb_asal, t)
 
-        await perjalanan.create({ ...req.body, no_urut, id_spb: spb.id_spb }, {transaction: t})
+        let newPerjalanan = await perjalanan.create({ ...req.body, no_urut, id_spb: spb.id_spb }, { transaction: t })
+
+        let filteredMuatan = muatan.map(m => {
+            return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
+        })
+        console.log(filteredMuatan)
+        if (muatan.length > 0) {
+            await muatanController.storeMuatan(filteredMuatan, t)
+        }
+
         t.commit()
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
@@ -94,6 +106,7 @@ const storePerjalanan = async (req, res) => {
 const updatePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
+        let { muatan } = req.body
         let perjalananData = await perjalanan.findByPk(req.params.id)
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
@@ -123,9 +136,17 @@ const updatePerjalanan = async (req, res) => {
 
         await spbController.updateSpb(req.body.no_spb_asal, perjalananData.id_spb, t)
 
-        let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t})
+        let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let filteredMuatan = muatan.map(m => {
+            return { ...m, id_perjalanan: req.params.id }
+        })
+        console.log(filteredMuatan)
+        if (data.status_muatan_berangkat)
+            await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
+
         t.commit()
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
