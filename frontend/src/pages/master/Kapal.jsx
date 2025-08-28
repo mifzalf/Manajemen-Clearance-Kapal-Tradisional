@@ -112,7 +112,7 @@ function Kapal() {
     <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Data Master Kapal</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Data Kapal</h1>
           <button onClick={handleOpenModal} className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors">
             + Tambah Data
           </button>

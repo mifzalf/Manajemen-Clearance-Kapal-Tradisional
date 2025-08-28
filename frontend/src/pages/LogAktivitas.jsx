@@ -80,7 +80,7 @@ function LogAktivitas() {
       
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
         <div className="space-y-4 border-b border-gray-200 p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex-grow">
               <SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari pengguna atau data..." />
             </div>
@@ -91,11 +91,11 @@ function LogAktivitas() {
           <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 md:grid-cols-3">
             <FilterDropdown options={uniqueActions} selectedValue={filters.selectedAction} setSelectedValue={(value) => handleFilterChange('selectedAction', value)} placeholder="Semua Aksi" />
             <FilterDropdown options={uniqueDataTypes} selectedValue={filters.selectedDataType} setSelectedValue={(value) => handleFilterChange('selectedDataType', value)} placeholder="Semua Jenis Data" />
-            <div className="flex items-center gap-2">
-              <InputField className="w-full" type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-              <span className="text-gray-500">-</span>
-              <InputField className="w-full" type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2 ">
+                <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+                <span className="text-gray-500 hidden sm:block">-</span>
+                <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+              </div>
           </div>
         </div>
         
