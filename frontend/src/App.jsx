@@ -13,6 +13,7 @@ import Nahkoda from "./pages/master/Nahkoda";
 import Agen from "./pages/master/Agen";
 import KategoriMuatan from "./pages/master/KategoriMuatan";
 import Daerah from "./pages/master/Daerah";
+import LogAktivitas from "./pages/LogAktivitas"; 
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/master/agen" element={<Agen />} />
           <Route path="/master/muatan" element={<KategoriMuatan />} />
           <Route path="/master/daerah" element={<Daerah />} />
+          <Route path="/log-aktivitas" element={<LogAktivitas />} />
         </Route>
         
         <Route path="/signin" element={<SignIn />} />

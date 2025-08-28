@@ -74,7 +74,6 @@ export default function UserDropdown() {
 
   return (
     <div ref={dropdownRef} className="relative">
-      {/* Tombol Trigger */}
       <button 
         onClick={() => setIsOpen((prev) => !prev)} 
         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-800 shadow-sm hover:bg-gray-50"

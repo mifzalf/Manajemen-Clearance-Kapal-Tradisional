@@ -6,9 +6,9 @@ import {
   GridIcon,
   FileIcon,
   BoxCubeIcon,
-  PieChartIcon,
   ChevronDownIcon,
   HorizontaLDots,
+  ListIcon,
 } from '../../icons';
 
 const AppSidebar = () => {
@@ -33,6 +33,7 @@ const AppSidebar = () => {
         { name: 'Kategori Muatan', path: '/master/muatan' },
       ],
     },
+    { name: 'Log Aktivitas', path: '/log-aktivitas', icon: <ListIcon /> },
   ];
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
