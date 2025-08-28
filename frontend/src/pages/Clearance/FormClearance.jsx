@@ -75,7 +75,12 @@ const FormClearance = () => {
         formRef.current?.reportValidity();
         return;
     }
-    console.log("Formulir Lengkap Disubmit:", formData);
+    let {barangBerangkat, barangDatang, ...cleanData} = formData
+    let newData = {
+      ...cleanData,
+      muatan: [...formData.barangBerangkat, ...formData.barangDatang]
+    }
+    console.log("Formulir Lengkap Disubmit:", newData);
     toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
     if (isEditMode) {
       navigate(`/clearance/${id}`);
