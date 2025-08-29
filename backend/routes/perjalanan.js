@@ -5,9 +5,11 @@ const {
     getPerjalananById,
     storePerjalanan,
     updatePerjalanan,
-    deletePerjalanan
+    deletePerjalanan,
+    getPerjalananByFilter
 } = require("../controller/perjalananController")
 
+router.get("/get-filter", getPerjalananByFilter)
 router.get("/", getPerjalanan)
 router.get("/:id", getPerjalananById)
 router.post("/store", storePerjalanan)
