@@ -6,6 +6,7 @@ import DetailItem from '../../components/ui/DetailItem';
 import MuatanDetailTable from '../../components/clearance/MuatanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
 import ConfirmationModal from '../../components/modal/ConfirmationModal';
+import axios from 'axios';
 
 const sampleClearanceDetailData = {
     id: 1, jenisPkk: 'Dalam Negeri', noSpbAsal: '123/SPB-LMG/08-2025', noSpbKalianget: '456/SPB-KGT/08-2025', registerBulan: '08-2025', noUrut: 12, tanggalClearance: '2025-08-20', pukulClearance: '09:45', pukulKapalBerangkat: '14:00',
@@ -17,6 +18,7 @@ const sampleClearanceDetailData = {
 };
 
 const DetailClearance = () => {
+    const API_URL = import.meta.env.VITE_API_URL
     const { id } = useParams();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
@@ -24,8 +26,13 @@ const DetailClearance = () => {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
     useEffect(() => {
-        setData(sampleClearanceDetailData);
+        fetchDetail()
     }, [id]);
+
+    const fetchDetail = async () => {
+        let response = await axios.get(`${API_URL}/perjalanan/${id}`)
+        setData(response.data.data)
+    }
 
     const handlePrint = () => {
         window.print();
@@ -61,9 +68,9 @@ const DetailClearance = () => {
                             Kembali ke Daftar Clearance
                         </Link>
                         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                            <h1 className="text-2xl font-bold text-gray-800">Detail SPB: {data.noSpbKalianget}</h1>
+                            <h1 className="text-2xl font-bold text-gray-800">Detail SPB: {data.spb.no_spb}</h1>
                             <div className="flex flex-wrap items-center gap-3">
-                                <Link to={`/clearance/edit/${data.id}`} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors">
+                                <Link to={`/clearance/edit/${data.id_perjalanan}`} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 transition-colors">
                                     Edit Data
                                 </Link>
                                 <button onClick={() => setIsConfirmOpen(true)} className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors">Hapus Clearance</button>
@@ -77,17 +84,17 @@ const DetailClearance = () => {
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <DetailItem label="Jenis PKK" value={data.jenisPkk} />
-                            <DetailItem label="No SPB Asal" value={data.noSpbAsal} />
-                            <DetailItem label="Tanggal Clearance" value={new Date(data.tanggalClearance).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
-                            <DetailItem label="Pukul Clearance" value={data.pukulClearance} />
+                            <DetailItem label="Jenis PPK" value={data.ppk} />
+                            <DetailItem label="No SPB Asal" value={data.spb.no_spb_asal} />
+                            <DetailItem label="Tanggal Clearance" value={new Date(data.tanggal_clearance).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
+                            <DetailItem label="Pukul Clearance" value={data.pukul_agen_clearance} />
                         </div>
                         <div className="space-y-4 border-t pt-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <DetailItem label="Nama Kapal" value={data.kapal.nama} />
-                                <DetailItem label="Nahkoda" value={data.nahkoda.nama} />
-                                <DetailItem label="Jumlah Crew" value={data.nahkoda.jumlahCrew} />
-                                <DetailItem label="Agen" value={data.perjalanan.agen} />
+                                <DetailItem label="Nama Kapal" value={data.kapal.nama_kapal} />
+                                <DetailItem label="Nahkoda" value={data.nahkoda.nama_nahkoda} />
+                                <DetailItem label="Jumlah Crew" value={data.jumlah_crew} />
+                                <DetailItem label="Agen" value={data.agen.nama_agen} />
                             </div>
                         </div>
                     </div>
@@ -95,13 +102,13 @@ const DetailClearance = () => {
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Perjalanan</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <DetailItem label="Kedudukan Kapal" value={data.perjalanan.kedudukanKapal} />
-                            <DetailItem label="Datang Dari" value={data.perjalanan.datangDari} />
-                            <DetailItem label="Tanggal Datang" value={new Date(data.perjalanan.tanggalDatang).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
-                            <DetailItem label="Pukul Kapal Berangkat" value={data.pukulKapalBerangkat} />
-                            <DetailItem label="Tujuan Akhir" value={data.perjalanan.tujuanAkhir} />
-                            <DetailItem label="Tempat Singgah" value={data.perjalanan.tempatSinggah} />
-                            <DetailItem label="Status Muatan Berangkat" value={data.perjalanan.statusMuatan} />
+                            <DetailItem label="Kedudukan Kapal" value={data.kedudukan_kapal.nama_kabupaten} />
+                            <DetailItem label="Datang Dari" value={data.datang_dari.nama_kecamatan} />
+                            <DetailItem label="Tanggal Datang" value={new Date(data.tanggal_datang).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
+                            <DetailItem label="Pukul Kapal Berangkat" value={data.pukul_kapal_berangkat} />
+                            <DetailItem label="Tujuan Akhir" value={data.tujuan_akhir.nama_kecamatan} />
+                            <DetailItem label="Tempat Singgah" value={data.tempat_singgah.nama_kecamatan} />
+                            <DetailItem label="Status Muatan Berangkat" value={data.status_muatan_berangkat} />
                         </div>
                     </div>
 
@@ -113,8 +120,8 @@ const DetailClearance = () => {
                             </nav>
                         </div>
                         <div>
-                            {activeMuatanTab === 'datang' && <MuatanDetailTable data={data.barangDatang} />}
-                            {activeMuatanTab === 'berangkat' && <MuatanDetailTable data={data.barangBerangkat} />}
+                            {activeMuatanTab === 'datang' && <MuatanDetailTable data={data.muatans.filter(d => d.jenis_perjalanan === "datang")} />}
+                            {activeMuatanTab === 'berangkat' && <MuatanDetailTable data={data.muatans.filter(d => d.jenis_perjalanan === "berangkat")} />}
                         </div>
                     </div>
                 </div>
@@ -129,7 +136,7 @@ const DetailClearance = () => {
                 onClose={() => setIsConfirmOpen(false)}
                 onConfirm={handleConfirmDelete}
                 title="Konfirmasi Hapus"
-                message={`Apakah Anda yakin ingin menghapus data clearance dengan SPB ${data?.noSpbKalianget}?`}
+                message={`Apakah Anda yakin ingin menghapus data clearance dengan SPB ${data?.spb.no_spb}?`}
             />
         </>
     );

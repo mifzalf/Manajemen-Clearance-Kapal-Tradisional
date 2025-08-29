@@ -15,7 +15,7 @@ const ActionDropdown = ({ item }) => {
       <div className="flex flex-col gap-3">
         <p>Apakah Anda yakin ingin menghapus <strong>{item.nomorSpb}</strong>?</p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => {
               console.log('Menghapus item:', item.id);
               // Di sini Anda akan memanggil API hapus, contoh:
@@ -28,7 +28,7 @@ const ActionDropdown = ({ item }) => {
           >
             Ya, Hapus
           </button>
-          <button 
+          <button
             onClick={() => toast.dismiss(t.id)}
             className="w-full px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
           >
@@ -43,8 +43,8 @@ const ActionDropdown = ({ item }) => {
 
   return (
     <div className="relative">
-      <button 
-        ref={triggerRef} 
+      <button
+        ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
@@ -56,7 +56,7 @@ const ActionDropdown = ({ item }) => {
         triggerRef={triggerRef}
         className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg"
       >
-        <Link to={`/clearance/${item.id}`} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <Link to={`/clearance/${item.id_perjalanan}`} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Lihat Detail
         </Link>
         <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -85,16 +85,16 @@ const ClearanceTable = ({ clearanceItems = [] }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {clearanceItems.length > 0 ? (
-            clearanceItems.map((item) => (
+          {clearanceItems?.length > 0 ? (
+            clearanceItems?.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nomorSpb}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.namaKapal}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.tujuan}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.spb.no_spb}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.kapal.nama_kapal}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.tujuan_akhir.nama_kecamatan}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(item.tglBerangkat).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  {new Date(item.tanggal_berangkat).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.agen}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.agen.nama_agen}</td>
                 <td className="px-6 py-4 flex justify-end">
                   <ActionDropdown item={item} />
                 </td>

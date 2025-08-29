@@ -1,6 +1,7 @@
 import React from 'react';
 
 const MuatanDetailTable = ({ data = [] }) => {
+  console.log("hai")
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -14,9 +15,9 @@ const MuatanDetailTable = ({ data = [] }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {data.length > 0 ? data.map((item, index) => (
             <tr key={index} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.nama}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.satuan}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{item.jumlah.toLocaleString('id-ID')}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.kategori_muatan.nama_kategori_muatan}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.satuan_muatan}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{item.jumlah_muatan.toLocaleString('id-ID')}</td>
             </tr>
           )) : (
             <tr>

@@ -14,7 +14,7 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
             <p className="text-sm font-bold">KALIANGGET</p>
           </div>
           <div className="text-right">
-            <p className="text-sm">PKK. 70 &nbsp;&nbsp;&nbsp; {data.noUrut || '0037'} &nbsp;&nbsp;&nbsp; {data.registerBulan || '08-2025'}</p>
+            <p className="text-sm">PKK. 70 &nbsp;&nbsp;&nbsp; {data.no_urut || '0037'} &nbsp;&nbsp;&nbsp; {data.tanggal_clearance || '08-2025'}</p>
           </div>
         </header>
 
@@ -27,19 +27,19 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
 
           <div className="mt-8 grid grid-cols-2 gap-x-8">
             <div className="space-y-4">
-              <div className="flex"><p className="w-48">N.V / K.M / L.S / M.V</p><p>: {data.kapal.nama}</p></div>
-              <div className="flex"><p className="w-48">BENDERA</p><p>: {data.kapal.bendera}</p></div>
-              <div className="flex"><p className="w-48">CALL SIGN</p><p>: {data.kapal.callSign}</p></div>
-              <div className="flex"><p className="w-48">PELABUHAN TUJUAN</p><p>: {data.perjalanan.tujuanAkhir}</p></div>
-              <div className="flex"><p className="w-48">TANGGAL TIBA</p><p>: {new Date(data.perjalanan.tanggalDatang).toLocaleDateString('id-ID')}</p></div>
-              <div className="flex"><p className="w-48">TEMPAT SINGGAH</p><p>: {data.perjalanan.tempatSinggah}</p></div>
-              <div className="flex"><p className="w-48">TANGGAL BERANGKAT</p><p>: {new Date(data.tanggalClearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p></div>
+              <div className="flex"><p className="w-48">N.V / K.M / L.S / M.V</p><p>: {data.kapal.nama_kapal}</p></div>
+              <div className="flex"><p className="w-48">BENDERA</p><p>: {data.kapal.bendera.kode_negara}</p></div>
+              <div className="flex"><p className="w-48">CALL SIGN</p><p>: {data.kapal.call_sign}</p></div>
+              <div className="flex"><p className="w-48">PELABUHAN TUJUAN</p><p>: {data.tujuan_akhir.nama_kecamatan}</p></div>
+              <div className="flex"><p className="w-48">TANGGAL TIBA</p><p>: {new Date(data.tanggal_datang).toLocaleDateString('id-ID')}</p></div>
+              <div className="flex"><p className="w-48">TEMPAT SINGGAH</p><p>: {data.tempat_singgah.nama_kecamatan}</p></div>
+              <div className="flex"><p className="w-48">TANGGAL BERANGKAT</p><p>: {new Date(data.tanggal_clearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p></div>
             </div>
             <div className="space-y-4">
               <div className="flex"><p className="w-48">GT.</p><p>: {data.kapal.gt}</p></div>
-              <div className="flex"><p className="w-48">JAM KEBERANGKATAN</p><p>: {data.pukulKapalBerangkat}</p></div>
-              <div className="flex"><p className="w-48">NAHKODA</p><p>: {data.nahkoda.nama}</p></div>
-              <div className="flex"><p className="w-48">SELAKU PEMRAKARSA</p><p>: {data.perjalanan.agen}</p></div>
+              <div className="flex"><p className="w-48">JAM KEBERANGKATAN</p><p>: {data.pukul_kapal_berangkat}</p></div>
+              <div className="flex"><p className="w-48">NAHKODA</p><p>: {data.nahkoda.nama_nahkoda}</p></div>
+              <div className="flex"><p className="w-48">SELAKU PEMRAKARSA</p><p>: {data.agen.nama_agen}</p></div>
             </div>
           </div>
         </main>
@@ -47,7 +47,7 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
         <footer className="mt-24">
           <div className="flex justify-end">
             <div className="text-center">
-              <p>Kaliangget, {new Date(data.tanggalClearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+              <p>Kaliangget, {new Date(data.tanggal_clearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
               <p className="font-bold">An. KEPALA KANTOR UPP KELAS III KALIANGGET</p>
               <p className="font-bold">Syahbandar</p>
               <div className="h-24"></div>

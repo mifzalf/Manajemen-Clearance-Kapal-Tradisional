@@ -8,6 +8,7 @@ import FilterDropdown from '../../components/common/FilterDropdown';
 import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
 import PrintableClearanceList from '../../components/clearance/PrintableClearanceList';
+import axios from 'axios'
 
 const sampleClearanceData = [
     { id: 1, nomorSpb: 'SPB/08/001', namaKapal: 'KM. Sejahtera Abadi', tujuan: 'Surabaya', tglBerangkat: '2025-08-15', agen: 'PT. Laut Biru', kategoriBarang: 'Umum', muatan: ['Semen', 'Kerupuk'] },
@@ -33,6 +34,7 @@ const customStyles = {
 const rowsPerPageOptions = ['5', '10', '20', 'All'];
 
 function Clearance() {
+  const API_URL = import.meta.env.VITE_API_URL
   const [clearanceData, setClearanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ searchTerm: '', selectedShip: '', startDate: '', endDate: '', selectedCategory: '', selectedGoods: [] });
@@ -42,7 +44,7 @@ function Clearance() {
   const exportRef = useRef(null);
   
   useEffect(() => {
-    setClearanceData(sampleClearanceData);
+    fetchPerjalanan()
     setLoading(false);
   }, []);
 
@@ -55,6 +57,12 @@ function Clearance() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [exportRef]);
+
+  const fetchPerjalanan = async () => {
+    let response = await axios.get(`${API_URL}/perjalanan`)
+    console.log(response)
+    setClearanceData(response.data.datas)
+  }
 
   const handleFilterChange = (name, value) => {
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -70,20 +78,20 @@ function Clearance() {
     setCurrentPage(1);
   };
 
-  const uniqueShips = useMemo(() => [...new Set(clearanceData.map(item => item.namaKapal))], [clearanceData]);
-  const uniqueCategories = useMemo(() => [...new Set(clearanceData.map(item => item.kategoriBarang))], [clearanceData]);
+  const uniqueShips = useMemo(() => [...new Set(clearanceData.map(item => item.kapal.nama_kapal))], [clearanceData]);
+  const uniqueCategories = useMemo(() => [...new Set(clearanceData?.map(item => item?.muatans?.kategori_muatan?.nama_kategori_muatan))], [clearanceData]);
   const uniqueGoodsOptions = useMemo(() => {
-    const allGoods = new Set(clearanceData.flatMap(item => item.muatan));
+    const allGoods = new Set(clearanceData.flatMap(item => item.muatans));
     return [...allGoods].map(good => ({ value: good, label: good }));
   }, [clearanceData]);
 
   const filteredData = useMemo(() => {
     return clearanceData.filter(item => {
       const searchTerm = filters.searchTerm.toLowerCase();
-      const searchMatch = !searchTerm || item.nomorSpb.toLowerCase().includes(searchTerm) || item.namaKapal.toLowerCase().includes(searchTerm) || item.tujuan.toLowerCase().includes(searchTerm) || item.agen.toLowerCase().includes(searchTerm);
-      const shipMatch = !filters.selectedShip || item.namaKapal === filters.selectedShip;
-      const dateMatch = (!filters.startDate || item.tglBerangkat >= filters.startDate) && (!filters.endDate || item.tglBerangkat <= filters.endDate);
-      const categoryMatch = !filters.selectedCategory || item.kategoriBarang === filters.selectedCategory;
+      const searchMatch = !searchTerm || item.spb.no_spb.toLowerCase().includes(searchTerm) || item.kapal.nama_kapal.toLowerCase().includes(searchTerm) || item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm) || item.agen.nama_agen.toLowerCase().includes(searchTerm);
+      const shipMatch = !filters.selectedShip || item.kapal.nama_kapal === filters.selectedShip;
+      const dateMatch = (!filters.startDate || item.tanggal_berangkat >= filters.startDate) && (!filters.endDate || item.tanggal_berangkat <= filters.endDate);
+      const categoryMatch = !filters.selectedCategory || item.muatans.kategori_muatan.nama_kategori_muatan === filters.selectedCategory;
       const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.some(selected => item.muatan.includes(selected.value));
       return searchMatch && shipMatch && dateMatch && categoryMatch && goodsMatch;
     });
