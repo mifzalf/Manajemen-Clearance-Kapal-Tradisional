@@ -8,10 +8,32 @@ const agen = require("../model/agenModel")
 let spbController = require("./spbController")
 let muatanController = require("./muatanController")
 const { db } = require("../config/db")
+const spb = require("../model/spbModel")
+const negara = require("../model/negaraModel")
+const jenis = require("../model/jenisModel")
+const muatan = require("../model/muatanModel")
+const kategoriMuatan = require("../model/kategoriMuatanModel")
 
 const getPerjalanan = async (req, res) => {
     try {
-        const datas = await perjalanan.findAll()
+        const datas = await perjalanan.findAll({
+            include: [
+                {model: kapal, attributes: ['nama_kapal'], include: [
+                    {model: jenis, attributes: ['nama_jenis']},
+                    {model: negara, as: "bendera", attributes: ['kode_negara']}
+                ]},
+                {model: spb, attributes: ['no_spb', 'no_spb_asal']},
+                {model: nahkoda, attributes: ['nama_nahkoda']},
+                {model: agen, attributes: ['nama_agen']},
+                {model: muatan, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                    {model: kategoriMuatan, attributes: ['nama_kategori_muatan', 'status_kategori_muatan']}
+                ]},
+                {model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten']},
+                {model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan']},
+                {model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan']},
+                {model: kecamatan, as: "tujuan_akhir", attributes: ['nama_kecamatan']},
+            ]
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)

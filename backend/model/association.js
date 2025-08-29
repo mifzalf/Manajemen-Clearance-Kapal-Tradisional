@@ -17,7 +17,7 @@ kapal.belongsTo(jenis, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "
 
 negara.hasMany(kapal, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-kapal.belongsTo(negara, {foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
+kapal.belongsTo(negara, {as: "bendera", foreignKey: "id_bendera", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 spb.hasOne(perjalanan, {foreignKey: "id_spb", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -45,19 +45,19 @@ kecamatan.belongsTo(kabupaten, {foreignKey: "id_kabupaten", onDelete: "CASCADE",
 
 kabupaten.hasMany(perjalanan, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(kabupaten, {foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kabupaten, {as: "kedudukan_kapal", foreignKey: "id_kedudukan_kapal", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kecamatan.hasMany(perjalanan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(kecamatan, {foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {as: "datang_dari", foreignKey: "id_datang_dari", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kecamatan.hasMany(perjalanan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(kecamatan, {foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {as: "tempat_singgah", foreignKey: "id_tempat_singgah", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kecamatan.hasMany(perjalanan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.belongsTo(kecamatan, {foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.belongsTo(kecamatan, {as: "tujuan_akhir", foreignKey: "id_tujuan_akhir", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 agen.hasMany(perjalanan, {foreignKey: "id_agen", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
