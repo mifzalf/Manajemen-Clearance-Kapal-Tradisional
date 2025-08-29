@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
 import * as XLSX from 'xlsx';
@@ -8,186 +8,206 @@ import FilterDropdown from '../../components/common/FilterDropdown';
 import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
 import PrintableClearanceList from '../../components/clearance/PrintableClearanceList';
-import axios from 'axios'
-
-const sampleClearanceData = [
-    { id: 1, nomorSpb: 'SPB/08/001', namaKapal: 'KM. Sejahtera Abadi', tujuan: 'Surabaya', tglBerangkat: '2025-08-15', agen: 'PT. Laut Biru', kategoriBarang: 'Umum', muatan: ['Semen', 'Kerupuk'] },
-    { id: 2, nomorSpb: 'SPB/08/002', namaKapal: 'KM. Sentosa', tujuan: 'Makassar', tglBerangkat: '2025-08-16', agen: 'CV. Samudera', kategoriBarang: 'Berbahaya', muatan: ['Solar'] },
-    { id: 3, nomorSpb: 'SPB/08/003', namaKapal: 'KM. Bahari', tujuan: 'Banjarmasin', tglBerangkat: '2025-08-17', agen: 'PT. Laut Biru', kategoriBarang: 'Cair', muatan: ['Minyak Goreng'] },
-    { id: 4, nomorSpb: 'SPB/08/004', namaKapal: 'KM. Pelita Jaya', tujuan: 'Jakarta', tglBerangkat: '2025-08-18', agen: 'PT. Pelita', kategoriBarang: 'Curah', muatan: ['Beras'] },
-    { id: 5, nomorSpb: 'SPB/08/005', namaKapal: 'KM. Cahaya Timur', tujuan: 'Ambon', tglBerangkat: '2025-08-19', agen: 'CV. Timur Raya', kategoriBarang: 'Umum', muatan: ['Air Mineral'] },
-    { id: 6, nomorSpb: 'SPB/08/006', namaKapal: 'KM. Sentosa', tujuan: 'Bali', tglBerangkat: '2025-08-20', agen: 'CV. Samudera', kategoriBarang: 'Umum', muatan: ['Gula Pasir', 'Kerupuk'] },
-    { id: 7, nomorSpb: 'SPB/08/007', namaKapal: 'KM. Sejahtera Abadi', tujuan: 'Surabaya', tglBerangkat: '2025-08-21', agen: 'PT. Laut Biru', kategoriBarang: 'Cair', muatan: ['CPO'] },
-    { id: 8, nomorSpb: 'SPB/08/008', namaKapal: 'KM. Bintang Fajar', tujuan: 'Makassar', tglBerangkat: '2025-08-22', agen: 'PT. Bintang', kategoriBarang: 'Berbahaya', muatan: ['Minyak Tanah'] },
-    { id: 9, nomorSpb: 'SPB/08/009', namaKapal: 'KM. Bahari', tujuan: 'Banjarmasin', tglBerangkat: '2025-08-23', agen: 'PT. Laut Biru', kategoriBarang: 'Curah', muatan: ['Beras'] },
-    { id: 10, nomorSpb: 'SPB/08/010', namaKapal: 'KM. Cahaya Timur', tujuan: 'Ambon', tglBerangkat: '2025-08-24', agen: 'CV. Timur Raya', kategoriBarang: 'Umum', muatan: ['Semen'] },
-    { id: 11, nomorSpb: 'SPB/08/011', namaKapal: 'KM. Pelita Jaya', tujuan: 'Jakarta', tglBerangkat: '2025-08-25', agen: 'PT. Pelita', kategoriBarang: 'Umum', muatan: ['Semen'] },
-    { id: 12, nomorSpb: 'SPB/08/012', namaKapal: 'KM. Sentosa', tujuan: 'Bali', tglBerangkat: '2025-08-26', agen: 'CV. Samudera', kategoriBarang: 'Berbahaya', muatan: ['Solar'] },
-];
+import axios from 'axios';
+import debounce from 'lodash.debounce';
 
 const customStyles = {
-  multiValue: (styles) => ({ ...styles, backgroundColor: '#E0E7FF' }),
-  multiValueLabel: (styles) => ({ ...styles, color: '#374151' }),
-  multiValueRemove: (styles) => ({ ...styles, color: '#4F46E5', ':hover': { backgroundColor: '#4F46E5', color: 'white' } }),
+    multiValue: (styles) => ({ ...styles, backgroundColor: '#E0E7FF' }),
+    multiValueLabel: (styles) => ({ ...styles, color: '#374151' }),
+    multiValueRemove: (styles) => ({ ...styles, color: '#4F46E5', ':hover': { backgroundColor: '#4F46E5', color: 'white' } }),
 };
 
 const rowsPerPageOptions = ['5', '10', '20', 'All'];
 
 function Clearance() {
-  const API_URL = import.meta.env.VITE_API_URL
-  const [clearanceData, setClearanceData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ searchTerm: '', selectedShip: '', startDate: '', endDate: '', selectedCategory: '', selectedGoods: [] });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const exportRef = useRef(null);
-  
-  useEffect(() => {
-    fetchPerjalanan()
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (exportRef.current && !exportRef.current.contains(event.target)) {
-        setIsExportOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [exportRef]);
-
-  const fetchPerjalanan = async () => {
-    let response = await axios.get(`${API_URL}/perjalanan`)
-    console.log(response)
-    setClearanceData(response.data.datas)
-  }
-
-  const handleFilterChange = (name, value) => {
-    setFilters(prev => ({ ...prev, [name]: value }));
-    setCurrentPage(1);
-  };
-  
-  const handleRowsPerPageChange = (value) => {
-    if (value === 'Semua') {
-      setRowsPerPage(filteredData.length);
-    } else {
-      setRowsPerPage(parseInt(value, 10));
-    }
-    setCurrentPage(1);
-  };
-
-  const uniqueShips = useMemo(() => [...new Set(clearanceData.map(item => item.kapal.nama_kapal))], [clearanceData]);
-  const uniqueCategories = useMemo(() => [...new Set(clearanceData?.map(item => item?.muatans?.kategori_muatan?.nama_kategori_muatan))], [clearanceData]);
-  const uniqueGoodsOptions = useMemo(() => {
-    const allGoods = new Set(clearanceData.flatMap(item => item.muatans));
-    return [...allGoods].map(good => ({ value: good, label: good }));
-  }, [clearanceData]);
-
-  const filteredData = useMemo(() => {
-    return clearanceData.filter(item => {
-      const searchTerm = filters.searchTerm.toLowerCase();
-      const searchMatch = !searchTerm || item.spb.no_spb.toLowerCase().includes(searchTerm) || item.kapal.nama_kapal.toLowerCase().includes(searchTerm) || item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm) || item.agen.nama_agen.toLowerCase().includes(searchTerm);
-      const shipMatch = !filters.selectedShip || item.kapal.nama_kapal === filters.selectedShip;
-      const dateMatch = (!filters.startDate || item.tanggal_berangkat >= filters.startDate) && (!filters.endDate || item.tanggal_berangkat <= filters.endDate);
-      const categoryMatch = !filters.selectedCategory || item.muatans.kategori_muatan.nama_kategori_muatan === filters.selectedCategory;
-      const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.some(selected => item.muatan.includes(selected.value));
-      return searchMatch && shipMatch && dateMatch && categoryMatch && goodsMatch;
+    const API_URL = import.meta.env.VITE_API_URL;
+    const [clearanceData, setClearanceData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({
+        searchTerm: '',
+        selectedShip: '',
+        startDate: '',
+        endDate: '',
+        selectedCategory: '',
+        selectedGoods: []
     });
-  }, [filters, clearanceData]);
-  
-  const exportXLSX = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Clearance");
-    XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0,10)}.xlsx`);
-    setIsExportOpen(false);
-  };
-
-  const handlePrintPDF = () => {
-    setIsExportOpen(false);
-    setTimeout(() => {
-      window.print();
-    }, 100);
-  };
-
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
-
-  return (
-    <>
-      <div className="screen-only">
-        <div className="p-4 md:p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-800">Daftar Clearance</h1>
-            <div className="flex items-center gap-3">
-              <div className="relative" ref={exportRef}>
-                <button onClick={() => setIsExportOpen(!isExportOpen)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 w-full sm:w-auto">
-                  Ekspor
-                </button>
-                {isExportOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-20">
-                    <ul className="p-1">
-                      <li onClick={exportXLSX} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        Ekspor ke Excel (XLSX)
-                      </li>
-                      <li onClick={handlePrintPDF} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                        Ekspor ke PDF
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap">
-                + Tambah Data
-              </Link>
-            </div>
-          </div>
-          
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="grid grid-cols-1 items-end gap-4 border-b border-gray-200 p-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="lg:col-span-4"><SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari no. SPB, kapal, tujuan, agen..." /></div>
-              <FilterDropdown options={uniqueShips} selectedValue={filters.selectedShip} setSelectedValue={(value) => handleFilterChange('selectedShip', value)} placeholder="Semua Kapal" />
-              <FilterDropdown options={uniqueCategories} selectedValue={filters.selectedCategory} setSelectedValue={(value) => handleFilterChange('selectedCategory', value)} placeholder="Kategori Barang" />
-              <div className="flex flex-col sm:flex-row items-center gap-2 lg:col-span-2">
-                <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-                <span className="text-gray-500 hidden sm:block">-</span>
-                <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-              </div>
-              <div className="lg:col-span-4"><Select isMulti name="selectedGoods" options={uniqueGoodsOptions} className="basic-multi-select" classNamePrefix="select" placeholder="Pilih satu atau lebih barang..." value={filters.selectedGoods} onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions)} styles={customStyles} /></div>
-            </div>
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [isExportOpen, setIsExportOpen] = useState(false);
+    const exportRef = useRef(null);
+    const fetchFilteredData = useCallback(debounce(async (currentFilters) => {
+        setLoading(true);
+        try {
+            const params = {
+                nama_kapal: currentFilters.selectedShip || currentFilters.searchTerm,
+                kategori: currentFilters.selectedCategory,
+                tanggal_awal: currentFilters.startDate,
+                tanggal_akhir: currentFilters.endDate,
+                nama_muatan: currentFilters.selectedGoods.length > 0 ? currentFilters.selectedGoods[0].value : ''
+            };
+            Object.keys(params).forEach(key => {
+                if (!params[key]) {
+                    delete params[key];
+                }
+            });
+            const endpoint = Object.keys(params).length > 0 ? '/perjalanan/get-filter' : '/perjalanan';
             
-            {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <ClearanceTable clearanceItems={currentRows} />}
-            
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span>Tampilkan</span>
-                <FilterDropdown
-                  direction="up"
-                  selectedValue={selectedRowsPerPage}
-                  setSelectedValue={handleRowsPerPageChange}
-                  options={rowsPerPageOptions}
-                />
-                <span>baris</span>
-              </div>
-              {totalPages > 1 && (
-                <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
-              )}
+            const response = await axios.get(`${API_URL}${endpoint}`, { params });
+            setClearanceData(response.data.datas);
+
+        } catch (error) {
+            console.error("Gagal mengambil data perjalanan:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, 500), [API_URL]);
+
+    useEffect(() => {
+        fetchFilteredData(filters);
+    }, [filters, fetchFilteredData]);
+    
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (exportRef.current && !exportRef.current.contains(event.target)) {
+                setIsExportOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [exportRef]);
+
+
+    const handleFilterChange = (name, value) => {
+        setFilters(prev => ({ ...prev, [name]: value }));
+        setCurrentPage(1);
+    };
+    
+    const handleRowsPerPageChange = (value) => {
+        const totalData = clearanceData.length;
+        if (value === 'Semua') {
+            setRowsPerPage(totalData > 0 ? totalData : 1);
+        } else {
+            setRowsPerPage(parseInt(value, 10));
+        }
+        setCurrentPage(1);
+    };
+
+    const uniqueShips = useMemo(() => [...new Set(clearanceData.map(item => item.kapal.nama_kapal))], [clearanceData]);
+    const uniqueCategories = useMemo(() => {
+        const categories = new Set();
+        clearanceData.forEach(item => {
+            item.muatans.forEach(muatan => {
+                if (muatan.kategori_muatan?.status_kategori_muatan) {
+                    categories.add(muatan.kategori_muatan.status_kategori_muatan);
+                }
+            });
+        });
+        return [...categories];
+    }, [clearanceData]);
+    
+    const uniqueGoodsOptions = useMemo(() => {
+        const allGoods = new Set();
+        clearanceData.forEach(item => {
+            item.muatans.forEach(muatan => {
+                 if (muatan.kategori_muatan?.nama_kategori_muatan) {
+                    allGoods.add(muatan.kategori_muatan.nama_kategori_muatan);
+                }
+            })
+        })
+        return [...allGoods].map(good => ({ value: good, label: good }));
+    }, [clearanceData]);
+
+    const exportXLSX = () => {
+        const worksheet = XLSX.utils.json_to_sheet(clearanceData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Clearance");
+        XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0,10)}.xlsx`);
+        setIsExportOpen(false);
+    };
+
+    const handlePrintPDF = () => {
+        setIsExportOpen(false);
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    };
+
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = clearanceData.slice(indexOfFirstRow, indexOfLastRow);
+    const totalPages = Math.ceil(clearanceData.length / rowsPerPage);
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
+
+    return (
+        <>
+            <div className="screen-only">
+                <div className="p-4 md:p-6 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <h1 className="text-2xl font-bold text-gray-800">Daftar Clearance</h1>
+                        <div className="flex items-center gap-3">
+                            <div className="relative" ref={exportRef}>
+                                <button onClick={() => setIsExportOpen(!isExportOpen)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 w-full sm:w-auto">
+                                    Ekspor
+                                </button>
+                                {isExportOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-20">
+                                        <ul className="p-1">
+                                            <li onClick={exportXLSX} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                                Ekspor ke Excel (XLSX)
+                                            </li>
+                                            <li onClick={handlePrintPDF} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                                Ekspor ke PDF
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                            <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                                + Tambah Data
+                            </Link>
+                        </div>
+                    </div>
+                    
+                    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                        <div className="grid grid-cols-1 items-end gap-4 border-b border-gray-200 p-4 md:grid-cols-2 lg:grid-cols-4">
+                            <div className="lg:col-span-4"><SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari kapal, agen, tujuan..." /></div>
+                            <FilterDropdown options={uniqueShips} selectedValue={filters.selectedShip} setSelectedValue={(value) => handleFilterChange('selectedShip', value)} placeholder="Semua Kapal" />
+                            <FilterDropdown options={uniqueCategories} selectedValue={filters.selectedCategory} setSelectedValue={(value) => handleFilterChange('selectedCategory', value)} placeholder="Kategori Barang" />
+                            <div className="flex flex-col sm:flex-row items-center gap-2 lg:col-span-2">
+                                <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+                                <span className="text-gray-500 hidden sm:block">-</span>
+                                <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+                            </div>
+                            <div className="lg:col-span-4"><Select isMulti name="selectedGoods" options={uniqueGoodsOptions} className="basic-multi-select" classNamePrefix="select" placeholder="Pilih satu atau lebih barang..." value={filters.selectedGoods} onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions || [])} styles={customStyles} /></div>
+                        </div>
+                        
+                        {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <ClearanceTable clearanceItems={currentRows} />}
+                        
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
+                            <div className="flex items-center gap-2 text-sm">
+                                <span>Tampilkan</span>
+                                <FilterDropdown
+                                    direction="up"
+                                    selectedValue={selectedRowsPerPage}
+                                    setSelectedValue={handleRowsPerPageChange}
+                                    options={rowsPerPageOptions}
+                                />
+                                <span>baris</span>
+                            </div>
+                            {totalPages > 1 && (
+                                <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-      <div className="print-only">
-        <PrintableClearanceList data={filteredData} />
-      </div>
-    </>
-  );
+            <div className="print-only">
+                <PrintableClearanceList data={clearanceData} />
+            </div>
+        </>
+    );
 }
 
 export default Clearance;
