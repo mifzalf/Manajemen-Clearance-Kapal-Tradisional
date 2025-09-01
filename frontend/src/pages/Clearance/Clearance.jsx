@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
 import * as XLSX from 'xlsx';
@@ -23,6 +23,11 @@ function Clearance() {
     const API_URL = import.meta.env.VITE_API_URL;
     const [clearanceData, setClearanceData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filterOptions, setFilterOptions] = useState({
+        ships: [],
+        categories: [],
+        goods: [],
+    });
     const [filters, setFilters] = useState({
         searchTerm: '',
         selectedShip: '',
@@ -35,7 +40,71 @@ function Clearance() {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
+    
+    // --- DIPERBAIKI: useRef dipindahkan ke level atas komponen ---
+    const isInitialMount = useRef(true);
+
+    useEffect(() => {
+        const fetchInitialDataAndOptions = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(`${API_URL}/perjalanan`);
+                const allData = response.data.datas;
+                setClearanceData(allData);
+
+                const allShips = [...new Set(allData.map(item => item.kapal.nama_kapal))];
+                const allCategoriesSet = new Set();
+                allData.forEach(item => {
+                    item.muatans.forEach(muatan => {
+                        if (muatan.kategori_muatan?.status_kategori_muatan) {
+                            allCategoriesSet.add(muatan.kategori_muatan.status_kategori_muatan);
+                        }
+                    });
+                });
+                const allCategories = [...allCategoriesSet];
+                const allGoodsSet = new Set();
+                allData.forEach(item => {
+                    item.muatans.forEach(muatan => {
+                        if (muatan.kategori_muatan?.nama_kategori_muatan) {
+                            allGoodsSet.add(muatan.kategori_muatan.nama_kategori_muatan);
+                        }
+                    });
+                });
+                const allGoods = [...allGoodsSet].map(good => ({ value: good, label: good }));
+                
+                setFilterOptions({
+                    ships: allShips,
+                    categories: allCategories,
+                    goods: allGoods,
+                });
+
+            } catch (error) {
+                console.error("Gagal mengambil data awal:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchInitialDataAndOptions();
+    }, [API_URL]);
+
     const fetchFilteredData = useCallback(debounce(async (currentFilters) => {
+        const isFilterEmpty = Object.values(currentFilters).every(value => 
+            value === '' || (Array.isArray(value) && value.length === 0)
+        );
+
+        if (isFilterEmpty) {
+            try {
+                const response = await axios.get(`${API_URL}/perjalanan`);
+                setClearanceData(response.data.datas);
+            } catch (error) {
+                console.error("Gagal mengambil data perjalanan:", error);
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
         setLoading(true);
         try {
             const params = {
@@ -50,20 +119,24 @@ function Clearance() {
                     delete params[key];
                 }
             });
-            const endpoint = Object.keys(params).length > 0 ? '/perjalanan/get-filter' : '/perjalanan';
             
-            const response = await axios.get(`${API_URL}${endpoint}`, { params });
+            const response = await axios.get(`${API_URL}/perjalanan/get-filter`, { params });
             setClearanceData(response.data.datas);
 
         } catch (error) {
-            console.error("Gagal mengambil data perjalanan:", error);
+            console.error("Gagal memfilter data perjalanan:", error);
         } finally {
             setLoading(false);
         }
     }, 500), [API_URL]);
 
     useEffect(() => {
-        fetchFilteredData(filters);
+        // Logika ini sekarang aman karena useRef ada di luar
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+        } else {
+            fetchFilteredData(filters);
+        }
     }, [filters, fetchFilteredData]);
     
     useEffect(() => {
@@ -75,7 +148,6 @@ function Clearance() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [exportRef]);
-
 
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -91,31 +163,6 @@ function Clearance() {
         }
         setCurrentPage(1);
     };
-
-    const uniqueShips = useMemo(() => [...new Set(clearanceData.map(item => item.kapal.nama_kapal))], [clearanceData]);
-    const uniqueCategories = useMemo(() => {
-        const categories = new Set();
-        clearanceData.forEach(item => {
-            item.muatans.forEach(muatan => {
-                if (muatan.kategori_muatan?.status_kategori_muatan) {
-                    categories.add(muatan.kategori_muatan.status_kategori_muatan);
-                }
-            });
-        });
-        return [...categories];
-    }, [clearanceData]);
-    
-    const uniqueGoodsOptions = useMemo(() => {
-        const allGoods = new Set();
-        clearanceData.forEach(item => {
-            item.muatans.forEach(muatan => {
-                 if (muatan.kategori_muatan?.nama_kategori_muatan) {
-                    allGoods.add(muatan.kategori_muatan.nama_kategori_muatan);
-                }
-            })
-        })
-        return [...allGoods].map(good => ({ value: good, label: good }));
-    }, [clearanceData]);
 
     const exportXLSX = () => {
         const worksheet = XLSX.utils.json_to_sheet(clearanceData);
@@ -169,22 +216,19 @@ function Clearance() {
                             </Link>
                         </div>
                     </div>
-                    
                     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
                         <div className="grid grid-cols-1 items-end gap-4 border-b border-gray-200 p-4 md:grid-cols-2 lg:grid-cols-4">
                             <div className="lg:col-span-4"><SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari kapal, agen, tujuan..." /></div>
-                            <FilterDropdown options={uniqueShips} selectedValue={filters.selectedShip} setSelectedValue={(value) => handleFilterChange('selectedShip', value)} placeholder="Semua Kapal" />
-                            <FilterDropdown options={uniqueCategories} selectedValue={filters.selectedCategory} setSelectedValue={(value) => handleFilterChange('selectedCategory', value)} placeholder="Kategori Barang" />
+                            <FilterDropdown options={filterOptions.ships} selectedValue={filters.selectedShip} setSelectedValue={(value) => handleFilterChange('selectedShip', value)} placeholder="Semua Kapal" />
+                            <FilterDropdown options={filterOptions.categories} selectedValue={filters.selectedCategory} setSelectedValue={(value) => handleFilterChange('selectedCategory', value)} placeholder="Kategori Barang" />
                             <div className="flex flex-col sm:flex-row items-center gap-2 lg:col-span-2">
                                 <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
                                 <span className="text-gray-500 hidden sm:block">-</span>
                                 <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
                             </div>
-                            <div className="lg:col-span-4"><Select isMulti name="selectedGoods" options={uniqueGoodsOptions} className="basic-multi-select" classNamePrefix="select" placeholder="Pilih satu atau lebih barang..." value={filters.selectedGoods} onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions || [])} styles={customStyles} /></div>
+                            <div className="lg:col-span-4"><Select isMulti name="selectedGoods" options={filterOptions.goods} className="basic-multi-select" classNamePrefix="select" placeholder="Pilih satu atau lebih barang..." value={filters.selectedGoods} onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions || [])} styles={customStyles} /></div>
                         </div>
-                        
                         {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <ClearanceTable clearanceItems={currentRows} />}
-                        
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
                             <div className="flex items-center gap-2 text-sm">
                                 <span>Tampilkan</span>
