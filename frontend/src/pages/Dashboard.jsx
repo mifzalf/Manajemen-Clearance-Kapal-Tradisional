@@ -11,12 +11,16 @@ const Dashboard = () => {
   const API_URL = import.meta.env.VITE_API_URL
   const [totalKapal, setTotalKapal] = useState(0)
   const [totalPerjalanan, setTotalPerjalanan] = useState(0)
+  const [totalKapalNow, setTotalKapalNow] = useState(0)
+  const [totalPerjalananNow, setTotalPerjalananNow] = useState(0)
   const [totalPerjalananPerBulan, setTotalPerjalananPerBulan] = useState([])
   const [totalKategori, setTotalKategori] = useState([])
 
   useEffect(() => {
     fetchTotalKapal()
     fetchTotalPerjalanan()
+    fetchTotalKapalNow()
+    fetchTotalPerjalananNow()
     fetchPerjalananPerBulan()
     fetchTotalKategori()
   }, [])
@@ -31,11 +35,21 @@ const Dashboard = () => {
     setTotalPerjalanan(response.data.datas)
   }
 
+  const fetchTotalKapalNow = async () => {
+    let response = await axios.get(API_URL + '/kapal/total-today')
+    setTotalKapalNow(response.data.datas)
+  }
+
+  const fetchTotalPerjalananNow = async () => {
+    let response = await axios.get(API_URL + '/perjalanan/total-today')
+    setTotalPerjalananNow(response.data.datas)
+  }
+
   const fetchPerjalananPerBulan = async () => {
     let response = await axios.get(API_URL + '/perjalanan/total-month')
     setTotalPerjalananPerBulan(response.data.defaultData)
   }
-  
+
   const fetchTotalKategori = async () => {
     let response = await axios.get(API_URL + '/perjalanan/total-kategori')
     setTotalKategori(response.data.defaultDatas)
@@ -44,10 +58,10 @@ const Dashboard = () => {
   return (
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-      
+
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12">
-          <MetricCards totalKapal={totalKapal} totalPerjalanan={totalPerjalanan} />
+          <MetricCards totalKapal={totalKapal} totalPerjalanan={totalPerjalanan} kapalNow={totalKapalNow} perjalananNow={totalPerjalananNow} />
         </div>
 
         <div className="col-span-12 lg:col-span-8">
