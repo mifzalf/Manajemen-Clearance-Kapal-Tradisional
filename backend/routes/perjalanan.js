@@ -7,13 +7,15 @@ const {
     updatePerjalanan,
     deletePerjalanan,
     getPerjalananByFilter,
-    getTotalPerjalanan,
     getTotalPerjalananPerMonth,
-    getTotalPerKategori
+    getTotalPerKategori,
+    getTotalPerjalananThisMonth,
+    getTotalPerjalananNow
 } = require("../controller/perjalananController")
 
 router.get("/get-filter", getPerjalananByFilter)
-router.get("/total", getTotalPerjalanan)
+router.get("/total", getTotalPerjalananThisMonth)
+router.get("/total-today", getTotalPerjalananNow)
 router.get("/total-kategori", getTotalPerKategori)
 router.get("/total-month", getTotalPerjalananPerMonth)
 router.get("/", getPerjalanan)

@@ -307,9 +307,33 @@ const deletePerjalanan = async (req, res) => {
     }
 }
 
-const getTotalPerjalanan = async (req, res) => {
+const getTotalPerjalananThisMonth = async (req, res) => {
     try {
-        const datas = await perjalanan.count()
+        const currentMonth = new Date().getMonth() + 1
+        const currentYear = new Date().getFullYear()
+        const datas = await perjalanan.count({
+            where: {
+                [Op.and]: [
+                    literal(`YEAR(tanggal_clearance) = ${currentYear}`),
+                    literal(`MONTH(tanggal_clearance) = ${currentMonth}`),
+                ]
+            }
+        })
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+const getTotalPerjalananNow = async (req, res) => {
+    try {
+        const today = new Date().toISOString().split("T")[0]
+        const datas = await perjalanan.count({
+            where: {
+                tanggal_clearance: today
+            }
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
@@ -407,7 +431,8 @@ module.exports = {
     storePerjalanan, 
     updatePerjalanan, 
     deletePerjalanan, 
-    getTotalPerjalanan, 
+    getTotalPerjalananThisMonth, 
     getTotalPerjalananPerMonth, 
-    getTotalPerKategori
+    getTotalPerKategori,
+    getTotalPerjalananNow
 }

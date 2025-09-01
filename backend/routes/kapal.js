@@ -6,11 +6,13 @@ const {
     storeKapal,
     updateKapal,
     deleteKapal,
-    getTotalKapal
+    getTotalKapal,
+    getTotalKapalNow
 } = require("../controller/kapalController")
 
 router.get("/", getKapal)
 router.get("/total", getTotalKapal)
+router.get("/total-today", getTotalKapalNow)
 router.get("/:id", getKapalById)
 router.post("/store", storeKapal)
 router.patch("/update/:id", updateKapal)
