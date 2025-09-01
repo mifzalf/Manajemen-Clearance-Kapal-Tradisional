@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from "chart.js";
 import MetricCards from '../components/dashboard/MetricCards';
 import MonthlyClearanceBarChart from '../components/dashboard/MonthlyClearanceBarChart';
@@ -7,21 +8,54 @@ import CargoCategoryDoughnutChart from '../components/dashboard/CargoCategoryDou
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
+  const API_URL = import.meta.env.VITE_API_URL
+  const [totalKapal, setTotalKapal] = useState(0)
+  const [totalPerjalanan, setTotalPerjalanan] = useState(0)
+  const [totalPerjalananPerBulan, setTotalPerjalananPerBulan] = useState([])
+  const [totalKategori, setTotalKategori] = useState([])
+
+  useEffect(() => {
+    fetchTotalKapal()
+    fetchTotalPerjalanan()
+    fetchPerjalananPerBulan()
+    fetchTotalKategori()
+  }, [])
+
+  const fetchTotalKapal = async () => {
+    let response = await axios.get(API_URL + '/kapal/total')
+    setTotalKapal(response.data.datas)
+  }
+
+  const fetchTotalPerjalanan = async () => {
+    let response = await axios.get(API_URL + '/perjalanan/total')
+    setTotalPerjalanan(response.data.datas)
+  }
+
+  const fetchPerjalananPerBulan = async () => {
+    let response = await axios.get(API_URL + '/perjalanan/total-month')
+    setTotalPerjalananPerBulan(response.data.defaultData)
+  }
+  
+  const fetchTotalKategori = async () => {
+    let response = await axios.get(API_URL + '/perjalanan/total-kategori')
+    setTotalKategori(response.data.defaultDatas)
+  }
+
   return (
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
       
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12">
-          <MetricCards />
+          <MetricCards totalKapal={totalKapal} totalPerjalanan={totalPerjalanan} />
         </div>
 
         <div className="col-span-12 lg:col-span-8">
-          <MonthlyClearanceBarChart />
+          <MonthlyClearanceBarChart datas={totalPerjalananPerBulan} />
         </div>
 
         <div className="col-span-12 lg:col-span-4">
-          <CargoCategoryDoughnutChart />
+          <CargoCategoryDoughnutChart datas={totalKategori} />
         </div>
       </div>
     </div>

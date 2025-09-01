@@ -375,20 +375,21 @@ const getTotalPerKategori = async (req, res) => {
 
         const defaultDatas = [
             {
-                status_kategori_muatan: "Berbahaya",
+                status_kategori_muatan: "Umum",
                 jumlah_kategori_muatan: 0
             },
             {
-                status_kategori_muatan: "Umum",
+                status_kategori_muatan: "Berbahaya",
                 jumlah_kategori_muatan: 0
             },
         ]
 
         datas.forEach(d => {
-            if(d.status_kategori_muatan = "Berbahaya"){
-                defaultDatas[0].jumlah_kategori_muatan = d.jumlah_kategori_muatan
+            if(d.dataValues.status_kategori_muatan.toLowerCase() == "berbahaya"){
+                console.log("hai")
+                defaultDatas[1].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
             }else{
-                defaultDatas[1].jumlah_kategori_muatan = d.jumlah_kategori_muatan
+                defaultDatas[0].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
             }
         })
 

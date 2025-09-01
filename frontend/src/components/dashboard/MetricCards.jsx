@@ -1,22 +1,23 @@
 import React from 'react';
 import { FaShip, FaCheckCircle } from 'react-icons/fa';
 
-const stats = [
-  { 
-    label: "Jumlah Kapal Terdaftar", 
-    value: 152, 
-    today: 3,
-    icon: <FaShip className="h-6 w-6 text-blue-600" /> 
-  },
-  { 
-    label: "Clearance Bulan Ini", 
-    value: 78, 
-    today: 5,
-    icon: <FaCheckCircle className="h-6 w-6 text-blue-600" />
-  },
-];
+const MetricCards = ({totalKapal, totalPerjalanan}) => {
+  console.log(totalKapal)
+  const stats = [
+    {
+      label: "Jumlah Kapal Terdaftar",
+      value: totalKapal,
+      today: 3,
+      icon: <FaShip className="h-6 w-6 text-blue-600" />
+    },
+    {
+      label: "Clearance Bulan Ini",
+      value: totalPerjalanan,
+      today: 5,
+      icon: <FaCheckCircle className="h-6 w-6 text-blue-600" />
+    },
+  ];
 
-const MetricCards = () => {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {stats.map((stat) => (

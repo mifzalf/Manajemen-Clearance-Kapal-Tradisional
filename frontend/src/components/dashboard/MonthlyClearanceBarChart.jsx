@@ -1,7 +1,9 @@
 import React from 'react';
 import Chart from "react-apexcharts";
 
-const MonthlyClearanceBarChart = () => {
+const MonthlyClearanceBarChart = ({datas}) => {
+  const filteredData = datas.map(d => d.jumlah_perjalanan)
+  
   const options = {
     colors: ["#4F46E5"],
     chart: {
@@ -68,7 +70,7 @@ const MonthlyClearanceBarChart = () => {
   };
 
   const series = [
-    { name: "Jumlah Clearance", data: [65, 59, 80, 81, 56, 55, 40, 78, 90, 75, 85, 60] },
+    { name: "Jumlah Clearance", data: filteredData },
   ];
 
   return (

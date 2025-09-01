@@ -1,9 +1,9 @@
 import React from 'react';
 import Chart from "react-apexcharts";
 
-const CargoCategoryDoughnutChart = () => {
-  const seriesData = [120, 55, 40, 65, 15];
-  const seriesLabels = ['Umum', 'Berbahaya', 'Cair', 'Curah', 'Lainnya'];
+const CargoCategoryDoughnutChart = ({datas}) => {
+  const seriesData = datas.map(d => d.jumlah_kategori_muatan);
+  const seriesLabels = ['Umum', 'Berbahaya'];
 
   const options = {
     chart: {
