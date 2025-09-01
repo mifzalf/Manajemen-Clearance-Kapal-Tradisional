@@ -3,7 +3,7 @@ const kapal = require("../model/kapalModel")
 const nahkoda = require("../model/nahkodaModel")
 const perjalanan = require("../model/perjalananModel")
 const kabupaten = require("../model/kabupatenModel")
-const { Op, Sequelize } = require("sequelize")
+const { Op, Sequelize, literal, col, fn } = require("sequelize")
 const agen = require("../model/agenModel")
 let spbController = require("./spbController")
 let muatanController = require("./muatanController")
@@ -16,7 +16,7 @@ const kategoriMuatan = require("../model/kategoriMuatanModel")
 
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan } = req.query;
-    
+
     try {
         let wherePerjalanan = {};
         let whereKapal = {};
@@ -25,11 +25,11 @@ const getPerjalananByFilter = async (req, res) => {
         if (nama_kapal) {
             whereKapal.nama_kapal = { [Op.like]: `%${nama_kapal}%` };
         }
-        
+
         if (kategori) {
             whereKategoriMuatan.status_kategori_muatan = { [Op.like]: `%${kategori}%` };
         }
-        
+
         if (nama_muatan) {
             whereKategoriMuatan.nama_kategori_muatan = { [Op.like]: `%${nama_muatan}%` };
         }
@@ -49,7 +49,7 @@ const getPerjalananByFilter = async (req, res) => {
         }
 
         const datas = await perjalanan.findAll({
-            where: wherePerjalanan, 
+            where: wherePerjalanan,
             include: [
                 {
                     model: kapal,
@@ -58,7 +58,7 @@ const getPerjalananByFilter = async (req, res) => {
                         { model: jenis, attributes: ['nama_jenis'] },
                         { model: negara, as: "bendera", attributes: ['kode_negara'] }
                     ],
-                    where: whereKapal 
+                    where: whereKapal
                 },
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
@@ -70,8 +70,8 @@ const getPerjalananByFilter = async (req, res) => {
                         {
                             model: kategoriMuatan,
                             attributes: ['nama_kategori_muatan', 'status_kategori_muatan'],
-                            where: whereKategoriMuatan, 
-                            required: Object.keys(whereKategoriMuatan).length > 0 
+                            where: whereKategoriMuatan,
+                            required: Object.keys(whereKategoriMuatan).length > 0
                         }
                     ],
                     required: Object.keys(whereKategoriMuatan).length > 0
@@ -307,4 +307,106 @@ const deletePerjalanan = async (req, res) => {
     }
 }
 
-module.exports = { getPerjalananByFilter, getPerjalanan, getPerjalananById, storePerjalanan, updatePerjalanan, deletePerjalanan }
+const getTotalPerjalanan = async (req, res) => {
+    try {
+        const datas = await perjalanan.count()
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+const getTotalPerjalananPerMonth = async (req, res) => {
+    try {
+        const currentYear = new Date().getFullYear()
+        const datas = await perjalanan.findAll(
+            {
+                attributes: [
+                    [fn("MONTH", col("tanggal_clearance")), 'bulan'],
+                    [fn("COUNT", col("id_perjalanan")), 'jumlah_perjalanan'],
+                ],
+                where: literal(`YEAR(tanggal_clearance) = ${currentYear}`),
+                group: [fn('MONTH', col("tanggal_clearance"))],
+                order: [[fn('MONTH', col("tanggal_clearance")), 'ASC']]
+            }
+        )
+
+        let defaultData = new Array(12)
+        for (let i = 0; i < 12; i++) {
+            defaultData[i] = {
+                bulan: i + 1,
+                jumlah_perjalanan: 0
+            }
+        }
+        
+        datas.forEach(d => {
+            defaultData[d.dataValues.bulan - 1].jumlah_perjalanan = d.dataValues.jumlah_perjalanan
+        })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", defaultData })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+const getTotalPerKategori = async (req, res) => {
+    try {
+        const currentMonth = new Date().getMonth() + 1
+        const datas = await perjalanan.findAll(
+            {
+                attributes: [
+                    [col('muatans.kategori_muatan.status_kategori_muatan'), "status_kategori_muatan"],
+                    [fn("COUNT", col("muatans.kategori_muatan.status_kategori_muatan")), 'jumlah_kategori_muatan'],
+                ],
+                where: literal(`MONTH(tanggal_clearance) = ${currentMonth}`),
+                group: [col('muatans.kategori_muatan.status_kategori_muatan')],
+                include: [{
+                    model: muatan,
+                    attributes: [],
+                    include: [{
+                        model: kategoriMuatan,
+                        attributes: []
+                    }]
+                }]
+            }
+        )
+
+        const defaultDatas = [
+            {
+                status_kategori_muatan: "Berbahaya",
+                jumlah_kategori_muatan: 0
+            },
+            {
+                status_kategori_muatan: "Umum",
+                jumlah_kategori_muatan: 0
+            },
+        ]
+
+        datas.forEach(d => {
+            if(d.status_kategori_muatan = "Berbahaya"){
+                defaultDatas[0].jumlah_kategori_muatan = d.jumlah_kategori_muatan
+            }else{
+                defaultDatas[1].jumlah_kategori_muatan = d.jumlah_kategori_muatan
+            }
+        })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", defaultDatas })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+module.exports = { 
+    getPerjalananByFilter, 
+    getPerjalanan, 
+    getPerjalananById, 
+    storePerjalanan, 
+    updatePerjalanan, 
+    deletePerjalanan, 
+    getTotalPerjalanan, 
+    getTotalPerjalananPerMonth, 
+    getTotalPerKategori
+}

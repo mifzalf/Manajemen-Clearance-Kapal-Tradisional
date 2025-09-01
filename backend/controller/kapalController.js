@@ -70,4 +70,14 @@ const deleteKapal = async (req, res) => {
     }
 }
 
-module.exports = { getKapal, getKapalById, storeKapal, updateKapal, deleteKapal }
+const getTotalKapal = async (req, res) => {
+    try {
+        const datas = await kapal.count()
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+module.exports = { getKapal, getKapalById, storeKapal, updateKapal, deleteKapal, getTotalKapal  }

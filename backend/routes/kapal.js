@@ -5,10 +5,12 @@ const {
     getKapalById,
     storeKapal,
     updateKapal,
-    deleteKapal
+    deleteKapal,
+    getTotalKapal
 } = require("../controller/kapalController")
 
 router.get("/", getKapal)
+router.get("/total", getTotalKapal)
 router.get("/:id", getKapalById)
 router.post("/store", storeKapal)
 router.patch("/update/:id", updateKapal)
