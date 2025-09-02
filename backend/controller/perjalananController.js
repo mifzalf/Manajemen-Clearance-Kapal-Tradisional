@@ -169,7 +169,6 @@ const storePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
         let { muatan } = req.body
-        console.log(req.body)
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -222,6 +221,7 @@ const storePerjalanan = async (req, res) => {
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
         })
+        console.log("HAI")
         console.log(filteredMuatan)
         if (muatan.length > 0) {
             await muatanController.storeMuatan(filteredMuatan, t)

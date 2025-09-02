@@ -1,52 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import axios from 'axios'
 import Step1DataKapal from '../../components/clearance/Step1DataKapal';
 import Step2DataMuatan from '../../components/clearance/Step2DataMuatan';
 
 const sampleKapalData = [
-  { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
-  { id: 2, nama: 'MT. Cahaya Bintang', jenis: 'Tanker', bendera: 'Indonesia', gt: 1200, nt: 800, nomorSelar: '456/Def', tandaSelar: 'GT.1200', nomorImo: 'IMO1234567', callSign: 'EFGH' },
+    { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
+    { id: 2, nama: 'MT. Cahaya Bintang', jenis: 'Tanker', bendera: 'Indonesia', gt: 1200, nt: 800, nomorSelar: '456/Def', tandaSelar: 'GT.1200', nomorImo: 'IMO1234567', callSign: 'EFGH' },
 ];
 const sampleNahkodaData = [{ id: 1, nama: 'Capt. Budi Santoso' }, { id: 2, nama: 'Capt. Agus Wijaya' }];
 const sampleKabupatenData = [{ id: 1, nama: 'Kabupaten Sumenep' }, { id: 2, nama: 'Kota Surabaya' }];
 const sampleKecamatanData = [{ id: 1, nama: 'Kalianget' }, { id: 2, nama: 'Kota Sumenep' }];
 const sampleAgenData = [{ id: 1, nama: 'PT. Laut Biru Nusantara' }, { id: 2, nama: 'CV. Samudera Jaya' }];
 const sampleMuatanData = [
-  { id: 1, nama: 'LPG (Liquefied Petroleum Gas)'},
-  { id: 2, nama: 'Semen Curah' },
-  { id: 3, nama: 'Batu Bara' },
+    { id: 1, nama: 'LPG (Liquefied Petroleum Gas)' },
+    { id: 2, nama: 'Semen Curah' },
+    { id: 3, nama: 'Batu Bara' },
 ];
-const sampleJenisPpk = [{id: 1, nama: 'Dalam Negeri'}, {id: 2, nama: 'Luar Negeri'}];
+const sampleJenisPpk = [{ id: 1, nama: '27' }, { id: 2, nama: '29' }];
 
 const sampleClearanceDetailData = {
     id: 1, jenisPpk: '1', noSpbAsal: '123/SPB-LMG/08-2025', tanggalClearance: '2025-08-20', pukulClearance: '09:45',
     kapalId: 1, nahkodaId: 2, jumlahCrew: 12,
     kedudukanKapal: 1, datangDari: 2, tanggalDatang: '2025-08-19', tanggalBerangkat: '2025-08-20', pukulKapalBerangkat: '14:00', tempatSinggah: 2, tujuanAkhir: 1, agenKapalId: 1,
     statusMuatan: 'Ada Muatan',
-    barangDatang: [ { muatanId: 2, satuan: 'Ton', jumlah: 10 } ],
-    barangBerangkat: [ { muatanId: 3, satuan: 'Ton', jumlah: 50 } ]
+    barangDatang: [{ muatanId: 2, satuan: 'Ton', jumlah: 10 }],
+    barangBerangkat: [{ muatanId: 3, satuan: 'Ton', jumlah: 50 }]
 };
 
 // --- DIPERBAIKI DI SINI ---
 const initialState = {
-    jenisPpk: '', noSpbAsal: '', tanggalClearance: '', pukulClearance: '',
-    kapalId: '', jenisKapal: '', negaraAsal: '', gt: '', nt: '', nomorSelar: '', tandaSelar: '', nomorImo: '', callSign: '',
-    nahkodaId: '', jumlahCrew: '',
-    kedudukanKapal: '', datangDari: '', tanggalDatang: '', tanggalBerangkat: '', pukulKapalBerangkat: '', tempatSinggah: '', tujuanAkhir: '', agenKapalId: '',
-    statusMuatan: 'Kosong', barangDatang: [], barangBerangkat: [],
+    ppk: '', no_spb_asal: '', tanggal_clearance: '', pukul_agen_clearance: '',
+    id_kapal: '', id_nahkoda: '', jumlah_crew: '',
+    id_kedudukan_kapal: '', id_datang_dari: '', tanggal_datang: '', tanggal_berangkat: '', pukul_kapal_berangkat: '', id_tempat_singgah: '', id_tujuan_akhir: '', id_agen: '',
+    status_muatan_berangkat: 'Kosong', barangDatang: [], barangBerangkat: [],
 };
 
 
 const FormClearance = () => {
+    const API_URL = import.meta.env.VITE_API_URL
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = Boolean(id);
     const formRef = useRef(null);
 
+    const [nahkodaData, setNahkodaData] = useState([])
+    const [kapalData, setKapalData] = useState([])
+    const [kabupatenData, setKabupatenData] = useState([])
+    const [kecamatanData, setKecamatanData] = useState([])
+    const [agenData, setAgenData] = useState([])
+    const [kategoriMuatanData, setKategoriMuatanData] = useState([])
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
-    
+
     useEffect(() => {
         if (isEditMode) {
             const dataToEdit = { ...initialState, ...sampleClearanceDetailData };
@@ -56,33 +63,117 @@ const FormClearance = () => {
             }
             setFormData(dataToEdit);
         }
+        fetchAgen()
+        fetchKabupaten()
+        fetchKapal()
+        fetchKecamatan()
+        fetchNahkoda()
+        fetchKategoriMuatan()
     }, [id, isEditMode]);
+
+
+    const fetchKategoriMuatan = async () => {
+        let response = await axios.get(API_URL + '/kategori-muatan')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kategori_muatan,
+                id: d.id_kategori_muatan
+            }
+        })
+        setKategoriMuatanData(filteredDatas)
+    }
+    
+    const fetchNahkoda = async () => {
+        let response = await axios.get(API_URL + '/nahkoda')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_nahkoda,
+                id: d.id_nahkoda
+            }
+        })
+        setNahkodaData(filteredDatas)
+    }
+
+    const fetchKapal = async () => {
+        let response = await axios.get(API_URL + '/kapal')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kapal,
+                id: d.id_kapal
+            }
+        })
+        setKapalData(filteredDatas)
+    }
+
+    const fetchKabupaten = async () => {
+        let response = await axios.get(API_URL + '/kabupaten')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kabupaten,
+                id: d.id_kabupaten
+            }
+        })
+        setKabupatenData(filteredDatas)
+    }
+
+    const fetchKecamatan = async () => {
+        let response = await axios.get(API_URL + '/kecamatan')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kecamatan,
+                id: d.id_kecamatan
+            }
+        })
+        setKecamatanData(filteredDatas)
+    }
+
+    const fetchAgen = async () => {
+        let response = await axios.get(API_URL + '/agen')
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_agen,
+                id: d.id_agen
+            }
+        })
+        setAgenData(filteredDatas)
+    }
 
     const handleKapalChange = (kapalId) => {
         const selectedKapal = sampleKapalData.find(k => k.id === parseInt(kapalId));
         if (selectedKapal) {
-            setFormData(prev => ({...prev, ...selectedKapal, kapalId: selectedKapal.id}));
+            setFormData(prev => ({ ...prev, ...selectedKapal, id_kapal: selectedKapal.id }));
         } else {
-            setFormData(prev => ({ ...prev, kapalId: '', jenisKapal: '', negaraAsal: '', gt: '', nt: '', nomorSelar: '', tandaSelar: '', nomorImo: '', callSign: '' }))
+            setFormData(prev => ({ ...prev, id_kapal: ''}))
         }
     };
 
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formRef.current?.checkValidity()) {
             formRef.current?.reportValidity();
             return;
         }
-        let {barangBerangkat, barangDatang, ...cleanData} = formData
+        let { barangBerangkat, barangDatang, ...cleanData } = formData
         let newData = {
             ...cleanData,
             muatan: [...formData.barangBerangkat, ...formData.barangDatang]
         }
-        console.log("Formulir Lengkap Disubmit:", newData);
-        toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+        console.log(newData)
+        try {
+            const response = isEditMode
+                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData)
+                : await axios.post(`${API_URL}/perjalanan/store`, newData);
+            if (response.status === 200) {
+                console.log("Formulir Lengkap Disubmit:", newData);
+                toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+            }
+        } catch (error) {
+            console.error("Error:", error.response?.data?.msg || error.message);
+            toast.error(`Terjadi kesalahan saat menyimpan data.`);
+        }
         if (isEditMode) {
             navigate(`/clearance/${id}`);
         } else {
@@ -109,16 +200,16 @@ const FormClearance = () => {
                         <Step1DataKapal
                             formData={formData} setFormData={setFormData}
                             nextStep={nextStep} handleSubmit={handleSubmit}
-                            handleKapalChange={handleKapalChange} kapalOptions={sampleKapalData}
-                            nahkodaOptions={sampleNahkodaData} kabupatenOptions={sampleKabupatenData}
-                            kecamatanOptions={sampleKecamatanData} agenOptions={sampleAgenData}
+                            handleKapalChange={handleKapalChange} kapalOptions={kapalData}
+                            nahkodaOptions={nahkodaData} kabupatenOptions={kabupatenData}
+                            kecamatanOptions={kecamatanData} agenOptions={agenData}
                             jenisPpkOptions={sampleJenisPpk}
                         />
                     )}
                     {step === 2 && (
                         <Step2DataMuatan
                             formData={formData} setFormData={setFormData}
-                            prevStep={prevStep} muatanOptions={sampleMuatanData}
+                            prevStep={prevStep} muatanOptions={kategoriMuatanData}
                         />
                     )}
                 </form>

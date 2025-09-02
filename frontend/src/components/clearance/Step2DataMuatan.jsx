@@ -22,7 +22,7 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
   const addMuatan = (type) => {
     setFormData(prev => ({
       ...prev,
-      [type]: [...prev[type], { muatanId: '', satuan: '', jumlah: '' }]
+      [type]: [...prev[type], { id_kategori_muatan: '', satuan_muatan: '', jumlah_muatan: '', jenis_perjalanan: type == 'barangDatang' ? 'datang' : 'berangkat' }]
     }));
   };
   
@@ -40,15 +40,15 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-end">
             <div>
               <Label>Nama Muatan</Label>
-              <Select name="muatanId" value={item.muatanId} onChange={e => handleMuatanChange('barangDatang', index, e)} options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} />
+              <Select name="id_kategori_muatan" value={item.id_kategori_muatan} onChange={e => handleMuatanChange('barangDatang', index, e)} options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} />
             </div>
             <div>
               <Label>Satuan</Label>
-              <Select name="satuan" value={item.satuan} onChange={e => handleMuatanChange('barangDatang', index, e)} options={satuanOptions} />
+              <Select name="satuan_muatan" value={item.satuan_muatan} onChange={e => handleMuatanChange('barangDatang', index, e)} options={satuanOptions} />
             </div>
             <div>
               <Label>Jumlah</Label>
-              <InputField name="jumlah" type="number" value={item.jumlah} onChange={e => handleMuatanChange('barangDatang', index, e)} />
+              <InputField name="jumlah_muatan" type="number" value={item.jumlah_muatan} onChange={e => handleMuatanChange('barangDatang', index, e)} />
             </div>
             <button type="button" onClick={() => removeMuatan('barangDatang', index)} className="bg-red-500 text-white px-3 py-2 rounded-md h-11">Hapus</button>
           </div>
@@ -64,15 +64,15 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
             <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-end">
                 <div>
                 <Label>Nama Muatan</Label>
-                <Select name="muatanId" value={item.muatanId} onChange={e => handleMuatanChange('barangBerangkat', index, e)} options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} />
+                <Select name="id_kategori_muatan" value={item.id_kategori_muatan} onChange={e => handleMuatanChange('barangBerangkat', index, e)} options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} />
               </div>
               <div>
                 <Label>Satuan</Label>
-                <Select name="satuan" value={item.satuan} onChange={e => handleMuatanChange('barangBerangkat', index, e)} options={satuanOptions} />
+                <Select name="satuan_muatan" value={item.satuan_muatan} onChange={e => handleMuatanChange('barangBerangkat', index, e)} options={satuanOptions} />
               </div>
               <div>
                 <Label>Jumlah</Label>
-                <InputField name="jumlah" type="number" value={item.jumlah} onChange={e => handleMuatanChange('barangBerangkat', index, e)} />
+                <InputField name="jumlah_muatan" type="number" value={item.jumlah_muatan} onChange={e => handleMuatanChange('barangBerangkat', index, e)} />
               </div>
               <button type="button" onClick={() => removeMuatan('barangBerangkat', index)} className="bg-red-500 text-white px-3 py-2 rounded-md h-11">Hapus</button>
             </div>
