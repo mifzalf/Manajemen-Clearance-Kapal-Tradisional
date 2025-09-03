@@ -19,6 +19,7 @@ var {
   perjalanan, 
   spb 
 } = require('./model/association')
+var verifyToken = require(`./middleware/jwt`)
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -59,8 +60,10 @@ app.use(express.static(path.join(__dirname, 'public')));
   }
 })()
 
-app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+app.use(verifyToken)
+app.use('/', indexRouter);
 app.use('/nahkoda', nahkodaRouter);
 app.use('/agen', agenRouter);
 app.use('/spb', spbRouter);

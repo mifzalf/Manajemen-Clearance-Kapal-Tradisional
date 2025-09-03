@@ -2,7 +2,9 @@ var express = require('express');
 var router = express.Router();
 const path = require("path")
 const multer = require("multer");
+const verifyToken = require(`../middleware/jwt`)
 const { storeUser, getUser, updateUser, getUserById, deleteUser, login } = require('../controller/userController');
+const { userAuth, adminAuth } = require('../middleware/authorization');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -25,12 +27,14 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({storage, fileFilter})
 
-/* GET users listing. */
-router.get('/', getUser);
-router.get('/:id', getUserById);
-router.post('/store', upload.single("foto"), storeUser)
-router.patch('/update/:id', upload.single("foto"), updateUser)
-router.delete('/delete/:id', deleteUser)
 router.post('/login', login);
+
+router.use(verifyToken)
+
+router.get('/', adminAuth, getUser);
+router.get('/:id', userAuth, getUserById);
+router.post('/store', adminAuth, upload.single("foto"), storeUser)
+router.patch('/update/:id', userAuth, upload.single("foto"), updateUser)
+router.delete('/delete/:id', userAuth, deleteUser)
 
 module.exports = router;

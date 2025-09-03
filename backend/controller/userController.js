@@ -57,6 +57,9 @@ const getUserById = async (req, res) => {
 
 const storeUser = async (req, res) => {
     try {
+        let data = await users.findOne({where: {username: req.body.username}})
+        if(data) return res.status(500).json({ msg: "Username sudah ada" })
+
         if (req.file) {
             req.body.foto = `images/profil/${req.file.filename}`
         }
@@ -71,6 +74,9 @@ const storeUser = async (req, res) => {
 
 const updateUser = async (req, res, next) => {
     try {
+        let data = await users.findOne({where: {username: req.body.username}})
+        if(data && data.id_user != req.params.id) return res.status(500).json({ msg: "Username sudah ada" })
+
         if (req.file) {
             let data = await users.findByPk(req.params.id)
             if (data.foto) {

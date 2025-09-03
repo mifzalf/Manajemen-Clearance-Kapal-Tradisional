@@ -11,7 +11,7 @@ const kabupaten = require("./kabupatenModel");
 const negara = require("./negaraModel");
 const provinsi = require("./provinsiModel");
 const users = require("./userModel");
-const logUser = require("./logUser");
+const logUser = require("./logUserModel");
 
 jenis.hasMany(kapal, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
