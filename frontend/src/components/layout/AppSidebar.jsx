@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   HorizontaLDots,
   ListIcon,
+  UserCircleIcon,
 } from '../../icons';
 
 const AppSidebar = () => {
@@ -34,6 +35,7 @@ const AppSidebar = () => {
       ],
     },
     { name: 'Log Aktivitas', path: '/log-aktivitas', icon: <ListIcon /> },
+    { name: 'Manajemen User', path: '/manajemen-user', icon: <UserCircleIcon /> },
   ];
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);

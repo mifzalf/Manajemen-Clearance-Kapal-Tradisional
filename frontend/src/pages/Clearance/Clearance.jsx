@@ -41,7 +41,6 @@ function Clearance() {
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
     
-    // --- DIPERBAIKI: useRef dipindahkan ke level atas komponen ---
     const isInitialMount = useRef(true);
 
     useEffect(() => {
@@ -131,7 +130,6 @@ function Clearance() {
     }, 500), [API_URL]);
 
     useEffect(() => {
-        // Logika ini sekarang aman karena useRef ada di luar
         if (isInitialMount.current) {
             isInitialMount.current = false;
         } else {

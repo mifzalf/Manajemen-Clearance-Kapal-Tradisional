@@ -44,7 +44,7 @@ const DetailClearance = () => {
             // Di sini Anda akan memanggil API untuk menghapus
             // axios.delete(`/api/clearance/${data.id}`);
             
-            setIsConfirmOpen(false); // Tutup modal dulu
+            setIsConfirmOpen(false); 
             toast.success(`Data SPB ${data.noSpbKalianget} berhasil dihapus.`);
             
             // Arahkan kembali ke daftar setelah beberapa saat
