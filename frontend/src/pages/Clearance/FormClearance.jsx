@@ -51,17 +51,24 @@ const FormClearance = () => {
     const [kecamatanData, setKecamatanData] = useState([])
     const [agenData, setAgenData] = useState([])
     const [kategoriMuatanData, setKategoriMuatanData] = useState([])
+    const [clearanceData, setClearanceData] = useState({})
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
 
     useEffect(() => {
-        if (isEditMode) {
-            const dataToEdit = { ...initialState, ...sampleClearanceDetailData };
+        if (isEditMode && clearanceData && Object.keys(clearanceData).length > 0) {
+            const dataToEdit = { ...initialState, ...clearanceData };
             const selectedKapal = sampleKapalData.find(k => k.id === dataToEdit.kapalId);
             if (selectedKapal) {
                 Object.assign(dataToEdit, selectedKapal);
             }
             setFormData(dataToEdit);
+        }
+    }, [clearanceData, isEditMode])
+
+    useEffect(() => {
+        if (isEditMode) {
+            fetchClearance()
         }
         fetchAgen()
         fetchKabupaten()
@@ -71,6 +78,12 @@ const FormClearance = () => {
         fetchKategoriMuatan()
     }, [id, isEditMode]);
 
+
+    const fetchClearance = async () => {
+        let response = await axios.get(API_URL + `/perjalanan/${id}`)
+        setClearanceData(response?.data?.data)
+        console.log(clearanceData)
+    }
 
     const fetchKategoriMuatan = async () => {
         let response = await axios.get(API_URL + '/kategori-muatan')
@@ -82,7 +95,7 @@ const FormClearance = () => {
         })
         setKategoriMuatanData(filteredDatas)
     }
-    
+
     const fetchNahkoda = async () => {
         let response = await axios.get(API_URL + '/nahkoda')
         let filteredDatas = response.data.datas.map(d => {
@@ -143,7 +156,7 @@ const FormClearance = () => {
         if (selectedKapal) {
             setFormData(prev => ({ ...prev, ...selectedKapal, id_kapal: selectedKapal.id }));
         } else {
-            setFormData(prev => ({ ...prev, id_kapal: ''}))
+            setFormData(prev => ({ ...prev, id_kapal: '' }))
         }
     };
 

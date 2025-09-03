@@ -277,8 +277,7 @@ const updatePerjalanan = async (req, res) => {
             return { ...m, id_perjalanan: req.params.id }
         })
         console.log(filteredMuatan)
-        if (data.status_muatan_berangkat)
-            await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
+        await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
 
         t.commit()
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
@@ -363,7 +362,7 @@ const getTotalPerjalananPerMonth = async (req, res) => {
                 jumlah_perjalanan: 0
             }
         }
-        
+
         datas.forEach(d => {
             defaultData[d.dataValues.bulan - 1].jumlah_perjalanan = d.dataValues.jumlah_perjalanan
         })
@@ -409,10 +408,10 @@ const getTotalPerKategori = async (req, res) => {
         ]
 
         datas.forEach(d => {
-            if(d.dataValues.status_kategori_muatan.toLowerCase() == "berbahaya"){
+            if (d.dataValues.status_kategori_muatan.toLowerCase() == "berbahaya") {
                 console.log("hai")
                 defaultDatas[1].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
-            }else{
+            } else {
                 defaultDatas[0].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
             }
         })
@@ -424,15 +423,15 @@ const getTotalPerKategori = async (req, res) => {
     }
 }
 
-module.exports = { 
-    getPerjalananByFilter, 
-    getPerjalanan, 
-    getPerjalananById, 
-    storePerjalanan, 
-    updatePerjalanan, 
-    deletePerjalanan, 
-    getTotalPerjalananThisMonth, 
-    getTotalPerjalananPerMonth, 
+module.exports = {
+    getPerjalananByFilter,
+    getPerjalanan,
+    getPerjalananById,
+    storePerjalanan,
+    updatePerjalanan,
+    deletePerjalanan,
+    getTotalPerjalananThisMonth,
+    getTotalPerjalananPerMonth,
     getTotalPerKategori,
     getTotalPerjalananNow
 }

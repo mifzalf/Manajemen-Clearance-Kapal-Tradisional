@@ -10,6 +10,8 @@ const spb = require("./spbModel");
 const kabupaten = require("./kabupatenModel");
 const negara = require("./negaraModel");
 const provinsi = require("./provinsiModel");
+const users = require("./userModel");
+const logUser = require("./logUser");
 
 jenis.hasMany(kapal, {foreignKey: "id_jenis", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
@@ -71,4 +73,8 @@ kategoriMuatan.hasMany(muatan, {foreignKey: "id_kategori_muatan", onDelete: "CAS
 
 muatan.belongsTo(kategoriMuatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, spb}
+users.hasMany(logUser, {foreignKey: "id_user", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+logUser.belongsTo(users, {foreignKey: "id_user", onDelete: "CASCADE", onUpdate: "CASCADE"})
+
+module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, spb, users, logUser}
