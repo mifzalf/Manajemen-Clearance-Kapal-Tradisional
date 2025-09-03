@@ -1,7 +1,27 @@
 const path = require("path")
 const fs = require("fs")
+const jwt = require("jsonwebtoken")
 const perjalanan = require("../model/perjalananModel")
 const users = require("../model/userModel")
+
+const login = async (req, res) => {
+    try {
+        let {username, password} = req.body
+        console.log(req.body)
+        const data = await users.findOne({where: { username, password }})
+        if(!data) return res.status(401).json({msg: "Username / password tidak sesuai"})
+        
+        const token = jwt.sign({
+            id: data.id_user,
+            username: data.username
+        }, process.env.JWT_SECRET, {expiresIn: "1h"})
+
+        return res.status(200).json({msg: "Berhasil login", token})
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
 
 const getUser = async (req, res) => {
     try {
@@ -90,4 +110,4 @@ const deleteUser = async (req, res) => {
     }
 }
 
-module.exports = { getUser, getUserById, storeUser, updateUser, deleteUser }
+module.exports = { login, getUser, getUserById, storeUser, updateUser, deleteUser }
