@@ -73,8 +73,4 @@ kategoriMuatan.hasMany(muatan, {foreignKey: "id_kategori_muatan", onDelete: "CAS
 
 muatan.belongsTo(kategoriMuatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-users.hasMany(logUser, {foreignKey: "id_user", onDelete: "CASCADE", onUpdate: "CASCADE"})
-
-logUser.belongsTo(users, {foreignKey: "id_user", onDelete: "CASCADE", onUpdate: "CASCADE"})
-
 module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, spb, users, logUser}

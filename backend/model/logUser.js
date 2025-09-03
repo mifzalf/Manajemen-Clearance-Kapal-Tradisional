@@ -9,15 +9,7 @@ const logUser = db.define("log_user", {
         autoIncrement: true
     },
     waktu: DataTypes.TIME,
-    id_user: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: users,
-            key: "id_user"
-        },
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE"
-    },
+    username: DataTypes.STRING,
     aksi: DataTypes.ENUM("CREATE", "UPDATE", "DELETE", "LOGIN"),
     jenis_data: DataTypes.STRING,
     data_diubah: DataTypes.STRING
