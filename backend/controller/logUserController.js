@@ -43,27 +43,4 @@ const storeLogUser = async (no_logUser_asal, t) => {
     }
 }
 
-const updateLogUser = async (no_logUser_asal, id, t) => {
-    try {
-        if (no_logUser_asal == "") no_logUser_asal = null
-        let result = await logUser.update({ no_logUser_asal }, { where: { id_logUser: id }, transaction: t })
-        console.log(result, id)
-        if (result == 0) throw new Error("Data logUser tidak ditemukan")
-    } catch (error) {
-        console.log(error)
-        throw new Error("terjadi kesalahan pada fungsi")
-    }
-}
-
-const deleteLogUser = async (id, t) => {
-    try {
-        let result = await logUser.destroy({ where: { id_logUser: id }, transaction: t })
-        
-        if (result == 0) throw new Error("Data logUser tidak ditemukan")
-    } catch (error) {
-        console.log(error)
-        throw new Error(error.message)
-    }
-}
-
 module.exports = { getLogUser, getLogUserById, storeLogUser, updateLogUser, deleteLogUser }
