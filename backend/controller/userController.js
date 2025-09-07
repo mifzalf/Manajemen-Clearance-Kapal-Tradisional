@@ -6,17 +6,17 @@ const users = require("../model/userModel")
 
 const login = async (req, res) => {
     try {
-        let {username, password} = req.body
+        let { username, password } = req.body
         console.log(req.body)
-        const data = await users.findOne({where: { username, password }})
-        if(!data) return res.status(401).json({msg: "Username / password tidak sesuai"})
-        
+        const data = await users.findOne({ where: { username, password } })
+        if (!data) return res.status(401).json({ msg: "Username / password tidak sesuai" })
+
         const token = jwt.sign({
             id: data.id_user,
             username: data.username
-        }, process.env.JWT_SECRET, {expiresIn: "1h"})
+        }, process.env.JWT_SECRET, { expiresIn: "1h" })
 
-        return res.status(200).json({msg: "Berhasil login", token})
+        return res.status(200).json({ msg: "Berhasil login", token })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -57,8 +57,8 @@ const getUserById = async (req, res) => {
 
 const storeUser = async (req, res) => {
     try {
-        let data = await users.findOne({where: {username: req.body.username}})
-        if(data) return res.status(500).json({ msg: "Username sudah ada" })
+        let data = await users.findOne({ where: { username: req.body.username } })
+        if (data) return res.status(500).json({ msg: "Username sudah ada" })
 
         if (req.file) {
             req.body.foto = `images/profil/${req.file.filename}`
@@ -74,8 +74,8 @@ const storeUser = async (req, res) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        let data = await users.findOne({where: {username: req.body.username}})
-        if(data && data.id_user != req.params.id) return res.status(500).json({ msg: "Username sudah ada" })
+        let data = await users.findOne({ where: { username: req.body.username } })
+        if (data && data.id_user != req.params.id) return res.status(500).json({ msg: "Username sudah ada" })
 
         if (req.file) {
             let data = await users.findByPk(req.params.id)
@@ -91,6 +91,28 @@ const updateUser = async (req, res, next) => {
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
+    }
+}
+
+const changePassword = async (req, res, next) => {
+    try {
+        let { newPassword, currentPassword } = req.body
+
+        let data = await users.findOne({
+            where: {
+                id_user: req.user.id,
+                password: currentPassword
+            }
+        })
+
+        if (!data) return res.status(500).json({ msg: "Password saat ini tidak sesuai" })
+
+        await users.update({ password: newPassword }, { where: { id_user: req.user.id } })
+
+        return res.status(200).json({ msg: "berhasil mengubah password" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -116,4 +138,4 @@ const deleteUser = async (req, res) => {
     }
 }
 
-module.exports = { login, getUser, getUserById, storeUser, updateUser, deleteUser }
+module.exports = { login, getUser, getUserById, storeUser, updateUser, changePassword, deleteUser }
