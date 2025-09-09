@@ -85,8 +85,6 @@ const FormClearance = () => {
         fetchAllData();
     }, [id, isEditMode, API_URL]);
 
-<<<<<<< HEAD
-=======
     useEffect(() => {
         if (isEditMode) {
             fetchClearance()
@@ -185,7 +183,6 @@ const FormClearance = () => {
         })
         setAgenData(filteredDatas)
     }
->>>>>>> 47500b33014dce8afb56a5634067d70e3b888dd7
 
     const handleKapalChange = (kapalId) => {
         const selectedKapal = kapalData.find(k => k.id === parseInt(kapalId));
@@ -225,18 +222,12 @@ const FormClearance = () => {
             }
 
             const response = isEditMode
-<<<<<<< HEAD
-                ? await axios.patch(`${API_URL}/perjalanan/update/${id}`, newData, config)
-                : await axios.post(`${API_URL}/perjalanan/store`, newData, config);
-
-=======
                 ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData, {
                     headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
                 })
                 : await axios.post(`${API_URL}/perjalanan/store`, newData, {
                     headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
                 });
->>>>>>> 47500b33014dce8afb56a5634067d70e3b888dd7
             if (response.status === 200) {
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
                 if (isEditMode) {
