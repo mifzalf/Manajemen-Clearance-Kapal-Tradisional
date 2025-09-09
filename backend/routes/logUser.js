@@ -4,11 +4,11 @@ const {
     getLogUser,
     getLogUserById,
     storeLogUser,
-    updateLogUser,
-    deleteLogUser
+    getLogUserByFilter
 } = require("../controller/logUserController")
 
 router.get("/", getLogUser)
+router.get("/get-filter", getLogUserByFilter)
 router.get("/:id", getLogUserById)
 router.post("/store", storeLogUser)
 // router.patch("/update/:id", updateLogUser)

@@ -118,6 +118,7 @@ const getPerjalanan = async (req, res) => {
             where: {
                 [Op.or]: [
                     { '$kapal.nama_kapal$': { [Op.like]: `%${search}%` } },
+                    { '$nahkoda.nama_nahkoda$': { [Op.like]: `%${search}%` } },
                     { '$agen.nama_agen$': { [Op.like]: `%${search}%` } },
                     { '$muatans.kategori_muatan.status_kategori_muatan$': { [Op.like]: `%${search}%` } },
                     { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${search}%` } },
