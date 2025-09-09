@@ -9,6 +9,7 @@ const logUser = db.define("log_user", {
         autoIncrement: true
     },
     waktu: DataTypes.TIME,
+    tanggal: DataTypes.DATEONLY,
     username: DataTypes.STRING,
     aksi: DataTypes.ENUM("CREATE", "UPDATE", "DELETE", "LOGIN"),
     jenis_data: DataTypes.STRING,

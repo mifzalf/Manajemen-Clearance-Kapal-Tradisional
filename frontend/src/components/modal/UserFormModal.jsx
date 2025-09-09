@@ -8,8 +8,8 @@ import axios from 'axios';
 
 const roleOptions = [
     { value: '', label: 'Pilih Role', disabled: true },
-    { value: 'Admin', label: 'Admin' },
-    { value: 'User', label: 'User' },
+    { value: 'superuser', label: 'superuser' },
+    { value: 'user', label: 'user' },
 ];
 
 const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
