@@ -46,7 +46,11 @@ const UserMenuContent = ({ onClose }) => (
     </ul>
     <div className="p-2 border-t">
       <button 
-        onClick={() => { alert('Sign Out!'); onClose(); }} 
+        onClick={() => { 
+          localStorage.removeItem('token');
+          window.location.href = '/signin';
+          onClose(); 
+        }} 
         className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-red-600 hover:bg-red-50"
       >
         Keluar (Sign Out)

@@ -110,20 +110,23 @@ function Clearance() {
 
         setLoading(true);
         try {
-            const params = {
-                nama_kapal: currentFilters.selectedShip || currentFilters.searchTerm,
+            let params = {
                 kategori: currentFilters.selectedCategory,
                 tanggal_awal: currentFilters.startDate,
                 tanggal_akhir: currentFilters.endDate,
                 nama_muatan: currentFilters.selectedGoods.length > 0 ? currentFilters.selectedGoods[0].value : ''
             };
+            if (currentFilters.searchTerm) {
+                params.search = currentFilters.searchTerm;
+            } else if (currentFilters.selectedShip) {
+                params.nama_kapal = currentFilters.selectedShip;
+            }
             Object.keys(params).forEach(key => {
                 if (!params[key]) {
                     delete params[key];
                 }
             });
-            
-            const response = await axios.get(`${API_URL}/perjalanan/get-filter`, {
+            const response = await axios.get(`${API_URL}/perjalanan`, {
               params,
               headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
             });

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DetailItem from '../../components/ui/DetailItem';
-import MuatanDetailTable from '../../components/clearance/MuatanDetailTable';
+import MuatanDetailTable from './MuatanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
 import ConfirmationModal from '../../components/modal/ConfirmationModal';
 import axios from 'axios';

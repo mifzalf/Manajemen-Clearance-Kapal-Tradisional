@@ -40,6 +40,16 @@ const ProtectedRoute = () => {
 };
 
 function App() {
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      if (!localStorage.getItem('token')) {
+        window.location.href = '/signin';
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
     <Router>
       <Routes>

@@ -1,35 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import axios from 'axios'
+import axios from 'axios';
 import Step1DataKapal from '../../components/clearance/Step1DataKapal';
 import Step2DataMuatan from '../../components/clearance/Step2DataMuatan';
 
-const sampleKapalData = [
-    { id: 1, nama: 'KM. Sejahtera Abadi', jenis: 'General Cargo', bendera: 'Indonesia', gt: 500, nt: 350, nomorSelar: '123/Abc', tandaSelar: 'GT.500', nomorImo: 'IMO9876543', callSign: 'ABCD' },
-    { id: 2, nama: 'MT. Cahaya Bintang', jenis: 'Tanker', bendera: 'Indonesia', gt: 1200, nt: 800, nomorSelar: '456/Def', tandaSelar: 'GT.1200', nomorImo: 'IMO1234567', callSign: 'EFGH' },
-];
-const sampleNahkodaData = [{ id: 1, nama: 'Capt. Budi Santoso' }, { id: 2, nama: 'Capt. Agus Wijaya' }];
-const sampleKabupatenData = [{ id: 1, nama: 'Kabupaten Sumenep' }, { id: 2, nama: 'Kota Surabaya' }];
-const sampleKecamatanData = [{ id: 1, nama: 'Kalianget' }, { id: 2, nama: 'Kota Sumenep' }];
-const sampleAgenData = [{ id: 1, nama: 'PT. Laut Biru Nusantara' }, { id: 2, nama: 'CV. Samudera Jaya' }];
-const sampleMuatanData = [
-    { id: 1, nama: 'LPG (Liquefied Petroleum Gas)' },
-    { id: 2, nama: 'Semen Curah' },
-    { id: 3, nama: 'Batu Bara' },
-];
-const sampleJenisPpk = [{ id: 1, nama: '27' }, { id: 2, nama: '29' }];
+// ... (data sample Anda bisa dihapus jika tidak dipakai lagi)
 
-const sampleClearanceDetailData = {
-    id: 1, jenisPpk: '1', noSpbAsal: '123/SPB-LMG/08-2025', tanggalClearance: '2025-08-20', pukulClearance: '09:45',
-    kapalId: 1, nahkodaId: 2, jumlahCrew: 12,
-    kedudukanKapal: 1, datangDari: 2, tanggalDatang: '2025-08-19', tanggalBerangkat: '2025-08-20', pukulKapalBerangkat: '14:00', tempatSinggah: 2, tujuanAkhir: 1, agenKapalId: 1,
-    statusMuatan: 'Ada Muatan',
-    barangDatang: [{ muatanId: 2, satuan: 'Ton', jumlah: 10 }],
-    barangBerangkat: [{ muatanId: 3, satuan: 'Ton', jumlah: 50 }]
-};
-
-// --- DIPERBAIKI DI SINI ---
 const initialState = {
     ppk: '', no_spb_asal: '', tanggal_clearance: '', pukul_agen_clearance: '',
     id_kapal: '', id_nahkoda: '', jumlah_crew: '',
@@ -37,140 +14,84 @@ const initialState = {
     status_muatan_berangkat: 'Kosong', barangDatang: [], barangBerangkat: [],
 };
 
-
 const FormClearance = () => {
-    const API_URL = import.meta.env.VITE_API_URL
+    const API_URL = import.meta.env.VITE_API_URL;
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = Boolean(id);
     const formRef = useRef(null);
 
-    const [nahkodaData, setNahkodaData] = useState([])
-    const [kapalData, setKapalData] = useState([])
-    const [kabupatenData, setKabupatenData] = useState([])
-    const [kecamatanData, setKecamatanData] = useState([])
-    const [agenData, setAgenData] = useState([])
-    const [kategoriMuatanData, setKategoriMuatanData] = useState([])
-    const [clearanceData, setClearanceData] = useState({})
+    const [nahkodaData, setNahkodaData] = useState([]);
+    const [kapalData, setKapalData] = useState([]);
+    const [kabupatenData, setKabupatenData] = useState([]);
+    const [kecamatanData, setKecamatanData] = useState([]);
+    const [agenData, setAgenData] = useState([]);
+    const [kategoriMuatanData, setKategoriMuatanData] = useState([]);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
+    
+    // Config untuk semua request axios yang butuh otorisasi
+    const authConfig = {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+    };
 
     useEffect(() => {
-        if (isEditMode && clearanceData && Object.keys(clearanceData).length > 0) {
-            const dataToEdit = { ...initialState, ...clearanceData };
-            const selectedKapal = sampleKapalData.find(k => k.id === dataToEdit.kapalId);
-            if (selectedKapal) {
-                Object.assign(dataToEdit, selectedKapal);
+        const fetchAllData = async () => {
+            try {
+                // Menggunakan Promise.all untuk fetch data secara paralel
+                const [
+                    agenRes, kabupatenRes, kapalRes, 
+                    kecamatanRes, nahkodaRes, kategoriMuatanRes
+                ] = await Promise.all([
+                    axios.get(`${API_URL}/agen`, authConfig),
+                    axios.get(`${API_URL}/kabupaten`, authConfig),
+                    axios.get(`${API_URL}/kapal`, authConfig),
+                    axios.get(`${API_URL}/kecamatan`, authConfig),
+                    axios.get(`${API_URL}/nahkoda`, authConfig),
+                    axios.get(`${API_URL}/kategori-muatan`, authConfig)
+                ]);
+
+                // Proses dan set semua data
+                setAgenData(agenRes.data.datas.map(d => ({ nama: d.nama_agen, id: d.id_agen })));
+                setKabupatenData(kabupatenRes.data.datas.map(d => ({ nama: d.nama_kabupaten, id: d.id_kabupaten })));
+                setKapalData(kapalRes.data.datas.map(d => ({ nama: d.nama_kapal, id: d.id_kapal })));
+                setKecamatanData(kecamatanRes.data.datas.map(d => ({ nama: d.nama_kecamatan, id: d.id_kecamatan })));
+                setNahkodaData(nahkodaRes.data.datas.map(d => ({ nama: d.nama_nahkoda, id: d.id_nahkoda })));
+                setKategoriMuatanData(kategoriMuatanRes.data.datas.map(d => ({ nama: d.nama_kategori_muatan, id: d.id_kategori_muatan })));
+
+                // Jika mode edit, fetch data clearance
+                if (isEditMode) {
+                    const clearanceRes = await axios.get(`${API_URL}/perjalanan/${id}`, authConfig);
+                    const clearanceData = clearanceRes.data.data;
+                    
+                    // Pre-fill form dengan data yang ada
+                    const dataToEdit = {
+                        ...initialState,
+                        ...clearanceData,
+                        barangDatang: clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'datang') || [],
+                        barangBerangkat: clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'berangkat') || [],
+                    };
+                    setFormData(dataToEdit);
+                }
+
+            } catch (error) {
+                toast.error("Gagal memuat data master.");
+                console.error("Fetch Data Error:", error);
             }
-            setFormData(dataToEdit);
-        }
-    }, [clearanceData, isEditMode])
+        };
+        
+        fetchAllData();
+    }, [id, isEditMode, API_URL]);
 
-    useEffect(() => {
-        if (isEditMode) {
-            fetchClearance()
-        }
-        fetchAgen()
-        fetchKabupaten()
-        fetchKapal()
-        fetchKecamatan()
-        fetchNahkoda()
-        fetchKategoriMuatan()
-    }, [id, isEditMode]);
-
-
-    const fetchClearance = async () => {
-        let response = await axios.get(API_URL + `/perjalanan/${id}`, {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        setClearanceData(response?.data?.data)
-        console.log(clearanceData)
-    }
-
-    const fetchKategoriMuatan = async () => {
-        let response = await axios.get(API_URL + '/kategori-muatan', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kategori_muatan,
-                id: d.id_kategori_muatan
-            }
-        })
-        setKategoriMuatanData(filteredDatas)
-    }
-
-    const fetchNahkoda = async () => {
-        let response = await axios.get(API_URL + '/nahkoda', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_nahkoda,
-                id: d.id_nahkoda
-            }
-        })
-        setNahkodaData(filteredDatas)
-    }
-
-    const fetchKapal = async () => {
-        let response = await axios.get(API_URL + '/kapal', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kapal,
-                id: d.id_kapal
-            }
-        })
-        setKapalData(filteredDatas)
-    }
-
-    const fetchKabupaten = async () => {
-        let response = await axios.get(API_URL + '/kabupaten', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kabupaten,
-                id: d.id_kabupaten
-            }
-        })
-        setKabupatenData(filteredDatas)
-    }
-
-    const fetchKecamatan = async () => {
-        let response = await axios.get(API_URL + '/kecamatan', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kecamatan,
-                id: d.id_kecamatan
-            }
-        })
-        setKecamatanData(filteredDatas)
-    }
-
-    const fetchAgen = async () => {
-        let response = await axios.get(API_URL + '/agen', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_agen,
-                id: d.id_agen
-            }
-        })
-        setAgenData(filteredDatas)
-    }
 
     const handleKapalChange = (kapalId) => {
-        const selectedKapal = sampleKapalData.find(k => k.id === parseInt(kapalId));
+        const selectedKapal = kapalData.find(k => k.id === parseInt(kapalId));
         if (selectedKapal) {
-            setFormData(prev => ({ ...prev, ...selectedKapal, id_kapal: selectedKapal.id }));
+            setFormData(prev => ({ ...prev, id_kapal: selectedKapal.id }));
         } else {
-            setFormData(prev => ({ ...prev, id_kapal: '' }))
+            setFormData(prev => ({ ...prev, id_kapal: '' }));
         }
     };
 
@@ -183,28 +104,41 @@ const FormClearance = () => {
             formRef.current?.reportValidity();
             return;
         }
-        let { barangBerangkat, barangDatang, ...cleanData } = formData
+        let { barangBerangkat, barangDatang, ...cleanData } = formData;
         let newData = {
             ...cleanData,
             muatan: [...formData.barangBerangkat, ...formData.barangDatang]
-        }
-        console.log(newData)
+        };
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        };
+
         try {
+            if (!localStorage.getItem('token')) {
+                toast.error("Sesi Anda telah berakhir, silakan login kembali.");
+                navigate('/signin');
+                return;
+            }
+
             const response = isEditMode
-                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData)
-                : await axios.post(`${API_URL}/perjalanan/store`, newData);
+                ? await axios.patch(`${API_URL}/perjalanan/update/${id}`, newData, config)
+                : await axios.post(`${API_URL}/perjalanan/store`, newData, config);
+
             if (response.status === 200) {
-                console.log("Formulir Lengkap Disubmit:", newData);
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+                if (isEditMode) {
+                    navigate(`/clearance/${id}`);
+                } else {
+                    navigate('/clearance');
+                }
             }
         } catch (error) {
-            console.error("Error:", error.response?.data?.msg || error.message);
-            toast.error(`Terjadi kesalahan saat menyimpan data.`);
-        }
-        if (isEditMode) {
-            navigate(`/clearance/${id}`);
-        } else {
-            navigate('/clearance');
+            const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+            toast.error(errorMessage);
+            console.error("Submit Error:", error);
         }
     };
 
@@ -230,7 +164,7 @@ const FormClearance = () => {
                             handleKapalChange={handleKapalChange} kapalOptions={kapalData}
                             nahkodaOptions={nahkodaData} kabupatenOptions={kabupatenData}
                             kecamatanOptions={kecamatanData} agenOptions={agenData}
-                            jenisPpkOptions={sampleJenisPpk}
+                            jenisPpkOptions={[{ id: '27', nama: '27' }, { id: '29', nama: '29' }]}
                         />
                     )}
                     {step === 2 && (
