@@ -81,7 +81,7 @@ const FormClearance = () => {
 
     const fetchClearance = async () => {
         let response = await axios.get(API_URL + `/perjalanan/${id}`, {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         setClearanceData(response?.data?.data)
         console.log(clearanceData)
@@ -89,7 +89,7 @@ const FormClearance = () => {
 
     const fetchKategoriMuatan = async () => {
         let response = await axios.get(API_URL + '/kategori-muatan', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -102,7 +102,7 @@ const FormClearance = () => {
 
     const fetchNahkoda = async () => {
         let response = await axios.get(API_URL + '/nahkoda', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -115,7 +115,7 @@ const FormClearance = () => {
 
     const fetchKapal = async () => {
         let response = await axios.get(API_URL + '/kapal', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -128,7 +128,7 @@ const FormClearance = () => {
 
     const fetchKabupaten = async () => {
         let response = await axios.get(API_URL + '/kabupaten', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -141,7 +141,7 @@ const FormClearance = () => {
 
     const fetchKecamatan = async () => {
         let response = await axios.get(API_URL + '/kecamatan', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -154,7 +154,7 @@ const FormClearance = () => {
 
     const fetchAgen = async () => {
         let response = await axios.get(API_URL + '/agen', {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
         })
         let filteredDatas = response.data.datas.map(d => {
             return {
@@ -191,8 +191,12 @@ const FormClearance = () => {
         console.log(newData)
         try {
             const response = isEditMode
-                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData)
-                : await axios.post(`${API_URL}/perjalanan/store`, newData);
+                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                })
+                : await axios.post(`${API_URL}/perjalanan/store`, newData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
             if (response.status === 200) {
                 console.log("Formulir Lengkap Disubmit:", newData);
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
