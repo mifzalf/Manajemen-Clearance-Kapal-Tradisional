@@ -24,8 +24,12 @@ const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
     e.preventDefault();
     try {
       const response = isEditMode 
-        ? await axios.patch(`${API_URL}/agen/update/${currentItem.id_agen}`, formData) 
-        : await axios.post(`${API_URL}/agen/store`, formData);
+        ? await axios.patch(`${API_URL}/agen/update/${currentItem.id_agen}`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          }) 
+        : await axios.post(`${API_URL}/agen/store`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          });
 
       if(response.status === 200){
         toast.success(`Data Agen Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);

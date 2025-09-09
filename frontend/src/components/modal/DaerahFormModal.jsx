@@ -62,8 +62,12 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
     e.preventDefault();
     try {
         const response = isEditMode
-            ? await axios.patch(`${API_URL}/${activeTab}/update/${currentItem[`id_${activeTab}`]}`, formData)
-            : await axios.post(`${API_URL}/${activeTab}/store`, formData);
+            ? await axios.patch(`${API_URL}/${activeTab}/update/${currentItem[`id_${activeTab}`]}`, formData, {
+                headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+              })
+            : await axios.post(`${API_URL}/${activeTab}/store`, formData, {
+                headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+              });
         
         if (response.status === 200) {
             toast.success(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);

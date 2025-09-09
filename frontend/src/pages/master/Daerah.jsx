@@ -29,22 +29,30 @@ function Daerah() {
   }, []);
   
   const fetchNegara = async () => {
-    let response = await axios.get(`${API_URL}/negara`);
+    let response = await axios.get(`${API_URL}/negara`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setNegaraData(response.data.datas);
   };
 
   const fetchProvinsi = async () => {
-    let response = await axios.get(`${API_URL}/provinsi`);
+    let response = await axios.get(`${API_URL}/provinsi`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setProvinsiData(response.data.datas);
   };
 
   const fetchKabupaten = async () => {
-    let response = await axios.get(`${API_URL}/kabupaten`);
+    let response = await axios.get(`${API_URL}/kabupaten`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setKabupatenData(response.data.datas);
   };
 
   const fetchKecamatan = async () => {
-    let response = await axios.get(`${API_URL}/kecamatan`);
+    let response = await axios.get(`${API_URL}/kecamatan`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setKecamatanData(response.data.datas);
   };
 
@@ -82,7 +90,11 @@ function Daerah() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/${activeTab}/delete/${itemId}`);
+                const response = await axios.delete(`${API_URL}/${activeTab}/delete/${itemId}`,
+                  {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                  }
+                );
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchAll();

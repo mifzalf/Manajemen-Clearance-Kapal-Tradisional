@@ -26,32 +26,44 @@ const Dashboard = () => {
   }, [])
 
   const fetchTotalKapal = async () => {
-    let response = await axios.get(API_URL + '/kapal/total')
+    let response = await axios.get(API_URL + '/kapal/total',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalKapal(response.data.datas)
   }
 
   const fetchTotalPerjalanan = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total')
+    let response = await axios.get(API_URL + '/perjalanan/total',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalPerjalanan(response.data.datas)
   }
 
   const fetchTotalKapalNow = async () => {
-    let response = await axios.get(API_URL + '/kapal/total-today')
+    let response = await axios.get(API_URL + '/kapal/total-today',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalKapalNow(response.data.datas)
   }
 
   const fetchTotalPerjalananNow = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-today')
+    let response = await axios.get(API_URL + '/perjalanan/total-today',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalPerjalananNow(response.data.datas)
   }
 
   const fetchPerjalananPerBulan = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-month')
+    let response = await axios.get(API_URL + '/perjalanan/total-month',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalPerjalananPerBulan(response.data.defaultData)
   }
 
   const fetchTotalKategori = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-kategori')
+    let response = await axios.get(API_URL + '/perjalanan/total-kategori',{
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    })
     setTotalKategori(response.data.defaultDatas)
   }
 

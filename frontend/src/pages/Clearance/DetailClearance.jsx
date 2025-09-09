@@ -30,7 +30,9 @@ const DetailClearance = () => {
     }, [id]);
 
     const fetchDetail = async () => {
-        let response = await axios.get(`${API_URL}/perjalanan/${id}`)
+        let response = await axios.get(`${API_URL}/perjalanan/${id}`, {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         setData(response.data.data)
     }
 

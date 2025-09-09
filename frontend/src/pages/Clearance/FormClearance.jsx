@@ -80,13 +80,17 @@ const FormClearance = () => {
 
 
     const fetchClearance = async () => {
-        let response = await axios.get(API_URL + `/perjalanan/${id}`)
+        let response = await axios.get(API_URL + `/perjalanan/${id}`, {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         setClearanceData(response?.data?.data)
         console.log(clearanceData)
     }
 
     const fetchKategoriMuatan = async () => {
-        let response = await axios.get(API_URL + '/kategori-muatan')
+        let response = await axios.get(API_URL + '/kategori-muatan', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_kategori_muatan,
@@ -97,7 +101,9 @@ const FormClearance = () => {
     }
 
     const fetchNahkoda = async () => {
-        let response = await axios.get(API_URL + '/nahkoda')
+        let response = await axios.get(API_URL + '/nahkoda', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_nahkoda,
@@ -108,7 +114,9 @@ const FormClearance = () => {
     }
 
     const fetchKapal = async () => {
-        let response = await axios.get(API_URL + '/kapal')
+        let response = await axios.get(API_URL + '/kapal', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_kapal,
@@ -119,7 +127,9 @@ const FormClearance = () => {
     }
 
     const fetchKabupaten = async () => {
-        let response = await axios.get(API_URL + '/kabupaten')
+        let response = await axios.get(API_URL + '/kabupaten', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_kabupaten,
@@ -130,7 +140,9 @@ const FormClearance = () => {
     }
 
     const fetchKecamatan = async () => {
-        let response = await axios.get(API_URL + '/kecamatan')
+        let response = await axios.get(API_URL + '/kecamatan', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_kecamatan,
@@ -141,7 +153,9 @@ const FormClearance = () => {
     }
 
     const fetchAgen = async () => {
-        let response = await axios.get(API_URL + '/agen')
+        let response = await axios.get(API_URL + '/agen', {
+          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
         let filteredDatas = response.data.datas.map(d => {
             return {
                 nama: d.nama_agen,

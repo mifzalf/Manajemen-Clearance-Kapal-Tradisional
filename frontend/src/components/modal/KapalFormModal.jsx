@@ -56,8 +56,12 @@ const KapalFormModal = ({ activeTab, onClose, currentItem, jenisKapalOptions = [
     
     try {
       const response = isEditMode
-        ? await axios.patch(`${API_URL}/${endpoint}/update/${currentItem[idField]}`, formData)
-        : await axios.post(`${API_URL}/${endpoint}/store`, formData);
+        ? await axios.patch(`${API_URL}/${endpoint}/update/${currentItem[idField]}`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          })
+        : await axios.post(`${API_URL}/${endpoint}/store`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          });
 
       if (response.status === 200) {
         toast.success(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);

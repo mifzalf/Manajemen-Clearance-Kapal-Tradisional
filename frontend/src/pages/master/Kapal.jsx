@@ -24,17 +24,23 @@ function Kapal() {
   }, []);
 
   const fetchBendera = async () => {
-    let response = await axios.get(`${API_URL}/negara`);
+    let response = await axios.get(`${API_URL}/negara`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setNegaraData(response?.data?.datas);
   };
 
   const fetchKapal = async () => {
-    let response = await axios.get(`${API_URL}/kapal`);
+    let response = await axios.get(`${API_URL}/kapal`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setKapalData(response?.data?.datas);
   };
   
   const fetchJenisKapal = async () => {
-    let response = await axios.get(`${API_URL}/jenis`);
+    let response = await axios.get(`${API_URL}/jenis`, {
+      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+    });
     setJenisKapalData(response?.data?.datas);
   };
 
@@ -73,7 +79,11 @@ function Kapal() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/${endpoint}/delete/${itemId}`);
+                const response = await axios.delete(`${API_URL}/${endpoint}/delete/${itemId}`,
+                  {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                  }
+                );
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchAll();

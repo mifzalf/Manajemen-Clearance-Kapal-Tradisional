@@ -18,7 +18,9 @@ function Agen() {
   const fetchAgen = async() => {
     setLoading(true);
     try {
-      let response = await axios.get(`${API_URL}/agen`);
+      let response = await axios.get(`${API_URL}/agen`, {
+        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+      });
       setAgenData(response?.data?.datas || []);
     } catch (error) {
       toast.error("Gagal memuat data agen.");
@@ -50,7 +52,11 @@ function Agen() {
           <button 
             onClick={async () => {
               try {
-                const response = await axios.delete(`${API_URL}/agen/delete/${item.id_agen}`);
+                const response = await axios.delete(`${API_URL}/agen/delete/${item.id_agen}`,
+                  {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                  }
+                );
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchAgen();

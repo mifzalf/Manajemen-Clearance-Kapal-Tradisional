@@ -47,7 +47,9 @@ function Clearance() {
         const fetchInitialDataAndOptions = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`${API_URL}/perjalanan`);
+                const response = await axios.get(`${API_URL}/perjalanan`, {
+                  headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
                 const allData = response.data.datas;
                 setClearanceData(allData);
 
@@ -94,7 +96,9 @@ function Clearance() {
 
         if (isFilterEmpty) {
             try {
-                const response = await axios.get(`${API_URL}/perjalanan`);
+                const response = await axios.get(`${API_URL}/perjalanan`, {
+                  headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
                 setClearanceData(response.data.datas);
             } catch (error) {
                 console.error("Gagal mengambil data perjalanan:", error);
@@ -119,7 +123,10 @@ function Clearance() {
                 }
             });
             
-            const response = await axios.get(`${API_URL}/perjalanan/get-filter`, { params });
+            const response = await axios.get(`${API_URL}/perjalanan/get-filter`, {
+              params,
+              headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            });
             setClearanceData(response.data.datas);
 
         } catch (error) {

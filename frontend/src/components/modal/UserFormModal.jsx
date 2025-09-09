@@ -39,9 +39,13 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
         try {
             let response;
             if (isEditMode) {
-                response = await axios.patch(`${API_URL}/users/update/${currentItem.id_user}`, formData);
+                response = await axios.patch(`${API_URL}/users/update/${currentItem.id_user}`, formData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
             } else {
-                response = await axios.post(`${API_URL}/users/store`, formData);
+                response = await axios.post(`${API_URL}/users/store`, formData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
             }
 
             if (response.status === 200) {

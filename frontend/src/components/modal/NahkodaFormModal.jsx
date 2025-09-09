@@ -26,8 +26,12 @@ const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
     e.preventDefault();
     try {
       const response = isEditMode
-        ? await axios.patch(`${API_URL}/nahkoda/update/${currentItem.id_nahkoda}`, formData)
-        : await axios.post(`${API_URL}/nahkoda/store`, formData);
+        ? await axios.patch(`${API_URL}/nahkoda/update/${currentItem.id_nahkoda}`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          })
+        : await axios.post(`${API_URL}/nahkoda/store`, formData, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+          });
 
       if (response.status === 200) {
         toast.success(`Data Nahkoda Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);

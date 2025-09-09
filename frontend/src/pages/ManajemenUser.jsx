@@ -22,7 +22,9 @@ function ManajemenUser() {
         setLoading(true);
         try {
             // --- DIMODIFIKASI: Mengaktifkan API call ---
-            let response = await axios.get(`${API_URL}/users`);
+            let response = await axios.get(`${API_URL}/users`, {
+              headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+            });
             setUserData(response.data.datas || []);
         } catch (error) {
             toast.error("Gagal memuat data pengguna.");
@@ -61,7 +63,11 @@ function ManajemenUser() {
         if (itemToDelete) {
             try {
                 // --- DIMODIFIKASI: Mengaktifkan API call dan menggunakan id_user ---
-                await axios.delete(`${API_URL}/users/delete/${itemToDelete.id_user}`);
+                await axios.delete(`${API_URL}/users/delete/${itemToDelete.id_user}`,
+                  {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                  }
+                );
                 toast.success(`Pengguna "${itemToDelete.nama_lengkap}" berhasil dihapus.`);
                 fetchUsers(); // Refresh data setelah berhasil hapus
             } catch (error) {

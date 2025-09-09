@@ -18,7 +18,9 @@ function Nahkoda() {
   async function fecthNahkoda() {
     setLoading(true);
     try {
-      let response = await axios.get(`${API_URL}/nahkoda`);
+      let response = await axios.get(`${API_URL}/nahkoda`, {
+        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+      });
       setNahkodaData(response?.data?.datas || []);
     } catch (error) {
       toast.error("Gagal memuat data nahkoda.");
@@ -51,7 +53,11 @@ function Nahkoda() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/nahkoda/delete/${item.id_nahkoda}`);
+                const response = await axios.delete(`${API_URL}/nahkoda/delete/${item.id_nahkoda}`,
+                  {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                  }
+                );
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fecthNahkoda();
