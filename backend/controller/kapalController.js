@@ -2,6 +2,7 @@ const { Op } = require("sequelize")
 const jenis = require("../model/jenisModel")
 const kapal = require("../model/kapalModel")
 const negara = require("../model/negaraModel")
+const logUserController = require("./logUserController")
 
 const getKapal = async (req, res) => {
     try {
@@ -34,6 +35,8 @@ const storeKapal = async (req, res) => {
 
         await kapal.create({ ...req.body })
 
+        let log = await logUserController.storeLogUser(req.user.username, "CREATE", "kapal", `Menambahkan data kapal ${req.body.nama_kapal}`)
+
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
@@ -43,11 +46,23 @@ const storeKapal = async (req, res) => {
 
 const updateKapal = async (req, res) => {
     try {
+        let kapalData = await kapal.findOne({
+            where: { id_kapal: req.params.id },
+            attributes: ['nama_kapal']
+        })
         let jenisData = await jenis.findByPk(req.body.id_jenis)
         let benderaData = await negara.findByPk(req.body.id_bendera)
         if (!jenisData || !benderaData) return res.status(500).json({ msg: "data jenis / bendera tidak ditemukan" })
 
         let result = await kapal.update({ ...req.body }, { where: { id_kapal: req.params.id } })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "kapal",
+            `Mengubah data kapal ${(kapalData.nama_kapal == req.body.nama_kapal) ? 
+                kapalData.nama_kapal : kapalData.nama_kapal + "->" + req.body.nama_kapal}`
+        )
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
@@ -60,9 +75,20 @@ const updateKapal = async (req, res) => {
 
 const deleteKapal = async (req, res) => {
     try {
+        let kapalData = await kapal.findOne({
+            where: { id_kapal: req.params.id },
+            attributes: ['nama_kapal']
+        })
         let result = await kapal.destroy({ where: { id_kapal: req.params.id } })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "kapal",
+            `Menghapus data kapal ${kapalData.nama_kapal}`
+        )
 
         return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {

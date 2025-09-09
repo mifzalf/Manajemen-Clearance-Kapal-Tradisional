@@ -1,9 +1,10 @@
 const jenis = require("../model/jenisModel")
+const logUserController = require("./logUserController")
 
 const getJenis = async (req, res) => {
     try {
         const datas = await jenis.findAll()
-        return res.status(200).json({msg: "Berhasil mengambil data", datas})
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -14,10 +15,10 @@ const getJenisById = async (req, res) => {
     try {
         let id = req.params.id
         let data = await jenis.findByPk(id)
-        
-        if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
-            
-        return res.status(200).json({msg: "Berhasil mengambil data", data})
+
+        if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -26,9 +27,16 @@ const getJenisById = async (req, res) => {
 
 const storeJenis = async (req, res) => {
     try {
-        await jenis.create({...req.body})
+        await jenis.create({ ...req.body })
 
-        return res.status(200).json({msg: "Berhasil menambahkan data"})
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "jenis",
+            `Menambah data jenis ${req.body.nama_jenis}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -37,11 +45,23 @@ const storeJenis = async (req, res) => {
 
 const updateJenis = async (req, res) => {
     try {
-        let result = await jenis.update({...req.body}, {where: {id_jenis: req.params.id}})
+        let jenisData = await jenis.findOne({
+            where: { id_jenis: req.params.id },
+            attributes: ['nama_jenis']
+        })
+        let result = await jenis.update({ ...req.body }, { where: { id_jenis: req.params.id } })
 
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
-        return res.status(200).json({msg: "Berhasil memperbarui data"})
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "jenis",
+            `Mengubah data jenis ${(jenisData.nama_jenis == req.body.nama_jenis) ?
+                jenisData.nama_jenis : jenisData.nama_jenis + "->" + req.body.nama_jenis}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -50,15 +70,26 @@ const updateJenis = async (req, res) => {
 
 const deleteJenis = async (req, res) => {
     try {
-        let result = await jenis.destroy({where: {id_jenis: req.params.id}})
-        
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        let jenisData = await jenis.findOne({
+            where: { id_jenis: req.params.id },
+            attributes: ['nama_jenis']
+        })
+        let result = await jenis.destroy({ where: { id_jenis: req.params.id } })
 
-        return res.status(200).json({msg: "Berhasil menghapus data"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "jenis",
+            `Menghapus data jenis ${jenisData.nama_jenis}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
-module.exports = {getJenis, getJenisById, storeJenis, updateJenis, deleteJenis}
+module.exports = { getJenis, getJenisById, storeJenis, updateJenis, deleteJenis }

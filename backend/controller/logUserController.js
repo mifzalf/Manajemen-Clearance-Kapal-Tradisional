@@ -25,22 +25,32 @@ const getLogUserById = async (req, res) => {
     }
 }
 
-const storeLogUser = async (no_logUser_asal, t) => {
+const storeLogUser = async (username, aksi, jenis_data, data_diubah) => {
     try {
-        if (no_logUser_asal == "") no_logUser_asal = null
-        let latestData = await logUser.findOne({ order: [["createdAt", "DESC"]] })
-        no_logUser = "0000001"
-        if (latestData) {
-            let num = String(parseInt(latestData.no_logUser) + 1)
-            no_logUser = num.padStart(latestData.no_logUser.length, "0")
-        }
-        let newlogUser = await logUser.create({ no_logUser_asal, no_logUser }, {transaction: t})
+        let now = new Date()
 
-        return newlogUser
+        let date = now.getDate()
+        let month = now.getMonth() + 1
+        let year = now.getFullYear()
+        date = (date < 10) ? '0' + String(date) : date
+        month = (month < 10) ? '0' + String(month) : month
+        const tanggal = `${year}-${month}-${date}`
+
+        let hour = now.getHours()
+        let minute = now.getMinutes()
+        let second = now.getSeconds()
+        hour = (hour < 10) ? '0' + String(hour) : hour
+        minute = (minute < 10) ? '0' + String(minute) : minute
+        second = (second < 10) ? '0' + String(second) : second
+        const waktu = `${hour}:${minute}:${second}`
+
+        let data = await logUser.create({ username, aksi, jenis_data, data_diubah, tanggal, waktu })
+
+        return data
     } catch (error) {
         console.log(error)
         throw error;
     }
 }
 
-module.exports = { getLogUser, getLogUserById, storeLogUser, updateLogUser, deleteLogUser }
+module.exports = { getLogUser, getLogUserById, storeLogUser }

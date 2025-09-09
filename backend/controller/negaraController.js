@@ -1,4 +1,5 @@
 const negara = require("../model/negaraModel")
+const logUserController = require("./logUserController")
 
 const getNegara = async (req, res) => {
     try {
@@ -28,6 +29,13 @@ const storeNegara = async (req, res) => {
     try {
         await negara.create({...req.body})
 
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "negara",
+            `Menambah data negara ${req.body.nama_negara}`
+        )
+
         return res.status(200).json({msg: "Berhasil menambahkan data"})
     } catch (error) {
         console.log(error)
@@ -37,9 +45,21 @@ const storeNegara = async (req, res) => {
 
 const updateNegara = async (req, res) => {
     try {
+        let negaraData = await negara.findOne({
+            where: { id_negara: req.params.id },
+            attributes: ['nama_negara']
+        })
         let result = await negara.update({...req.body}, {where: {id_negara: req.params.id}})
 
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "negara",
+            `Mengubah data negara ${(negaraData.nama_negara == req.body.nama_negara) ?
+                negaraData.nama_negara : negaraData.nama_negara + "->" + req.body.nama_negara}`
+        )
 
         return res.status(200).json({msg: "Berhasil memperbarui data"})
     } catch (error) {
@@ -50,9 +70,20 @@ const updateNegara = async (req, res) => {
 
 const deleteNegara = async (req, res) => {
     try {
+        let negaraData = await negara.findOne({
+            where: { id_negara: req.params.id },
+            attributes: ['nama_negara']
+        })
         let result = await negara.destroy({where: {id_negara: req.params.id}})
         
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "negara",
+            `Menghapus data negara ${negaraData.nama_negara}`
+        )
 
         return res.status(200).json({msg: "Berhasil menghapus data"})
     } catch (error) {

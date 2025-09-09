@@ -13,6 +13,7 @@ const negara = require("../model/negaraModel")
 const jenis = require("../model/jenisModel")
 const muatan = require("../model/muatanModel")
 const kategoriMuatan = require("../model/kategoriMuatanModel")
+const logUserController = require("./logUserController")
 
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan } = req.query;
@@ -221,11 +222,17 @@ const storePerjalanan = async (req, res) => {
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
         })
-        console.log("HAI")
-        console.log(filteredMuatan)
+        
         if (muatan.length > 0) {
             await muatanController.storeMuatan(filteredMuatan, t)
         }
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "perjalanan",
+            `Menambah data perjalanan ${spb.no_spb}`
+        )
 
         t.commit()
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
@@ -240,7 +247,11 @@ const updatePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
         let { muatan } = req.body
-        let perjalananData = await perjalanan.findByPk(req.params.id)
+        let perjalananData = await perjalanan.findByPk(req.params.id, {
+            include: {
+                model: spb,   
+            }
+        })
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -279,6 +290,13 @@ const updatePerjalanan = async (req, res) => {
         console.log(filteredMuatan)
         await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
 
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "perjalanan",
+            `Mengubah data perjalanan ${perjalananData.spb.no_spb}`
+        )
+
         t.commit()
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
@@ -291,11 +309,25 @@ const updatePerjalanan = async (req, res) => {
 const deletePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
+        let perjalananData = await agen.findOne({
+            where: { id_agen: req.params.id },
+            include: {
+                model: spb
+            }
+        })
         let data = await perjalanan.findByPk(req.params.id)
         let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
         await spbController.deleteSpb(data.id_spb, t)
+        
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "perjalanan",
+            `Menghapus data perjalanan ${perjalananData.spb.no_spb}`
+        )
+
         t.commit()
 
         return res.status(200).json({ msg: "Berhasil menghapus data" })

@@ -1,5 +1,6 @@
 const kabupaten = require("../model/kabupatenModel")
 const provinsi = require("../model/provinsiModel")
+const logUserController = require("./logUserController")
 
 const getKabupaten = async (req, res) => {
     try {
@@ -32,6 +33,13 @@ const storeKabupaten = async (req, res) => {
             
         await kabupaten.create({...req.body})
 
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "kabupaten",
+            `Menambah data kabupaten ${req.body.nama_kabupaten}`
+        )
+
         return res.status(200).json({msg: "Berhasil menambahkan data"})
     } catch (error) {
         console.log(error)
@@ -41,9 +49,21 @@ const storeKabupaten = async (req, res) => {
 
 const updateKabupaten = async (req, res) => {
     try {
+        let kabupatenData = await kabupaten.findOne({
+            where: { id_kabupaten: req.params.id },
+            attributes: ['nama_kabupaten']
+        })
         let result = await kabupaten.update({...req.body}, {where: {id_kabupaten: req.params.id}})
 
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "kabupaten",
+            `Mengubah data kabupaten ${(kabupatenData.nama_kabupaten == req.body.nama_kabupaten) ?
+                kabupatenData.nama_kabupaten : kabupatenData.nama_kabupaten + "->" + req.body.nama_kabupaten}`
+        )
 
         return res.status(200).json({msg: "Berhasil memperbarui data"})
     } catch (error) {
@@ -54,9 +74,20 @@ const updateKabupaten = async (req, res) => {
 
 const deleteKabupaten = async (req, res) => {
     try {
+        let kabupatenData = await kabupaten.findOne({
+            where: { id_kabupaten: req.params.id },
+            attributes: ['nama_kabupaten']
+        })
         let result = await kabupaten.destroy({where: {id_kabupaten: req.params.id}})
         
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "kabupaten",
+            `Menghapus data kabupaten ${kabupatenData.nama_kabupaten}`
+        )
 
         return res.status(200).json({msg: "Berhasil menghapus data"})
     } catch (error) {

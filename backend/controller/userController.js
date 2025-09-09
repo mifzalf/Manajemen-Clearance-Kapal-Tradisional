@@ -3,6 +3,7 @@ const fs = require("fs")
 const jwt = require("jsonwebtoken")
 const perjalanan = require("../model/perjalananModel")
 const users = require("../model/userModel")
+const logUserController = require("./logUserController")
 
 const login = async (req, res) => {
     try {
@@ -65,6 +66,13 @@ const storeUser = async (req, res) => {
         }
         await users.create({ ...req.body })
 
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "user",
+            `Menambah data user ${req.body.username}`
+        )
+
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
@@ -74,6 +82,10 @@ const storeUser = async (req, res) => {
 
 const updateUser = async (req, res, next) => {
     try {
+        let userData = await users.findOne({
+            where: { id_user: req.params.id },
+            attributes: ['username']
+        })
         let data = await users.findOne({ where: { username: req.body.username } })
         if (data && data.id_user != req.params.id) return res.status(500).json({ msg: "Username sudah ada" })
 
@@ -89,6 +101,14 @@ const updateUser = async (req, res, next) => {
         let result = await users.update({ ...req.body }, { where: { id_user: req.params.id } })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "user",
+            `Mengubah data user ${(userData.username == req.body.username) ?
+                userData.username : userData.username + "->" + req.body.username}`
+        )
 
         return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
@@ -121,6 +141,10 @@ const changePassword = async (req, res, next) => {
 
 const deleteUser = async (req, res) => {
     try {
+        let userData = await users.findOne({
+            where: { id_user: req.params.id },
+            attributes: ['username']
+        })
         let data = await users.findByPk(req.params.id)
         if (data.foto) {
             let file = path.join(__dirname, "../public", data.foto)
@@ -130,6 +154,13 @@ const deleteUser = async (req, res) => {
         let result = await users.destroy({ where: { id_user: req.params.id } })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "user",
+            `Menghapus data user ${userData.username}`
+        )
 
         return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {

@@ -1,9 +1,10 @@
 const agen = require("../model/agenModel")
+const logUserController = require("./logUserController")
 
 const getAgen = async (req, res) => {
     try {
         const datas = await agen.findAll()
-        return res.status(200).json({msg: "Berhasil mengambil data", datas})
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -14,10 +15,10 @@ const getAgenById = async (req, res) => {
     try {
         let id = req.params.id
         let data = await agen.findByPk(id)
-        
-        if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
-            
-        return res.status(200).json({msg: "Berhasil mengambil data", data})
+
+        if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -26,9 +27,16 @@ const getAgenById = async (req, res) => {
 
 const storeAgen = async (req, res) => {
     try {
-        await agen.create({...req.body})
+        await agen.create({ ...req.body })
 
-        return res.status(200).json({msg: "Berhasil menambahkan data"})
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "agen",
+            `Menambah data agen ${req.body.nama_agen}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -37,11 +45,23 @@ const storeAgen = async (req, res) => {
 
 const updateAgen = async (req, res) => {
     try {
-        let result = await agen.update({...req.body}, {where: {id_agen: req.params.id}})
+        let agenData = await agen.findOne({
+            where: { id_agen: req.params.id },
+            attributes: ['nama_agen']
+        })
+        let result = await agen.update({ ...req.body }, { where: { id_agen: req.params.id } })
 
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
-        return res.status(200).json({msg: "Berhasil memperbarui data"})
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "agen",
+            `Mengubah data agen ${(agenData.nama_agen == req.body.nama_agen) ?
+                agenData.nama_agen : agenData.nama_agen + "->" + req.body.nama_agen}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -50,15 +70,26 @@ const updateAgen = async (req, res) => {
 
 const deleteAgen = async (req, res) => {
     try {
-        let result = await agen.destroy({where: {id_agen: req.params.id}})
-        
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        let agenData = await agen.findOne({
+            where: { id_agen: req.params.id },
+            attributes: ['nama_agen']
+        })
+        let result = await agen.destroy({ where: { id_agen: req.params.id } })
 
-        return res.status(200).json({msg: "Berhasil menghapus data"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "agen",
+            `Menghapus data agen ${agenData.nama_agen}`
+        )
+
+        return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
-module.exports = {getAgen, getAgenById, storeAgen, updateAgen, deleteAgen}
+module.exports = { getAgen, getAgenById, storeAgen, updateAgen, deleteAgen }

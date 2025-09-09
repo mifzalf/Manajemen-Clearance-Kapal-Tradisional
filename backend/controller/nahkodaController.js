@@ -1,4 +1,5 @@
 const nahkoda = require("../model/nahkodaModel")
+const logUserController = require("./logUserController")
 
 const getNahkoda = async (req, res) => {
     try {
@@ -28,6 +29,13 @@ const storeNahkoda = async (req, res) => {
     try {
         await nahkoda.create({...req.body})
 
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "CREATE",
+            "nahkoda",
+            `Menambah data nahkoda ${req.body.nama_nahkoda}`
+        )
+
         return res.status(200).json({msg: "Berhasil menambahkan data"})
     } catch (error) {
         console.log(error)
@@ -37,9 +45,21 @@ const storeNahkoda = async (req, res) => {
 
 const updateNahkoda = async (req, res) => {
     try {
+        let nahkodaData = await nahkoda.findOne({
+            where: { id_nahkoda: req.params.id },
+            attributes: ['nama_nahkoda']
+        })
         let result = await nahkoda.update({...req.body}, {where: {id_nahkoda: req.params.id}})
 
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "UPDATE",
+            "nahkoda",
+            `Mengubah data nahkoda ${(nahkodaData.nama_nahkoda == req.body.nama_nahkoda) ?
+                nahkodaData.nama_nahkoda : nahkodaData.nama_nahkoda + "->" + req.body.nama_nahkoda}`
+        )
 
         return res.status(200).json({msg: "Berhasil memperbarui data"})
     } catch (error) {
@@ -50,9 +70,20 @@ const updateNahkoda = async (req, res) => {
 
 const deleteNahkoda = async (req, res) => {
     try {
+        let nahkodaData = await nahkoda.findOne({
+            where: { id_nahkoda: req.params.id },
+            attributes: ['nama_nahkoda']
+        })
         let result = await nahkoda.destroy({where: {id_nahkoda: req.params.id}})
         
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+
+        let log = await logUserController.storeLogUser(
+            req.user.username,
+            "DELETE",
+            "nahkoda",
+            `Menghapus data nahkoda ${nahkodaData.nama_nahkoda}`
+        )
 
         return res.status(200).json({msg: "Berhasil menghapus data"})
     } catch (error) {

@@ -23,6 +23,7 @@ var verifyToken = require(`./middleware/jwt`)
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var logUserRouter = require('./routes/logUser');
 var nahkodaRouter = require('./routes/nahkoda')
 var agenRouter = require('./routes/agen')
 var spbRouter = require('./routes/spb')
@@ -60,6 +61,7 @@ app.use(express.static(path.join(__dirname, 'public')));
   }
 })()
 
+app.use('/log-user', logUserRouter);
 app.use('/users', usersRouter);
 
 app.use(verifyToken)

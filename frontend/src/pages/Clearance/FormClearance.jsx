@@ -85,6 +85,107 @@ const FormClearance = () => {
         fetchAllData();
     }, [id, isEditMode, API_URL]);
 
+<<<<<<< HEAD
+=======
+    useEffect(() => {
+        if (isEditMode) {
+            fetchClearance()
+        }
+        fetchAgen()
+        fetchKabupaten()
+        fetchKapal()
+        fetchKecamatan()
+        fetchNahkoda()
+        fetchKategoriMuatan()
+    }, [id, isEditMode]);
+
+
+    const fetchClearance = async () => {
+        let response = await axios.get(API_URL + `/perjalanan/${id}`, {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        setClearanceData(response?.data?.data)
+        console.log(clearanceData)
+    }
+
+    const fetchKategoriMuatan = async () => {
+        let response = await axios.get(API_URL + '/kategori-muatan', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kategori_muatan,
+                id: d.id_kategori_muatan
+            }
+        })
+        setKategoriMuatanData(filteredDatas)
+    }
+
+    const fetchNahkoda = async () => {
+        let response = await axios.get(API_URL + '/nahkoda', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_nahkoda,
+                id: d.id_nahkoda
+            }
+        })
+        setNahkodaData(filteredDatas)
+    }
+
+    const fetchKapal = async () => {
+        let response = await axios.get(API_URL + '/kapal', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kapal,
+                id: d.id_kapal
+            }
+        })
+        setKapalData(filteredDatas)
+    }
+
+    const fetchKabupaten = async () => {
+        let response = await axios.get(API_URL + '/kabupaten', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kabupaten,
+                id: d.id_kabupaten
+            }
+        })
+        setKabupatenData(filteredDatas)
+    }
+
+    const fetchKecamatan = async () => {
+        let response = await axios.get(API_URL + '/kecamatan', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_kecamatan,
+                id: d.id_kecamatan
+            }
+        })
+        setKecamatanData(filteredDatas)
+    }
+
+    const fetchAgen = async () => {
+        let response = await axios.get(API_URL + '/agen', {
+            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+        })
+        let filteredDatas = response.data.datas.map(d => {
+            return {
+                nama: d.nama_agen,
+                id: d.id_agen
+            }
+        })
+        setAgenData(filteredDatas)
+    }
+>>>>>>> 47500b33014dce8afb56a5634067d70e3b888dd7
 
     const handleKapalChange = (kapalId) => {
         const selectedKapal = kapalData.find(k => k.id === parseInt(kapalId));
@@ -124,9 +225,18 @@ const FormClearance = () => {
             }
 
             const response = isEditMode
+<<<<<<< HEAD
                 ? await axios.patch(`${API_URL}/perjalanan/update/${id}`, newData, config)
                 : await axios.post(`${API_URL}/perjalanan/store`, newData, config);
 
+=======
+                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                })
+                : await axios.post(`${API_URL}/perjalanan/store`, newData, {
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                });
+>>>>>>> 47500b33014dce8afb56a5634067d70e3b888dd7
             if (response.status === 200) {
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
                 if (isEditMode) {
