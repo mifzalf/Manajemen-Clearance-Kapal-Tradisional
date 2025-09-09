@@ -33,7 +33,7 @@ const storeKategoriMuatan = async (req, res) => {
             req.user.username,
             "CREATE",
             "kategori",
-            `Menambah data kategori ${req.body.nama_kategori}`
+            `Menambah data kategori ${req.body.nama_kategori_muatan}`
         )
 
         return res.status(200).json({msg: "Berhasil menambahkan data"})
@@ -57,8 +57,8 @@ const updateKategoriMuatan = async (req, res) => {
             req.user.username,
             "UPDATE",
             "kategori",
-            `Mengubah data kategori ${(kategoriData.nama_kategori == req.body.nama_kategori) ?
-                kategoriData.nama_kategori : kategoriData.nama_kategori + "->" + req.body.nama_kategori}`
+            `Mengubah data kategori ${(kategoriData.nama_kategori_muatan == req.body.nama_kategori_muatan) ?
+                kategoriData.nama_kategori_muatan : kategoriData.nama_kategori_muatan + "->" + req.body.nama_kategori_muatan}`
         )
 
         return res.status(200).json({msg: "Berhasil memperbarui data"})
@@ -82,7 +82,7 @@ const deleteKategoriMuatan = async (req, res) => {
             req.user.username,
             "DELETE",
             "kategori",
-            `Menghapus data kategori ${kategoriData.nama_kategori}`
+            `Menghapus data kategori ${kategoriData.nama_kategori_muatan}`
         )
 
         return res.status(200).json({msg: "Berhasil menghapus data"})
