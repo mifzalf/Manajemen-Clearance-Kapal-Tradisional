@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import axios from 'axios';
 
 import AppLayout from "./components/layout/AppLayout";
 
@@ -37,7 +38,6 @@ function App() {
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    const axios = require('axios').default;
     const interceptor = axios.interceptors.response.use(
       response => response,
       error => {
