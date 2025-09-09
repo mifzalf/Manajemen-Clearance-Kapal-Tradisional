@@ -1,10 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-// Layouts
 import AppLayout from "./components/layout/AppLayout";
 
-// Pages
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/AuthPages/SignIn";
 import Clearance from "./pages/Clearance/Clearance";
@@ -20,44 +18,48 @@ import Daerah from "./pages/master/Daerah";
 import LogAktivitas from "./pages/LogAktivitas"; 
 import ManajemenUser from "./pages/ManajemenUser";
 
-/**
- * Komponen ProtectedRoute
- * Komponen ini bertindak sebagai penjaga untuk rute-rute yang memerlukan login.
- * Ia memeriksa apakah ada 'token' di localStorage.
- * - Jika ada token, ia akan menampilkan halaman yang diminta (melalui <Outlet />).
- * - Jika tidak ada token, ia akan mengarahkan (redirect) pengguna ke halaman /signin.
- */
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
   
   if (!token) {
-    // Pengguna tidak login, arahkan ke halaman signin
     return <Navigate to="/signin" replace />;
   }
 
-  // Pengguna sudah login, tampilkan halaman yang seharusnya
   return <Outlet />;
 };
 
 function App() {
   React.useEffect(() => {
+    // Redirect jika token dihapus dari localStorage
     const handleStorageChange = () => {
       if (!localStorage.getItem('token')) {
         window.location.href = '/signin';
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    const axios = require('axios').default;
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/signin';
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      axios.interceptors.response.eject(interceptor);
+    };
   }, []);
 
   return (
     <Router>
       <Routes>
-        {/* Rute publik yang bisa diakses siapa saja */}
         <Route path="/signin" element={<SignIn />} />
 
-        {/* --- RUTE YANG DILINDUNGI --- */}
-        {/* Semua rute di dalam <ProtectedRoute> hanya bisa diakses setelah login */}
+
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
