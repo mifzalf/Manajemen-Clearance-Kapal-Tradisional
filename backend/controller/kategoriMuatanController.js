@@ -46,7 +46,7 @@ const storeKategoriMuatan = async (req, res) => {
 const updateKategoriMuatan = async (req, res) => {
     try {
         let kategoriData = await kategoriMuatan.findOne({
-            where: { id_kategori: req.params.id },
+            where: { id_kategori_muatan: req.params.id },
             attributes: ['nama_kategori_muatan']
         })
         let result = await kategoriMuatan.update({...req.body}, {where: {id_kategori_muatan: req.params.id}})
@@ -71,7 +71,7 @@ const updateKategoriMuatan = async (req, res) => {
 const deleteKategoriMuatan = async (req, res) => {
     try {
         let kategoriData = await kategoriMuatan.findOne({
-            where: { id_kategori: req.params.id },
+            where: { id_kategori_muatan: req.params.id },
             attributes: ['nama_kategori_muatan']
         })
         let result = await kategoriMuatan.destroy({where: {id_kategori_muatan: req.params.id}})

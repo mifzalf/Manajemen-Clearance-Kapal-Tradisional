@@ -1,18 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-const Select = ({ options, value, onChange, name, id, className, required }) => {
+// Terima prop baru 'direction' dengan nilai default 'down'
+const Select = ({ options, value, onChange, name, id, required, direction = 'down' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
-
-  const selectedOption = options.find(option => option.value === value) || options.find(o => o.value === '') || options[0];
-
-  const handleSelect = (selectedValue) => {
-    const event = {
-      target: { name, value: selectedValue },
-    };
-    onChange(event);
-    setIsOpen(false);
-  };
+  const selectedLabel = options.find(opt => opt.value === value)?.label || options[0]?.label;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -20,49 +12,52 @@ const Select = ({ options, value, onChange, name, id, className, required }) => 
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div ref={selectRef} className={`relative ${className}`}>
-      <input
-        type="text"
-        name={name}
-        id={id}
-        value={value}
-        required={required}
-        onChange={() => {}}
-        className="absolute w-px h-px p-0 m-[-1px] overflow-hidden border-0"
-        style={{ clip: 'rect(0, 0, 0, 0)' }}
-        tabIndex={-1}
-      />
+    <div className="relative w-full" ref={selectRef}>
+      {/* Bagian input select yang terlihat */}
+      <select name={name} id={id} value={value} onChange={onChange} required={required} className="hidden">
+        {options.map(option => (
+          <option key={option.value} value={option.value} disabled={option.disabled}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      
       <button
         type="button"
-        className="h-11 w-full flex items-center justify-between rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+        className="w-full h-11 px-4 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         onClick={() => setIsOpen(!isOpen)}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
       >
-        <span className={value ? 'text-gray-800' : 'text-gray-500'}>{selectedOption.label}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        {selectedLabel}
       </button>
 
+      {/* --- PERUBAHAN UTAMA DI SINI --- */}
+      {/* Panel pilihan yang muncul/hilang */}
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
-          <ul className="max-h-60 overflow-auto rounded-lg p-1">
+        <div 
+          // Gunakan template literal untuk menambahkan class secara kondisional
+          className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg
+            ${direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}
+          `}
+        >
+          <ul className="py-1">
             {options.map(option => (
-              <li
-                key={option.value}
-                className={`cursor-pointer rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 ${option.disabled ? 'hidden' : ''}`}
-                onClick={() => !option.disabled && handleSelect(option.value)}
-                role="option"
-                aria-selected={value === option.value}
-              >
-                {option.label}
-              </li>
+              !option.disabled && (
+                <li
+                  key={option.value}
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    onChange({ target: { name, value: option.value } });
+                    setIsOpen(false);
+                  }}
+                >
+                  {option.label}
+                </li>
+              )
             ))}
           </ul>
         </div>

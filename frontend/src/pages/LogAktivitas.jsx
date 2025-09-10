@@ -1,117 +1,185 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import LogAktivitasTable from '../components/table/LogAktivitasTable';
 import Pagination from '../components/ui/Pagination';
 import SearchBar from '../components/common/SearchBar';
 import FilterDropdown from '../components/common/FilterDropdown';
 import InputField from '../components/form/InputField';
-
-const sampleLogData = [
-  { id: 1, timestamp: '2025-08-28T10:30:00', user: 'Budi Santoso', action: 'CREATE', dataType: 'Clearance', changedData: 'SPB/08/001 untuk KM. Sejahtera Abadi' },
-  { id: 2, timestamp: '2025-08-28T09:15:00', user: 'Admin', action: 'UPDATE', dataType: 'Master Agen', changedData: "'PT. Laut Biru' -> 'PT. Laut Biru Nusantara'" },
-  { id: 3, timestamp: '2025-08-27T16:45:00', user: 'Admin', action: 'DELETE', dataType: 'Master Nahkoda', changedData: "Menghapus 'Capt. Iwan'" },
-  { id: 4, timestamp: '2025-08-27T14:20:00', user: 'Budi Santoso', action: 'LOGIN', dataType: 'Sistem', changedData: "Login berhasil" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-  { id: 5, timestamp: '2025-08-26T11:05:00', user: 'Admin', action: 'CREATE', dataType: 'Master Kapal', changedData: "Menambahkan 'KM. Pelita Jaya'" },
-];
+import axiosInstance from '../api/axiosInstance'; // Gunakan axiosInstance
+import debounce from 'lodash.debounce';
 
 const rowsPerPageOptions = ['5', '10', '20', 'All'];
 
 function LogAktivitas() {
-  const [logData, setLogData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ searchTerm: '', startDate: '', endDate: '', selectedUser: '', selectedAction: '', selectedDataType: '' });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  useEffect(() => {
-    setLogData(sampleLogData);
-    setLoading(false);
-  }, []);
-
-  const handleFilterChange = (name, value) => {
-    setFilters(prev => ({ ...prev, [name]: value }));
-    setCurrentPage(1);
-  };
-  
-  const handleRowsPerPageChange = (value) => {
-    if (value === 'Semua') {
-      setRowsPerPage(filteredData.length);
-    } else {
-      setRowsPerPage(parseInt(value, 10));
-    }
-    setCurrentPage(1);
-  };
-
-  const uniqueUsers = useMemo(() => [...new Set(logData.map(item => item.user))], [logData]);
-  const uniqueActions = useMemo(() => [...new Set(logData.map(item => item.action))], [logData]);
-  const uniqueDataTypes = useMemo(() => [...new Set(logData.map(item => item.dataType))], [logData]);
-
-  const filteredData = useMemo(() => {
-    return logData.filter(item => {
-      const searchTerm = filters.searchTerm.toLowerCase();
-      const searchMatch = !searchTerm || item.user.toLowerCase().includes(searchTerm) || item.changedData.toLowerCase().includes(searchTerm);
-      const userMatch = !filters.selectedUser || item.user === filters.selectedUser;
-      const actionMatch = !filters.selectedAction || item.action === filters.selectedAction;
-      const dataTypeMatch = !filters.selectedDataType || item.dataType === filters.selectedDataType;
-      const startDateMatch = !filters.startDate || new Date(item.timestamp) >= new Date(filters.startDate);
-      const endDateMatch = !filters.endDate || new Date(item.timestamp) <= new Date(filters.endDate + 'T23:59:59');
-      return searchMatch && userMatch && actionMatch && dataTypeMatch && startDateMatch && endDateMatch;
+    const [logData, setLogData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
+    // State terpisah untuk menyimpan semua opsi filter
+    const [filterOptions, setFilterOptions] = useState({
+        users: [],
+        actions: [],
+        dataTypes: [],
     });
-  }, [filters, logData]);
 
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
+    const [filters, setFilters] = useState({ 
+        searchTerm: '', 
+        startDate: '', 
+        endDate: '', 
+        selectedUser: '', 
+        selectedAction: '', 
+        selectedDataType: '' 
+    });
 
-  return (
-    <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Log Aktivitas</h1>
-      
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="space-y-4 border-b border-gray-200 p-4">
-          <div className="flex flex-col gap-4">
-            <div className="flex-grow">
-              <SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari pengguna atau data..." />
-            </div>
-            <div className="w-full md:w-auto md:min-w-[200px]">
-              <FilterDropdown options={uniqueUsers} selectedValue={filters.selectedUser} setSelectedValue={(value) => handleFilterChange('selectedUser', value)} placeholder="Semua Pengguna" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 md:grid-cols-3">
-            <FilterDropdown options={uniqueActions} selectedValue={filters.selectedAction} setSelectedValue={(value) => handleFilterChange('selectedAction', value)} placeholder="Semua Aksi" />
-            <FilterDropdown options={uniqueDataTypes} selectedValue={filters.selectedDataType} setSelectedValue={(value) => handleFilterChange('selectedDataType', value)} placeholder="Semua Jenis Data" />
-            <div className="flex flex-col sm:flex-row items-center gap-2 ">
-                <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-                <span className="text-gray-500 hidden sm:block">-</span>
-                <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
-              </div>
-          </div>
-        </div>
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const isInitialMount = useRef(true);
+
+    // 1. Fetch data awal untuk mengisi tabel dan opsi filter
+    useEffect(() => {
+        const fetchInitialDataAndOptions = async () => {
+            setLoading(true);
+            try {
+                // Panggil endpoint getLogUser tanpa search param untuk mendapatkan semua data
+                const response = await axiosInstance.get('/log-user');
+                const allData = response.data.datas;
+                
+                setLogData(allData);
+
+                // Buat opsi filter dari semua data yang ada
+                setFilterOptions({
+                    users: [...new Set(allData.map(item => item.username))],
+                    actions: [...new Set(allData.map(item => item.aksi))],
+                    dataTypes: [...new Set(allData.map(item => item.jenis_data))],
+                });
+            } catch (error) {
+                console.error("Gagal mengambil data log awal:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInitialDataAndOptions();
+    }, []);
+
+    // 2. Fungsi untuk fetch data berdasarkan filter
+    const fetchLogs = useCallback(debounce(async (currentFilters) => {
+        setLoading(true);
+        let endpoint = '/log-user';
+        let params = {};
+
+        // Logika untuk memilih endpoint yang tepat
+        if (currentFilters.searchTerm) {
+            // Jika ada searchTerm, gunakan endpoint search
+            params.search = currentFilters.searchTerm;
+        } else {
+            // Jika tidak, gunakan endpoint filter
+            endpoint = '/log-user/get-filter';
+            params = {
+                username: currentFilters.selectedUser,
+                aksi: currentFilters.selectedAction,
+                jenis_data: currentFilters.selectedDataType,
+                tanggal_awal: currentFilters.startDate,
+                tanggal_akhir: currentFilters.endDate,
+            };
+        }
+
+        // Hapus parameter yang kosong
+        Object.keys(params).forEach(key => {
+            if (!params[key]) delete params[key];
+        });
         
-        {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <LogAktivitasTable logItems={currentRows} />}
-        
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span>Tampilkan</span>
-            <FilterDropdown direction="up" selectedValue={selectedRowsPerPage} setSelectedValue={handleRowsPerPageChange} options={rowsPerPageOptions} />
-            <span>baris</span>
-          </div>
-          {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />}
+        try {
+            const response = await axiosInstance.get(endpoint, { params });
+            setLogData(response.data.datas);
+        } catch (error) {
+            console.error("Gagal memfilter data log:", error);
+            setLogData([]); // Kosongkan data jika filter gagal
+        } finally {
+            setLoading(false);
+        }
+    }, 500), []);
+
+    // 3. useEffect yang memantau perubahan filter
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+        } else {
+            fetchLogs(filters);
+        }
+    }, [filters, fetchLogs]);
+
+
+    const handleFilterChange = (name, value) => {
+        setFilters(prev => ({ ...prev, [name]: value }));
+        setCurrentPage(1);
+    };
+    
+    const handleRowsPerPageChange = (value) => {
+        const totalData = logData.length;
+        if (value === 'Semua') {
+            setRowsPerPage(totalData > 0 ? totalData : 1);
+        } else {
+            setRowsPerPage(parseInt(value, 10));
+        }
+        setCurrentPage(1);
+    };
+
+    // 4. Map data dari backend ke format yang diharapkan oleh frontend table
+    const mappedData = logData.map(item => ({
+        id: item.id_log_user,
+        // Backend mengirim 'createdAt', kita format agar lebih rapi
+        timestamp: item.createdAt, 
+        user: item.username,
+        action: item.aksi,
+        dataType: item.jenis_data,
+        changedData: item.data_diubah
+    }));
+
+    // Logika paginasi
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = mappedData.slice(indexOfFirstRow, indexOfLastRow);
+    const totalPages = Math.ceil(mappedData.length / rowsPerPage);
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
+
+    return (
+        <div className="p-4 md:p-6 space-y-6">
+            <h1 className="text-2xl font-bold text-gray-800">Log Aktivitas</h1>
+            
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div className="space-y-4 border-b border-gray-200 p-4">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex-grow">
+                            <SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari pengguna atau data..." />
+                        </div>
+                        <div className="w-full md:w-auto md:min-w-[200px]">
+                            {/* Gunakan data dari filterOptions */}
+                            <FilterDropdown options={filterOptions.users} selectedValue={filters.selectedUser} setSelectedValue={(value) => handleFilterChange('selectedUser', value)} placeholder="Semua Pengguna" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 md:grid-cols-3">
+                        <FilterDropdown options={filterOptions.actions} selectedValue={filters.selectedAction} setSelectedValue={(value) => handleFilterChange('selectedAction', value)} placeholder="Semua Aksi" />
+                        <FilterDropdown options={filterOptions.dataTypes} selectedValue={filters.selectedDataType} setSelectedValue={(value) => handleFilterChange('selectedDataType', value)} placeholder="Semua Jenis Data" />
+                        <div className="flex flex-col sm:flex-row items-center gap-2 ">
+                            <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+                            <span className="text-gray-500 hidden sm:block">-</span>
+                            <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
+                        </div>
+                    </div>
+                </div>
+                
+                {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <LogAktivitasTable logItems={currentRows} />}
+                
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
+                    <div className="flex items-center gap-2 text-sm">
+                        <span>Tampilkan</span>
+                        <FilterDropdown direction="up" selectedValue={selectedRowsPerPage} setSelectedValue={handleRowsPerPageChange} options={rowsPerPageOptions} />
+                        <span>baris</span>
+                    </div>
+                    {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default LogAktivitas;

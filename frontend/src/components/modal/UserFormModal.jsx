@@ -4,16 +4,15 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance'; // Gunakan axiosInstance
 
 const roleOptions = [
     { value: '', label: 'Pilih Role', disabled: true },
-    { value: 'superuser', label: 'superuser' },
-    { value: 'user', label: 'user' },
+    { value: 'superuser', label: 'Superuser' }, // Label diperbaiki
+    { value: 'user', label: 'User' },
 ];
 
 const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
-    const API_URL = import.meta.env.VITE_API_URL;
     const [formData, setFormData] = useState({});
     const isEditMode = Boolean(currentItem);
 
@@ -39,13 +38,9 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
         try {
             let response;
             if (isEditMode) {
-                response = await axios.patch(`${API_URL}/users/update/${currentItem.id_user}`, formData, {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                });
+                response = await axiosInstance.patch(`/users/update/${currentItem.id_user}`, formData);
             } else {
-                response = await axios.post(`${API_URL}/users/store`, formData, {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                });
+                response = await axiosInstance.post('/users/store', formData);
             }
 
             if (response.status === 200) {
@@ -69,13 +64,26 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
                             <div><Label htmlFor="nama_lengkap">Nama Lengkap</Label><InputField name="nama_lengkap" id="nama_lengkap" value={formData.nama_lengkap || ''} onChange={handleChange} required /></div>
                             <div><Label htmlFor="username">Username</Label><InputField name="username" id="username" value={formData.username || ''} onChange={handleChange} required /></div>
                             
-                            {/* --- DIMODIFIKASI: Input password HANYA muncul saat membuat user baru --- */}
                             {!isEditMode && (
                                 <div><Label htmlFor="password">Password</Label><InputField type="password" name="password" id="password" onChange={handleChange} required /></div>
                             )}
 
                             <div><Label htmlFor="jabatan">Jabatan</Label><InputField name="jabatan" id="jabatan" value={formData.jabatan || ''} onChange={handleChange} required /></div>
-                            <div><Label htmlFor="role">Role</Label><Select name="role" id="role" value={formData.role || ''} onChange={handleChange} options={roleOptions} required /></div>
+                            
+                            {/* --- PERUBAHAN UTAMA DI SINI --- */}
+                            <div>
+                                <Label htmlFor="role">Role</Label>
+                                {/* Tambahkan prop direction="up" */}
+                                <Select 
+                                    name="role" 
+                                    id="role" 
+                                    value={formData.role || ''} 
+                                    onChange={handleChange} 
+                                    options={roleOptions} 
+                                    direction="up" 
+                                    required 
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="p-5 border-t flex justify-end gap-3 bg-gray-50 rounded-b-2xl">

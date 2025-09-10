@@ -31,7 +31,6 @@ const ProtectedRoute = () => {
 
 function App() {
   React.useEffect(() => {
-    // Redirect jika token dihapus dari localStorage
     const handleStorageChange = () => {
       if (!localStorage.getItem('token')) {
         window.location.href = '/signin';
@@ -79,7 +78,6 @@ function App() {
           </Route>
         </Route>
 
-        {/* Opsional: Rute untuk halaman "Not Found" jika path tidak cocok */}
         <Route path="*" element={<h1>404: Halaman Tidak Ditemukan</h1>} />
       </Routes>
     </Router>
