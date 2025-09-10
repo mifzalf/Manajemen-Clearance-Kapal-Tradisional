@@ -32,7 +32,7 @@ const storeJenis = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "CREATE",
-            "jenis",
+            "Jenis Kapal",
             `Menambah data jenis ${req.body.nama_jenis}`
         )
 
@@ -56,7 +56,7 @@ const updateJenis = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "UPDATE",
-            "jenis",
+            "Jenis Kapal",
             `Mengubah data jenis ${(jenisData.nama_jenis == req.body.nama_jenis) ?
                 jenisData.nama_jenis : jenisData.nama_jenis + "->" + req.body.nama_jenis}`
         )
@@ -81,7 +81,7 @@ const deleteJenis = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "DELETE",
-            "jenis",
+            "Jenis Kapal",
             `Menghapus data jenis ${jenisData.nama_jenis}`
         )
 

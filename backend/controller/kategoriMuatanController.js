@@ -32,7 +32,7 @@ const storeKategoriMuatan = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "CREATE",
-            "kategori",
+            "Kategori Muatan",
             `Menambah data kategori ${req.body.nama_kategori_muatan}`
         )
 
@@ -56,7 +56,7 @@ const updateKategoriMuatan = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "UPDATE",
-            "kategori",
+            "Kategori Muatan",
             `Mengubah data kategori ${(kategoriData.nama_kategori_muatan == req.body.nama_kategori_muatan) ?
                 kategoriData.nama_kategori_muatan : kategoriData.nama_kategori_muatan + "->" + req.body.nama_kategori_muatan}`
         )
@@ -81,7 +81,7 @@ const deleteKategoriMuatan = async (req, res) => {
         let log = await logUserController.storeLogUser(
             req.user.username,
             "DELETE",
-            "kategori",
+            "Kategori Muatan",
             `Menghapus data kategori ${kategoriData.nama_kategori_muatan}`
         )
 
