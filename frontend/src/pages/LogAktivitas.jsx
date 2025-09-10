@@ -4,7 +4,7 @@ import Pagination from '../components/ui/Pagination';
 import SearchBar from '../components/common/SearchBar';
 import FilterDropdown from '../components/common/FilterDropdown';
 import InputField from '../components/form/InputField';
-import axiosInstance from '../api/axiosInstance'; // Gunakan axiosInstance
+import axiosInstance from '../api/axiosInstance'; 
 import debounce from 'lodash.debounce';
 
 const rowsPerPageOptions = ['5', '10', '20', 'All'];
@@ -13,7 +13,6 @@ function LogAktivitas() {
     const [logData, setLogData] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // State terpisah untuk menyimpan semua opsi filter
     const [filterOptions, setFilterOptions] = useState({
         users: [],
         actions: [],
@@ -33,18 +32,15 @@ function LogAktivitas() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const isInitialMount = useRef(true);
 
-    // 1. Fetch data awal untuk mengisi tabel dan opsi filter
     useEffect(() => {
         const fetchInitialDataAndOptions = async () => {
             setLoading(true);
             try {
-                // Panggil endpoint getLogUser tanpa search param untuk mendapatkan semua data
                 const response = await axiosInstance.get('/log-user');
                 const allData = response.data.datas;
                 
                 setLogData(allData);
 
-                // Buat opsi filter dari semua data yang ada
                 setFilterOptions({
                     users: [...new Set(allData.map(item => item.username))],
                     actions: [...new Set(allData.map(item => item.aksi))],
@@ -59,18 +55,14 @@ function LogAktivitas() {
         fetchInitialDataAndOptions();
     }, []);
 
-    // 2. Fungsi untuk fetch data berdasarkan filter
     const fetchLogs = useCallback(debounce(async (currentFilters) => {
         setLoading(true);
         let endpoint = '/log-user';
         let params = {};
 
-        // Logika untuk memilih endpoint yang tepat
         if (currentFilters.searchTerm) {
-            // Jika ada searchTerm, gunakan endpoint search
             params.search = currentFilters.searchTerm;
         } else {
-            // Jika tidak, gunakan endpoint filter
             endpoint = '/log-user/get-filter';
             params = {
                 username: currentFilters.selectedUser,
@@ -81,7 +73,6 @@ function LogAktivitas() {
             };
         }
 
-        // Hapus parameter yang kosong
         Object.keys(params).forEach(key => {
             if (!params[key]) delete params[key];
         });
@@ -91,13 +82,12 @@ function LogAktivitas() {
             setLogData(response.data.datas);
         } catch (error) {
             console.error("Gagal memfilter data log:", error);
-            setLogData([]); // Kosongkan data jika filter gagal
+            setLogData([]);
         } finally {
             setLoading(false);
         }
     }, 500), []);
 
-    // 3. useEffect yang memantau perubahan filter
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -122,10 +112,8 @@ function LogAktivitas() {
         setCurrentPage(1);
     };
 
-    // 4. Map data dari backend ke format yang diharapkan oleh frontend table
     const mappedData = logData.map(item => ({
         id: item.id_log_user,
-        // Backend mengirim 'createdAt', kita format agar lebih rapi
         timestamp: item.createdAt, 
         user: item.username,
         action: item.aksi,
@@ -133,7 +121,6 @@ function LogAktivitas() {
         changedData: item.data_diubah
     }));
 
-    // Logika paginasi
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
     const currentRows = mappedData.slice(indexOfFirstRow, indexOfLastRow);
@@ -152,7 +139,6 @@ function LogAktivitas() {
                             <SearchBar searchTerm={filters.searchTerm} setSearchTerm={(value) => handleFilterChange('searchTerm', value)} placeholder="Cari pengguna atau data..." />
                         </div>
                         <div className="w-full md:w-auto md:min-w-[200px]">
-                            {/* Gunakan data dari filterOptions */}
                             <FilterDropdown options={filterOptions.users} selectedValue={filters.selectedUser} setSelectedValue={(value) => handleFilterChange('selectedUser', value)} placeholder="Semua Pengguna" />
                         </div>
                     </div>

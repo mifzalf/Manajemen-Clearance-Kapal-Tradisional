@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// Terima prop baru 'direction' dengan nilai default 'down'
 const Select = ({ options, value, onChange, name, id, required, direction = 'down' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
@@ -18,7 +17,6 @@ const Select = ({ options, value, onChange, name, id, required, direction = 'dow
 
   return (
     <div className="relative w-full" ref={selectRef}>
-      {/* Bagian input select yang terlihat */}
       <select name={name} id={id} value={value} onChange={onChange} required={required} className="hidden">
         {options.map(option => (
           <option key={option.value} value={option.value} disabled={option.disabled}>
@@ -34,12 +32,8 @@ const Select = ({ options, value, onChange, name, id, required, direction = 'dow
       >
         {selectedLabel}
       </button>
-
-      {/* --- PERUBAHAN UTAMA DI SINI --- */}
-      {/* Panel pilihan yang muncul/hilang */}
       {isOpen && (
         <div 
-          // Gunakan template literal untuk menambahkan class secara kondisional
           className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg
             ${direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}
           `}

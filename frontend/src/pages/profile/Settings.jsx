@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext'; // Import useAuth
+import axiosInstance from '../../api/axiosInstance'; // Import axiosInstance
+
 import PageBreadcrumb from "../../components/common/PageBreadcrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Label from '../../components/form/Label';
@@ -7,103 +11,160 @@ import Button from '../../components/ui/Button';
 import FileInput from '../../components/form/FileInput';
 
 const Settings = () => {
-  const [userInfo, setUserInfo] = useState({
-    name: 'Budi Santoso',
-    username: 'budisan',
-    email: 'budi.santoso@example.com',
-    phone: '+62 812 3456 7890',
-    photo: null,
-  });
+    // Ambil data user yang sedang login dari context
+    const { user, loading: userLoading } = useAuth();
 
-  const [passwords, setPasswords] = useState({
-    currentPassword: '',
-    newPassword: '',
-  });
+    // State untuk form informasi pribadi
+    const [userInfo, setUserInfo] = useState({
+        nama_lengkap: '',
+        username: '',
+        email: '',
+        no_hp: '',
+    });
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isInfoSubmitting, setIsInfoSubmitting] = useState(false);
 
-  const handleInfoChange = (e) => {
-    setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
-  };
+    // State untuk form ubah password
+    const [passwords, setPasswords] = useState({
+        currentPassword: '',
+        newPassword: '',
+    });
+    const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
 
-  const handleFileChange = (e) => {
-    setUserInfo({ ...userInfo, photo: e.target.files[0] });
-  };
+    // useEffect untuk mengisi form dengan data dari context saat komponen dimuat
+    useEffect(() => {
+        if (user) {
+            setUserInfo({
+                nama_lengkap: user.nama_lengkap || '',
+                username: user.username || '',
+                email: user.email || '',
+                no_hp: user.no_hp || '',
+            });
+        }
+    }, [user]); // Dijalankan setiap kali objek 'user' dari context berubah
 
-  const handlePasswordChange = (e) => {
-    setPasswords({ ...passwords, [e.target.name]: e.target.value });
-  };
+    const handleInfoChange = (e) => {
+        setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
+    };
 
-  const handleInfoSubmit = (e) => {
-    e.preventDefault();
-    alert('Informasi pribadi diperbarui!');
-    console.log(userInfo);
-  };
+    const handleFileChange = (e) => {
+        setSelectedFile(e.target.files[0]);
+    };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    alert('Password diperbarui!');
-    console.log(passwords);
-  };
+    const handlePasswordChange = (e) => {
+        setPasswords({ ...passwords, [e.target.name]: e.target.value });
+    };
 
-  return (
-    <>
-      <PageMeta title="Pengaturan Akun" />
-      <PageBreadcrumb pageTitle="Pengaturan" />
+    // --- FUNGSI SUBMIT UNTUK INFORMASI PRIBADI ---
+    const handleInfoSubmit = async (e) => {
+        e.preventDefault();
+        if (!user) return toast.error("Data pengguna tidak ditemukan.");
+        setIsInfoSubmitting(true);
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-5 text-lg font-semibold text-gray-800">
-            Informasi Pribadi
-          </h3>
-          <form onSubmit={handleInfoSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
-                <InputField id="name" name="name" type="text" value={userInfo.name} onChange={handleInfoChange} />
-              </div>
-              <div>
-                <Label htmlFor="username">Username</Label>
-                <InputField id="username" name="username" type="text" value={userInfo.username} onChange={handleInfoChange} />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <InputField id="email" name="email" type="email" value={userInfo.email} onChange={handleInfoChange} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="phone">Nomor Telepon</Label>
-                <InputField id="phone" name="phone" type="tel" value={userInfo.phone} onChange={handleInfoChange} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="photo">Foto Profil</Label>
-                <FileInput id="photo" name="photo" onChange={handleFileChange} />
-              </div>
+        const formData = new FormData();
+        formData.append('nama_lengkap', userInfo.nama_lengkap);
+        formData.append('username', userInfo.username);
+        formData.append('email', userInfo.email);
+        formData.append('no_hp', userInfo.no_hp);
+        if (selectedFile) {
+            formData.append('foto', selectedFile);
+        }
+
+        try {
+            await axiosInstance.patch(`/users/update/${user.id_user}`, formData);
+            toast.success('Informasi pribadi berhasil diperbarui!');
+            window.location.reload(); 
+        } catch (error) {
+            const errorMessage = error.response?.data?.msg || "Gagal memperbarui informasi.";
+            toast.error(errorMessage);
+        } finally {
+            setIsInfoSubmitting(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        setIsPasswordSubmitting(true);
+        try {
+            await axiosInstance.patch('/users/change-password', passwords);
+            toast.success('Password berhasil diubah!');
+            setPasswords({ currentPassword: '', newPassword: '' }); 
+        } catch (error) {
+            const errorMessage = error.response?.data?.msg || "Gagal mengubah password.";
+            toast.error(errorMessage);
+        } finally {
+            setIsPasswordSubmitting(false);
+        }
+    };
+
+    if (userLoading) {
+        return <div className="p-6 text-center">Memuat pengaturan...</div>;
+    }
+
+    return (
+        <>
+            <PageMeta title="Pengaturan Akun" />
+            <PageBreadcrumb pageTitle="Pengaturan" />
+
+            <div className="grid grid-cols-1 gap-6">
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h3 className="mb-5 text-lg font-semibold text-gray-800">
+                        Informasi Pribadi
+                    </h3>
+                    <form onSubmit={handleInfoSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                                <Label htmlFor="nama_lengkap">Nama Lengkap</Label>
+                                <InputField id="nama_lengkap" name="nama_lengkap" type="text" value={userInfo.nama_lengkap} onChange={handleInfoChange} />
+                            </div>
+                            <div>
+                                <Label htmlFor="username">Username</Label>
+                                <InputField id="username" name="username" type="text" value={userInfo.username} onChange={handleInfoChange} />
+                            </div>
+                            <div>
+                                <Label htmlFor="email">Email</Label>
+                                <InputField id="email" name="email" type="email" value={userInfo.email} onChange={handleInfoChange} />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <Label htmlFor="no_hp">Nomor Telepon</Label>
+                                <InputField id="no_hp" name="no_hp" type="tel" value={userInfo.no_hp} onChange={handleInfoChange} />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <Label htmlFor="photo">Foto Profil</Label>
+                                <FileInput id="photo" name="photo" onChange={handleFileChange} />
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={isInfoSubmitting}>
+                                {isInfoSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h3 className="mb-5 text-lg font-semibold text-gray-800">
+                        Ubah Password
+                    </h3>
+                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                        <div>
+                            <Label htmlFor="currentPassword">Password Saat Ini</Label>
+                            <InputField id="currentPassword" name="currentPassword" type="password" value={passwords.currentPassword} onChange={handlePasswordChange} required />
+                        </div>
+                        <div>
+                            <Label htmlFor="newPassword">Password Baru</Label>
+                            <InputField id="newPassword" name="newPassword" type="password" value={passwords.newPassword} onChange={handlePasswordChange} required />
+                        </div>
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={isPasswordSubmitting}>
+                                {isPasswordSubmitting ? 'Menyimpan...' : 'Ubah Password'}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div className="flex justify-end">
-              <Button type="submit">Simpan Perubahan</Button>
-            </div>
-          </form>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h3 className="mb-5 text-lg font-semibold text-gray-800">
-            Ubah Password
-          </h3>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Password Saat Ini</Label>
-              <InputField id="currentPassword" name="currentPassword" type="password" value={passwords.currentPassword} onChange={handlePasswordChange} />
-            </div>
-            <div>
-              <Label htmlFor="newPassword">Password Baru</Label>
-              <InputField id="newPassword" name="newPassword" type="password" value={passwords.newPassword} onChange={handlePasswordChange} />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit">Ubah Password</Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </>
-  );
+        </>
+    );
 };
 
 export default Settings;

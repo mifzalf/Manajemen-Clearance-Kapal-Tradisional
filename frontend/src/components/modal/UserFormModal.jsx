@@ -4,11 +4,11 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
-import axiosInstance from '../../api/axiosInstance'; // Gunakan axiosInstance
+import axiosInstance from '../../api/axiosInstance'; 
 
 const roleOptions = [
     { value: '', label: 'Pilih Role', disabled: true },
-    { value: 'superuser', label: 'Superuser' }, // Label diperbaiki
+    { value: 'superuser', label: 'Superuser' },
     { value: 'user', label: 'User' },
 ];
 
@@ -70,10 +70,8 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
 
                             <div><Label htmlFor="jabatan">Jabatan</Label><InputField name="jabatan" id="jabatan" value={formData.jabatan || ''} onChange={handleChange} required /></div>
                             
-                            {/* --- PERUBAHAN UTAMA DI SINI --- */}
                             <div>
                                 <Label htmlFor="role">Role</Label>
-                                {/* Tambahkan prop direction="up" */}
                                 <Select 
                                     name="role" 
                                     id="role" 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
@@ -20,17 +21,11 @@ const useWindowSize = () => {
   return windowSize;
 };
 
-const currentUser = {
-  name: "Budi Santoso",
-  email: "budi.santoso@example.com",
-  photo: "/images/user/owner.jpeg",
-};
-
-const UserMenuContent = ({ onClose }) => (
+const UserMenuContent = ({ onClose, user }) => (
   <>
     <div className="p-4 border-b">
-      <span className="block font-semibold text-gray-800">{currentUser.name}</span>
-      <span className="block mt-0.5 text-sm text-gray-500">{currentUser.email}</span>
+      <span className="block font-semibold text-gray-800">{user.nama_lengkap}</span>
+      <span className="block mt-0.5 text-sm text-gray-500">{user.username}</span>
     </div>
     <ul className="p-2">
       <li>
@@ -63,8 +58,10 @@ export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const { width } = useWindowSize();
   const isMobile = width < 1024;
-
   const dropdownRef = useRef(null);
+
+  const { user, loading } = useAuth(); 
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -76,14 +73,29 @@ export default function UserDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  if (loading || !user) {
+    return (
+        <div className="relative">
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-sm">
+                <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+                <div className="hidden h-5 w-20 rounded bg-gray-200 animate-pulse sm:block" />
+            </div>
+        </div>
+    );
+  }
+
+  const photoSrc = user.foto 
+    ? `${API_URL}/${user.foto}` 
+    : "/images/user/owner.jpeg";
+
   return (
     <div ref={dropdownRef} className="relative">
       <button 
         onClick={() => setIsOpen((prev) => !prev)} 
         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-800 shadow-sm hover:bg-gray-50"
       >
-        <img src={currentUser.photo} alt="User" className="h-8 w-8 rounded-full" />
-        <span className="hidden font-medium sm:block">{currentUser.name.split(' ')[0]}</span>
+        <img src={photoSrc} alt="User" className="h-8 w-8 rounded-full object-cover" />
+        <span className="hidden font-medium sm:block">{user.nama_lengkap.split(' ')[0]}</span>
         <svg 
           className={`stroke-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} 
           width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +123,7 @@ export default function UserDropdown() {
                 className="absolute bottom-0 w-full rounded-t-2xl bg-white"
               >
                 <div className="mx-auto my-3 h-1.5 w-12 rounded-full bg-gray-300" />
-                <UserMenuContent onClose={() => setIsOpen(false)} />
+                <UserMenuContent onClose={() => setIsOpen(false)} user={user} />
               </motion.div>
             </motion.div>
           ) : (
@@ -122,7 +134,7 @@ export default function UserDropdown() {
               transition={{ duration: 0.1 }}
               className="absolute top-full right-0 mt-2 z-50 w-[260px] origin-top-right rounded-2xl border bg-white shadow-lg"
             >
-              <UserMenuContent onClose={() => setIsOpen(false)} />
+              <UserMenuContent onClose={() => setIsOpen(false)} user={user} />
             </motion.div>
           )
         )}
