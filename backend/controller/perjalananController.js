@@ -221,7 +221,7 @@ const storePerjalanan = async (req, res) => {
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
         })
-        
+
         if (muatan.length > 0) {
             await muatanController.storeMuatan(filteredMuatan, t)
         }
@@ -248,7 +248,7 @@ const updatePerjalanan = async (req, res) => {
         let { muatan } = req.body
         let perjalananData = await perjalanan.findByPk(req.params.id, {
             include: {
-                model: spb,   
+                model: spb,
             }
         })
         let kapalData = await kapal.findByPk(req.body.id_kapal)
@@ -312,12 +312,12 @@ const deletePerjalanan = async (req, res) => {
                 model: spb
             }
         })
-        
+
         let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
         await spbController.deleteSpb(perjalananData.id_spb, t)
-        
+
         let log = await logUserController.storeLogUser(
             req.user.username,
             "DELETE",
@@ -406,24 +406,25 @@ const getTotalPerjalananPerMonth = async (req, res) => {
 const getTotalPerKategori = async (req, res) => {
     try {
         const currentMonth = new Date().getMonth() + 1
-        const datas = await perjalanan.findAll(
-            {
-                attributes: [
-                    [col('muatans.kategori_muatan.status_kategori_muatan'), "status_kategori_muatan"],
-                    [fn("COUNT", col("muatans.kategori_muatan.status_kategori_muatan")), 'jumlah_kategori_muatan'],
-                ],
-                where: literal(`MONTH(tanggal_clearance) = ${currentMonth}`),
-                group: [col('muatans.kategori_muatan.status_kategori_muatan')],
+        const datas = await perjalanan.findAll({
+            attributes: [
+                [col('muatans.kategori_muatan.status_kategori_muatan'), "status_kategori_muatan"],
+                [fn("COUNT", col("muatans.kategori_muatan.status_kategori_muatan")), 'jumlah_kategori_muatan'],
+            ],
+            where: literal(`MONTH(perjalanan.tanggal_clearance) = ${currentMonth}`),
+            include: [{
+                model: muatan,
+                attributes: [],
                 include: [{
-                    model: muatan,
-                    attributes: [],
-                    include: [{
-                        model: kategoriMuatan,
-                        attributes: []
-                    }]
+                    model: kategoriMuatan,
+                    attributes: []
                 }]
-            }
-        )
+            }],
+            group: [
+                col('muatans.kategori_muatan.status_kategori_muatan')
+            ],
+            raw: true
+        })
 
         const defaultDatas = [
             {
@@ -437,11 +438,11 @@ const getTotalPerKategori = async (req, res) => {
         ]
 
         datas.forEach(d => {
-            if (d.dataValues.status_kategori_muatan.toLowerCase() == "berbahaya") {
+            if (d.status_kategori_muatan.toLowerCase() == "berbahaya") {
                 console.log("hai")
-                defaultDatas[1].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
+                defaultDatas[1].jumlah_kategori_muatan = d.jumlah_kategori_muatan
             } else {
-                defaultDatas[0].jumlah_kategori_muatan = d.dataValues.jumlah_kategori_muatan
+                defaultDatas[0].jumlah_kategori_muatan = d.jumlah_kategori_muatan
             }
         })
 
