@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth
-import axiosInstance from '../../api/axiosInstance'; // Import axiosInstance
+import { useAuth } from '../../context/AuthContext';
+import axiosInstance from '../../api/axiosInstance'; 
 
 import PageBreadcrumb from "../../components/common/PageBreadcrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -11,10 +11,8 @@ import Button from '../../components/ui/Button';
 import FileInput from '../../components/form/FileInput';
 
 const Settings = () => {
-    // Ambil data user yang sedang login dari context
     const { user, loading: userLoading } = useAuth();
 
-    // State untuk form informasi pribadi
     const [userInfo, setUserInfo] = useState({
         nama_lengkap: '',
         username: '',
@@ -24,14 +22,12 @@ const Settings = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isInfoSubmitting, setIsInfoSubmitting] = useState(false);
 
-    // State untuk form ubah password
     const [passwords, setPasswords] = useState({
         currentPassword: '',
         newPassword: '',
     });
     const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
 
-    // useEffect untuk mengisi form dengan data dari context saat komponen dimuat
     useEffect(() => {
         if (user) {
             setUserInfo({
@@ -41,7 +37,7 @@ const Settings = () => {
                 no_hp: user.no_hp || '',
             });
         }
-    }, [user]); // Dijalankan setiap kali objek 'user' dari context berubah
+    }, [user]);
 
     const handleInfoChange = (e) => {
         setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
@@ -55,7 +51,6 @@ const Settings = () => {
         setPasswords({ ...passwords, [e.target.name]: e.target.value });
     };
 
-    // --- FUNGSI SUBMIT UNTUK INFORMASI PRIBADI ---
     const handleInfoSubmit = async (e) => {
         e.preventDefault();
         if (!user) return toast.error("Data pengguna tidak ditemukan.");
