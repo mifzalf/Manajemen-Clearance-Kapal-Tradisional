@@ -15,21 +15,27 @@ const ActionDropdown = ({ item, onSuccess }) => {
   const handleDelete = (item) => {
     toast((t) => (
       <div className="flex flex-col gap-3">
-        <p>Apakah Anda yakin ingin menghapus <strong>{item.spb.no_spb}</strong>?</p>
+        <p>
+          Apakah Anda yakin ingin menghapus <strong>{item.spb.no_spb}</strong>?
+        </p>
         <div className="flex gap-2">
           <button
             onClick={() => {
-              console.log('Menghapus item:', item.id_perjalanan);
-
-              axios.delete(`${API_URL}/perjalanan/delete/${item.id_perjalanan}`, {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-              });
-              toast.dismiss(t.id);
-              toast.success('Data berhasil dihapus!');
-              onSuccess()
-              // Panggil fungsi refresh data tabel di sini jika perlu
+              axios
+                .delete(`${API_URL}/perjalanan/delete/${item.id_perjalanan}`, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  },
+                })
+                .then(() => {
+                  toast.dismiss(t.id);
+                  toast.success('Data berhasil dihapus!');
+                  onSuccess(); // refresh tabel, bukan reload halaman
+                })
+                .catch((err) => {
+                  console.error('Gagal menghapus data:', err);
+                  toast.error('Gagal menghapus data');
+                });
             }}
             className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
           >
@@ -44,7 +50,7 @@ const ActionDropdown = ({ item, onSuccess }) => {
         </div>
       </div>
     ), {
-      duration: 6000, // Toast akan hilang setelah 6 detik jika tidak ada interaksi
+      duration: 6000,
     });
   };
 
@@ -63,13 +69,22 @@ const ActionDropdown = ({ item, onSuccess }) => {
         triggerRef={triggerRef}
         className="absolute right-0 top-full z-10 mt-1 flex w-40 flex-col rounded-lg border bg-white p-2 shadow-lg"
       >
-        <Link to={`/clearance/${item.id_perjalanan}`} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <Link
+          to={`/clearance/${item.id_perjalanan}`}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
           Lihat Detail
         </Link>
-        <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id_perjalanan}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <Link
+          to={`/clearance/edit/${item.id_perjalanan}`}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
           Edit
-        </DropdownItem>
-        <DropdownItem onItemClick={() => handleDelete(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
+        </Link>
+        <DropdownItem
+          onItemClick={() => handleDelete(item)}
+          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+        >
           Hapus
         </DropdownItem>
       </Dropdown>
@@ -93,13 +108,17 @@ const ClearanceTable = ({ clearanceItems = [], onSuccess }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {clearanceItems?.length > 0 ? (
-            clearanceItems?.map((item) => (
+            clearanceItems.map((item) => (
               <tr key={item.id_perjalanan} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.spb.no_spb}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.kapal.nama_kapal}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.tujuan_akhir.nama_kecamatan}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(item.tanggal_berangkat).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  {new Date(item.tanggal_berangkat).toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.agen.nama_agen}</td>
                 <td className="px-6 py-4 flex justify-end">
