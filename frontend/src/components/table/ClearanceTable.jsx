@@ -4,8 +4,10 @@ import toast from 'react-hot-toast';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
+import axios from 'axios';
 
-const ActionDropdown = ({ item }) => {
+const ActionDropdown = ({ item, onSuccess }) => {
+  const API_URL = import.meta.env.VITE_API_URL;
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
   const navigate = useNavigate();
@@ -13,15 +15,20 @@ const ActionDropdown = ({ item }) => {
   const handleDelete = (item) => {
     toast((t) => (
       <div className="flex flex-col gap-3">
-        <p>Apakah Anda yakin ingin menghapus <strong>{item.nomorSpb}</strong>?</p>
+        <p>Apakah Anda yakin ingin menghapus <strong>{item.spb.no_spb}</strong>?</p>
         <div className="flex gap-2">
           <button
             onClick={() => {
-              console.log('Menghapus item:', item.id);
-              // Di sini Anda akan memanggil API hapus, contoh:
-              // axios.delete(`/api/clearance/${item.id}`);
+              console.log('Menghapus item:', item.id_perjalanan);
+
+              axios.delete(`${API_URL}/perjalanan/delete/${item.id_perjalanan}`, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+              });
               toast.dismiss(t.id);
               toast.success('Data berhasil dihapus!');
+              onSuccess()
               // Panggil fungsi refresh data tabel di sini jika perlu
             }}
             className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
@@ -59,7 +66,7 @@ const ActionDropdown = ({ item }) => {
         <Link to={`/clearance/${item.id_perjalanan}`} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Lihat Detail
         </Link>
-        <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        <DropdownItem onItemClick={() => navigate(`/clearance/edit/${item.id_perjalanan}`)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
           Edit
         </DropdownItem>
         <DropdownItem onItemClick={() => handleDelete(item)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50">
@@ -70,7 +77,7 @@ const ActionDropdown = ({ item }) => {
   );
 };
 
-const ClearanceTable = ({ clearanceItems = [] }) => {
+const ClearanceTable = ({ clearanceItems = [], onSuccess }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -87,7 +94,7 @@ const ClearanceTable = ({ clearanceItems = [] }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {clearanceItems?.length > 0 ? (
             clearanceItems?.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+              <tr key={item.id_perjalanan} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.spb.no_spb}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.kapal.nama_kapal}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.tujuan_akhir.nama_kecamatan}</td>
@@ -96,7 +103,7 @@ const ClearanceTable = ({ clearanceItems = [] }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.agen.nama_agen}</td>
                 <td className="px-6 py-4 flex justify-end">
-                  <ActionDropdown item={item} />
+                  <ActionDropdown item={item} onSuccess={onSuccess} />
                 </td>
               </tr>
             ))

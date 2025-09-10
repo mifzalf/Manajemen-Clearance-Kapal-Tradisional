@@ -40,7 +40,7 @@ function Clearance() {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
-    
+
     const isInitialMount = useRef(true);
 
     useEffect(() => {
@@ -48,7 +48,7 @@ function Clearance() {
             setLoading(true);
             try {
                 const response = await axios.get(`${API_URL}/perjalanan`, {
-                  headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
                 });
                 const allData = response.data.datas;
                 setClearanceData(allData);
@@ -72,7 +72,7 @@ function Clearance() {
                     });
                 });
                 const allGoods = [...allGoodsSet].map(good => ({ value: good, label: good }));
-                
+
                 setFilterOptions({
                     ships: allShips,
                     categories: allCategories,
@@ -85,19 +85,19 @@ function Clearance() {
                 setLoading(false);
             }
         };
-        
+
         fetchInitialDataAndOptions();
     }, [API_URL]);
 
     const fetchFilteredData = useCallback(debounce(async (currentFilters) => {
-        const isFilterEmpty = Object.values(currentFilters).every(value => 
+        const isFilterEmpty = Object.values(currentFilters).every(value =>
             value === '' || (Array.isArray(value) && value.length === 0)
         );
 
         if (isFilterEmpty) {
             try {
                 const response = await axios.get(`${API_URL}/perjalanan`, {
-                  headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
                 });
                 setClearanceData(response.data.datas);
             } catch (error) {
@@ -127,8 +127,8 @@ function Clearance() {
                 }
             });
             const response = await axios.get(`${API_URL}/perjalanan`, {
-              params,
-              headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
+                params,
+                headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
             });
             setClearanceData(response.data.datas);
 
@@ -146,7 +146,7 @@ function Clearance() {
             fetchFilteredData(filters);
         }
     }, [filters, fetchFilteredData]);
-    
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (exportRef.current && !exportRef.current.contains(event.target)) {
@@ -161,7 +161,7 @@ function Clearance() {
         setFilters(prev => ({ ...prev, [name]: value }));
         setCurrentPage(1);
     };
-    
+
     const handleRowsPerPageChange = (value) => {
         const totalData = clearanceData.length;
         if (value === 'Semua') {
@@ -176,7 +176,7 @@ function Clearance() {
         const worksheet = XLSX.utils.json_to_sheet(clearanceData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data Clearance");
-        XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0,10)}.xlsx`);
+        XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
         setIsExportOpen(false);
     };
 
@@ -236,7 +236,7 @@ function Clearance() {
                             </div>
                             <div className="lg:col-span-4"><Select isMulti name="selectedGoods" options={filterOptions.goods} className="basic-multi-select" classNamePrefix="select" placeholder="Pilih satu atau lebih barang..." value={filters.selectedGoods} onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions || [])} styles={customStyles} /></div>
                         </div>
-                        {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <ClearanceTable clearanceItems={currentRows} />}
+                        {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <ClearanceTable clearanceItems={currentRows} onSuccess={() => window.location.reload()} />}
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
                             <div className="flex items-center gap-2 text-sm">
                                 <span>Tampilkan</span>

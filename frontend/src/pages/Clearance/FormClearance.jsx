@@ -29,7 +29,7 @@ const FormClearance = () => {
     const [kategoriMuatanData, setKategoriMuatanData] = useState([]);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
-    
+
     // Config untuk semua request axios yang butuh otorisasi
     const authConfig = {
         headers: {
@@ -42,7 +42,7 @@ const FormClearance = () => {
             try {
                 // Menggunakan Promise.all untuk fetch data secara paralel
                 const [
-                    agenRes, kabupatenRes, kapalRes, 
+                    agenRes, kabupatenRes, kapalRes,
                     kecamatanRes, nahkodaRes, kategoriMuatanRes
                 ] = await Promise.all([
                     axios.get(`${API_URL}/agen`, authConfig),
@@ -65,7 +65,7 @@ const FormClearance = () => {
                 if (isEditMode) {
                     const clearanceRes = await axios.get(`${API_URL}/perjalanan/${id}`, authConfig);
                     const clearanceData = clearanceRes.data.data;
-                    
+
                     // Pre-fill form dengan data yang ada
                     const dataToEdit = {
                         ...initialState,
@@ -81,108 +81,9 @@ const FormClearance = () => {
                 console.error("Fetch Data Error:", error);
             }
         };
-        
+
         fetchAllData();
     }, [id, isEditMode, API_URL]);
-
-    useEffect(() => {
-        if (isEditMode) {
-            fetchClearance()
-        }
-        fetchAgen()
-        fetchKabupaten()
-        fetchKapal()
-        fetchKecamatan()
-        fetchNahkoda()
-        fetchKategoriMuatan()
-    }, [id, isEditMode]);
-
-
-    const fetchClearance = async () => {
-        let response = await axios.get(API_URL + `/perjalanan/${id}`, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        setClearanceData(response?.data?.data)
-        console.log(clearanceData)
-    }
-
-    const fetchKategoriMuatan = async () => {
-        let response = await axios.get(API_URL + '/kategori-muatan', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kategori_muatan,
-                id: d.id_kategori_muatan
-            }
-        })
-        setKategoriMuatanData(filteredDatas)
-    }
-
-    const fetchNahkoda = async () => {
-        let response = await axios.get(API_URL + '/nahkoda', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_nahkoda,
-                id: d.id_nahkoda
-            }
-        })
-        setNahkodaData(filteredDatas)
-    }
-
-    const fetchKapal = async () => {
-        let response = await axios.get(API_URL + '/kapal', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kapal,
-                id: d.id_kapal
-            }
-        })
-        setKapalData(filteredDatas)
-    }
-
-    const fetchKabupaten = async () => {
-        let response = await axios.get(API_URL + '/kabupaten', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kabupaten,
-                id: d.id_kabupaten
-            }
-        })
-        setKabupatenData(filteredDatas)
-    }
-
-    const fetchKecamatan = async () => {
-        let response = await axios.get(API_URL + '/kecamatan', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_kecamatan,
-                id: d.id_kecamatan
-            }
-        })
-        setKecamatanData(filteredDatas)
-    }
-
-    const fetchAgen = async () => {
-        let response = await axios.get(API_URL + '/agen', {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
-        let filteredDatas = response.data.datas.map(d => {
-            return {
-                nama: d.nama_agen,
-                id: d.id_agen
-            }
-        })
-        setAgenData(filteredDatas)
-    }
 
     const handleKapalChange = (kapalId) => {
         const selectedKapal = kapalData.find(k => k.id === parseInt(kapalId));
@@ -197,16 +98,26 @@ const FormClearance = () => {
     const prevStep = () => setStep(prev => prev - 1);
 
     const handleSubmit = async (e) => {
+        console.log("Hai")
         e.preventDefault();
         if (!formRef.current?.checkValidity()) {
             formRef.current?.reportValidity();
             return;
         }
         let { barangBerangkat, barangDatang, ...cleanData } = formData;
-        let newData = {
-            ...cleanData,
-            muatan: [...formData.barangBerangkat, ...formData.barangDatang]
-        };
+        let newData
+        if (formData.status_muatan_berangkat == 'NIHIL') {
+            newData = {
+                ...cleanData,
+                muatan: [...formData.barangDatang]
+            };
+        } else {
+            newData = {
+                ...cleanData,
+                muatan: [...formData.barangBerangkat, ...formData.barangDatang]
+            };
+        }
+        console.log(newData)
 
         const config = {
             headers: {
@@ -222,7 +133,7 @@ const FormClearance = () => {
             }
 
             const response = isEditMode
-                ? await axios.patch(`${API_URL}/perjalanan/update/${currentItem.id_perjalanan}`, newData, {
+                ? await axios.patch(`${API_URL}/perjalanan/update/${id}`, newData, {
                     headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
                 })
                 : await axios.post(`${API_URL}/perjalanan/store`, newData, {

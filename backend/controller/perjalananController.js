@@ -148,7 +148,7 @@ const getPerjalananById = async (req, res) => {
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
                 {
-                    model: muatan, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                    model: muatan, attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         { model: kategoriMuatan, attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
                     ]
                 },
@@ -214,9 +214,7 @@ const storePerjalanan = async (req, res) => {
             no_urut = `${bulanSekarang}${latestNumber}`
         }
 
-        req.body.status_muatan_berangkat = (String(req.body.status_muatan_berangkat).toLowerCase() == "kosong") ? "NIHIL" : "SESUAI MANIFEST"
-
-        let spb = await spbController.storeSpb(req.body.no_spb_asal, t)
+        let spb = await spbController.storeSpb(req.body.spb.no_spb_asal, t)
 
         let newPerjalanan = await perjalanan.create({ ...req.body, no_urut, id_spb: spb.id_spb }, { transaction: t })
 
@@ -277,9 +275,7 @@ const updatePerjalanan = async (req, res) => {
             kecamatanData.length < kecamatanId.length ||
             !agenData) return res.status(500).json({ msg: "data kapal / nahkoda / daerah / agen tidak ditemukan" })
 
-        req.body.status_muatan_berangkat = (String(req.body.status_muatan_berangkat).toLowerCase() == "kosong") ? "NIHIL" : "SESUAI MANIFEST"
-
-        await spbController.updateSpb(req.body.no_spb_asal, perjalananData.id_spb, t)
+        await spbController.updateSpb(req.body.spb.no_spb_asal, perjalananData.id_spb, t)
 
         let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t })
 
@@ -310,17 +306,17 @@ const updatePerjalanan = async (req, res) => {
 const deletePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
-        let perjalananData = await agen.findOne({
-            where: { id_agen: req.params.id },
+        let perjalananData = await perjalanan.findOne({
+            where: { id_perjalanan: req.params.id },
             include: {
                 model: spb
             }
         })
-        let data = await perjalanan.findByPk(req.params.id)
+        
         let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
-        await spbController.deleteSpb(data.id_spb, t)
+        await spbController.deleteSpb(perjalananData.id_spb, t)
         
         let log = await logUserController.storeLogUser(
             req.user.username,

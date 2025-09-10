@@ -11,6 +11,14 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleKapalChange, ka
     const { name, value } = e.target;
     if (name === 'kapalId') {
       handleKapalChange(value);
+    } else if (name === "no_spb_asal") {
+      setFormData(prev => ({
+        ...prev,
+        spb: {
+          ...prev.spb,
+          no_spb_asal: value
+        }
+      }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -36,7 +44,7 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleKapalChange, ka
         <h3 className="text-lg font-semibold text-gray-800">Data Clearance</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
           <div><Label htmlFor="jenisPpk">Jenis PPK</Label><Select id="jenisPpk" name="ppk" value={formData.ppk} onChange={handleChange} options={createOptions(jenisPpkOptions, 'Pilih Jenis PPK')} required /></div>
-          <div><Label htmlFor="noSpbAsal">No SPB Asal</Label><InputField id="noSpbAsal" name="no_spb_asal" value={formData.no_spb_asal} onChange={handleChange} required /></div>
+          <div><Label htmlFor="noSpbAsal">No SPB Asal</Label><InputField id="noSpbAsal" name="no_spb_asal" value={formData.spb?.no_spb_asal} onChange={handleChange} required /></div>
           <div><Label htmlFor="tanggalClearance">Tanggal Clearance</Label><InputField id="tanggalClearance" name="tanggal_clearance" type="date" value={formData.tanggal_clearance} onChange={handleChange} required /></div>
           <div><Label htmlFor="pukulClearance">Pukul Clearance</Label><InputField id="pukulClearance" name="pukul_agen_clearance" type="time" value={formData.pukul_agen_clearance} onChange={handleChange} required /></div>
         </div>
@@ -64,8 +72,8 @@ const Step1DataKapal = ({ formData, setFormData, nextStep, handleKapalChange, ka
           <div>
             <Label>Status Muatan Berangkat</Label>
             <div className="flex gap-4 h-11 items-center">
-              <label className="flex items-center"><input type="radio" name="statusMuatan" value="Kosong" checked={formData.statusMuatan === 'Kosong'} onChange={handleChange} className="mr-2" />Kosong</label>
-              <label className="flex items-center"><input type="radio" name="statusMuatan" value="Ada Muatan" checked={formData.statusMuatan === 'Ada Muatan'} onChange={handleChange} className="mr-2" />Ada Muatan</label>
+              <label className="flex items-center"><input type="radio" name="status_muatan_berangkat" value="NIHIL" checked={formData.status_muatan_berangkat === 'NIHIL'} onChange={handleChange} className="mr-2" />Kosong</label>
+              <label className="flex items-center"><input type="radio" name="status_muatan_berangkat" value="SESUAI MANIFEST" checked={formData.status_muatan_berangkat === 'SESUAI MANIFEST'} onChange={handleChange} className="mr-2" />Ada Muatan</label>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import InputField from '../form/InputField';
 import Button from '../ui/Button';
 
 const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => {
+  console.log(formData)
   const satuanOptions = [
     { value: '', label: 'Pilih Satuan'},
     { value: 'Kg', label: 'Kg' },
@@ -57,7 +58,7 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           + Tambah Baris
         </button>
       </div>
-      {formData.statusMuatan === 'Ada Muatan' && (
+      {formData.status_muatan_berangkat === 'SESUAI MANIFEST' && (
         <div>
           <h3 className="text-lg font-semibold text-gray-800">Data Muatan (Barang Berangkat)</h3>
           {formData.barangBerangkat.map((item, index) => (

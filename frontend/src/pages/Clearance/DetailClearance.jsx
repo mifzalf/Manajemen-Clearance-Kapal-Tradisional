@@ -42,12 +42,15 @@ const DetailClearance = () => {
     
     const handleConfirmDelete = () => {
         if (data) {
-            console.log("Menghapus item:", data.id);
-            // Di sini Anda akan memanggil API untuk menghapus
-            // axios.delete(`/api/clearance/${data.id}`);
+            console.log("Menghapus item:", data.id_perjalanan);
+            axios.delete(`${API_URL}/perjalanan/delete/${data.id_perjalanan}`, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             
             setIsConfirmOpen(false); 
-            toast.success(`Data SPB ${data.noSpbKalianget} berhasil dihapus.`);
+            toast.success(`Data SPB ${data.no_spb} berhasil dihapus.`);
             
             // Arahkan kembali ke daftar setelah beberapa saat
             setTimeout(() => {

@@ -46,6 +46,7 @@ const storeSpb = async (no_spb_asal, t) => {
 const updateSpb = async (no_spb_asal, id, t) => {
     try {
         if (no_spb_asal == "") no_spb_asal = null
+        
         let result = await spb.update({ no_spb_asal }, { where: { id_spb: id }, transaction: t })
         console.log(result, id)
         if (result == 0) throw new Error("Data spb tidak ditemukan")
