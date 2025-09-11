@@ -189,7 +189,7 @@ const getPerjalananById = async (req, res) => {
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
                 {
-                    model: muatan, attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                    model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
                     ]
                 },
