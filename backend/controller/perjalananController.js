@@ -65,7 +65,6 @@ const getPerjalananByFilter = async (req, res) => {
             return res.status(200).json({ msg: "Tidak ada data", datas: [] });
         }
 
-        // 🔹 Step 2: ambil perjalanan dengan muatan (pakai separate)
         const datas = await perjalanan.findAll({
             where: {
                 ...wherePerjalanan,
@@ -73,11 +72,18 @@ const getPerjalananByFilter = async (req, res) => {
             },
             include: [
                 {
-                    model: kapal,
+                    model: kapal, 
+                    attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'], 
+                    include: [
+                        { model: jenis, attributes: ['nama_jenis'] },
+                        { model: negara, as: "bendera", attributes: ['kode_negara'] }
+                    ],
                     required: true,
-                    attributes: ["nama_kapal"],
                     where: whereKapal
                 },
+                { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
+                { model: nahkoda, attributes: ['nama_nahkoda'] },
+                { model: agen, attributes: ['nama_agen'] },
                 {
                     model: muatan,
                     as: "muatans",
@@ -91,7 +97,11 @@ const getPerjalananByFilter = async (req, res) => {
                             where: whereKategoriMuatan
                         }
                     ]
-                }
+                },
+                { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
+                { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
+                { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
+                { model: kecamatan, as: "tujuan_akhir", attributes: ['nama_kecamatan'] },
             ],
             ...pagination
         });
