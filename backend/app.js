@@ -61,7 +61,6 @@ app.use(express.static(path.join(__dirname, 'public')));
   }
 })()
 
-app.use('/log-user', logUserRouter);
 app.use('/users', usersRouter);
 
 app.use(verifyToken)
@@ -77,6 +76,7 @@ app.use('/jenis', jenisRouter);
 app.use('/kategori-muatan', kategoriMuatanRouter);
 app.use('/kapal', kapalRouter);
 app.use('/perjalanan', perjalananRouter);
+app.use('/log-user', logUserRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
