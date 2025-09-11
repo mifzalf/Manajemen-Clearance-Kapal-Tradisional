@@ -14,14 +14,17 @@ const jenis = require("../model/jenisModel")
 const muatan = require("../model/muatanModel")
 const kategoriMuatan = require("../model/kategoriMuatanModel")
 const logUserController = require("./logUserController")
-
 const getPerjalananByFilter = async (req, res) => {
-    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan } = req.query;
+    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page } = req.query;
 
     try {
         let wherePerjalanan = {};
         let whereKapal = {};
         let whereKategoriMuatan = {};
+        let pagination = {};
+
+        if (limit) pagination.limit = Number(limit);
+        if (page) pagination.offset = (limit * page) - limit;
 
         if (nama_kapal) {
             whereKapal.nama_kapal = { [Op.like]: `%${nama_kapal}%` };
@@ -40,48 +43,57 @@ const getPerjalananByFilter = async (req, res) => {
                 [Op.between]: [new Date(tanggal_awal), new Date(tanggal_akhir)]
             };
         } else if (tanggal_awal) {
-            wherePerjalanan.tanggal_berangkat = {
-                [Op.gte]: new Date(tanggal_awal)
-            };
+            wherePerjalanan.tanggal_berangkat = { [Op.gte]: new Date(tanggal_awal) };
         } else if (tanggal_akhir) {
-            wherePerjalanan.tanggal_berangkat = {
-                [Op.lte]: new Date(tanggal_akhir)
-            };
+            wherePerjalanan.tanggal_berangkat = { [Op.lte]: new Date(tanggal_akhir) };
         }
 
+        const perjalananIds = await muatan.findAll({
+            attributes: ["id_perjalanan"],
+            include: [
+                {
+                    model: kategoriMuatan,
+                    as: "kategori_muatan",
+                    required: true,
+                    where: whereKategoriMuatan
+                }
+            ],
+            raw: true
+        }).then(rows => rows.map(r => r.id_perjalanan));
+
+        if (perjalananIds.length === 0) {
+            return res.status(200).json({ msg: "Tidak ada data", datas: [] });
+        }
+
+        // 🔹 Step 2: ambil perjalanan dengan muatan (pakai separate)
         const datas = await perjalanan.findAll({
-            where: wherePerjalanan,
+            where: {
+                ...wherePerjalanan,
+                id_perjalanan: { [Op.in]: perjalananIds }
+            },
             include: [
                 {
                     model: kapal,
-                    attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'],
-                    include: [
-                        { model: jenis, attributes: ['nama_jenis'] },
-                        { model: negara, as: "bendera", attributes: ['kode_negara'] }
-                    ],
+                    required: true,
+                    attributes: ["nama_kapal"],
                     where: whereKapal
                 },
-                { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
-                { model: nahkoda, attributes: ['nama_nahkoda'] },
-                { model: agen, attributes: ['nama_agen'] },
                 {
                     model: muatan,
-                    attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'],
+                    as: "muatans",
+                    separate: true,
+                    attributes: ["jenis_perjalanan", "satuan_muatan", "jumlah_muatan"],
                     include: [
                         {
                             model: kategoriMuatan,
-                            attributes: ['nama_kategori_muatan', 'status_kategori_muatan'],
-                            where: whereKategoriMuatan,
-                            required: Object.keys(whereKategoriMuatan).length > 0
+                            as: "kategori_muatan",
+                            attributes: ["nama_kategori_muatan", "status_kategori_muatan"],
+                            where: whereKategoriMuatan
                         }
-                    ],
-                    required: Object.keys(whereKategoriMuatan).length > 0
-                },
-                { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
-                { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
-                { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
-                { model: kecamatan, as: "tujuan_akhir", attributes: ['nama_kecamatan'] },
+                    ]
+                }
             ],
+            ...pagination
         });
 
         return res.status(200).json({ msg: "Berhasil mengambil data", datas });
@@ -89,12 +101,27 @@ const getPerjalananByFilter = async (req, res) => {
         console.log(error);
         return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
     }
-}
+};
 
 const getPerjalanan = async (req, res) => {
     let search = req.query.search || ""
+    let { limit, page } = req.query
+    console.log(limit)
+
     try {
+
+        let pagination = {}
+
+        if (limit) {
+            pagination.limit = Number(limit)
+        }
+
+        if (page) {
+            pagination.offset = (limit * page) - limit
+        }
+
         const datas = await perjalanan.findAll({
+            subQuery: false,
             include: [
                 {
                     model: kapal, attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'], include: [
@@ -106,8 +133,12 @@ const getPerjalanan = async (req, res) => {
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
                 {
-                    model: muatan, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
-                        { model: kategoriMuatan, attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
+                    model: muatan, as: "muatans", separate: true, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                        {
+                            model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'], where: {
+                                status_kategori_muatan: { [Op.like]: `%${search}%` }
+                            }
+                        }
                     ]
                 },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
@@ -120,10 +151,10 @@ const getPerjalanan = async (req, res) => {
                     { '$kapal.nama_kapal$': { [Op.like]: `%${search}%` } },
                     { '$nahkoda.nama_nahkoda$': { [Op.like]: `%${search}%` } },
                     { '$agen.nama_agen$': { [Op.like]: `%${search}%` } },
-                    { '$muatans.kategori_muatan.status_kategori_muatan$': { [Op.like]: `%${search}%` } },
                     { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${search}%` } },
                 ]
-            }
+            },
+            ...pagination
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
@@ -149,7 +180,7 @@ const getPerjalananById = async (req, res) => {
                 { model: agen, attributes: ['nama_agen'] },
                 {
                     model: muatan, attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
-                        { model: kategoriMuatan, attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
+                        { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
                     ]
                 },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },

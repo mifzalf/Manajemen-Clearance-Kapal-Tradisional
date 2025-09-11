@@ -65,12 +65,12 @@ agen.hasMany(perjalanan, {foreignKey: "id_agen", onDelete: "CASCADE", onUpdate: 
 
 perjalanan.belongsTo(agen, {foreignKey: "id_agen", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-perjalanan.hasMany(muatan, {foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE"})
+perjalanan.hasMany(muatan, {as: "muatans", foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 muatan.belongsTo(perjalanan, {foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 kategoriMuatan.hasMany(muatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
-muatan.belongsTo(kategoriMuatan, {foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
+muatan.belongsTo(kategoriMuatan, {as: "kategori_muatan", foreignKey: "id_kategori_muatan", onDelete: "CASCADE", onUpdate: "CASCADE"})
 
 module.exports = {agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, spb, users, logUser}
