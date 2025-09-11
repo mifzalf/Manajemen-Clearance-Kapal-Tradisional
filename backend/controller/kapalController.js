@@ -1,8 +1,24 @@
-const { Op } = require("sequelize")
+const { Op, fn, col } = require("sequelize")
 const jenis = require("../model/jenisModel")
 const kapal = require("../model/kapalModel")
 const negara = require("../model/negaraModel")
 const logUserController = require("./logUserController")
+
+const getKapalOptions = async (req, res) => {
+    try {
+        const datas = await kapal.findAll({
+            attributes: [
+                [fn('DISTINCT', col('nama_kapal')), 'nama_kapal']
+            ],
+            order: [['nama_kapal', 'ASC']]
+        });
+        const namaKapalArray = datas.map(k => k.nama_kapal);
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas: namaKapalArray });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
+    }
+};
 
 const getKapal = async (req, res) => {
     try {
@@ -60,7 +76,7 @@ const updateKapal = async (req, res) => {
             req.user.username,
             "UPDATE",
             "kapal",
-            `Mengubah data kapal ${(kapalData.nama_kapal == req.body.nama_kapal) ? 
+            `Mengubah data kapal ${(kapalData.nama_kapal == req.body.nama_kapal) ?
                 kapalData.nama_kapal : kapalData.nama_kapal + "->" + req.body.nama_kapal}`
         )
 
@@ -129,4 +145,4 @@ const getTotalKapalNow = async (req, res) => {
     }
 }
 
-module.exports = { getKapal, getKapalById, storeKapal, updateKapal, deleteKapal, getTotalKapal, getTotalKapalNow }
+module.exports = { getKapal, getKapalById, storeKapal, updateKapal, deleteKapal, getTotalKapal, getTotalKapalNow, getKapalOptions }

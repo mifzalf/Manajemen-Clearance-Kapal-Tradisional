@@ -5,10 +5,12 @@ const {
     getKategoriMuatanById,
     storeKategoriMuatan,
     updateKategoriMuatan,
-    deleteKategoriMuatan
+    deleteKategoriMuatan,
+    getKategoriMuatanOptions
 } = require("../controller/kategoriMuatanController")
 
 router.get("/", getKategoriMuatan)
+router.get("/option", getKategoriMuatanOptions)
 router.get("/:id", getKategoriMuatanById)
 router.post("/store", storeKategoriMuatan)
 router.patch("/update/:id", updateKategoriMuatan)
