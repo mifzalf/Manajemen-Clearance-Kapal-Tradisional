@@ -2,20 +2,30 @@ const logUser = require("../model/logUserModel")
 const { Op } = require("sequelize")
 
 const getLogUser = async (req, res) => {
-    let search = req.query.search || ""
-    console.log(search)
+    let { search, limit, page } = req.query
+    let pagination = {}
+
+    if (limit) {
+        pagination.limit = Number(limit)
+    }
+
+    if (page) {
+        pagination.offset = (limit * page) - limit
+    }
+    
     try {
         const datas = await logUser.findAll({
             where: {
                 [Op.or]: [
-                    { '$username$': { [Op.like]: `%${search}%` } },
-                    { '$waktu$': { [Op.like]: `%${search}%` } },
-                    { '$tanggal$': { [Op.like]: `%${search}%` } },
-                    { '$aksi$': { [Op.like]: `%${search}%` } },
-                    { '$jenis_data$': { [Op.like]: `%${search}%` } },
-                    { '$data_diubah$': { [Op.like]: `%${search}%` } },
+                    { '$username$': { [Op.like]: `%${search || ""}%` } },
+                    { '$waktu$': { [Op.like]: `%${search || ""}%` } },
+                    { '$tanggal$': { [Op.like]: `%${search || ""}%` } },
+                    { '$aksi$': { [Op.like]: `%${search || ""}%` } },
+                    { '$jenis_data$': { [Op.like]: `%${search || ""}%` } },
+                    { '$data_diubah$': { [Op.like]: `%${search || ""}%` } },
                 ]
-            }
+            },
+            ...pagination
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
@@ -25,10 +35,19 @@ const getLogUser = async (req, res) => {
 }
 
 const getLogUserByFilter = async (req, res) => {
-    let { aksi, jenis_data, tanggal_awal, tanggal_akhir, username } = req.query;
+    let { aksi, jenis_data, tanggal_awal, tanggal_akhir, username, limit, page } = req.query
 
     try {
         let whereLogUser = {};
+        let pagination = {}
+
+        if (limit) {
+            pagination.limit = Number(limit)
+        }
+
+        if (page) {
+            pagination.offset = (limit * page) - limit
+        }
 
         if (aksi) {
             whereLogUser.aksi = { [Op.like]: `%${aksi}%` };
@@ -57,9 +76,10 @@ const getLogUserByFilter = async (req, res) => {
         }
 
         const datas = await logUser.findAll({
-            where: whereLogUser
+            where: whereLogUser,
+            ...pagination
         })
-        
+
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
