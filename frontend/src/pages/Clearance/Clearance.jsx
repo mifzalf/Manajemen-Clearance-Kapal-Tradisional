@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
 import * as XLSX from 'xlsx';
@@ -18,19 +18,12 @@ const customStyles = {
     multiValueRemove: (styles) => ({ ...styles, color: '#4F46E5', ':hover': { backgroundColor: '#4F46E5', color: 'white' } }),
 };
 
-const rowsPerPageOptions = ['5', '10', '20', '50']; // Opsi 'All' dihapus
+const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 
 function Clearance() {
-    const [clearanceData, setClearanceData] = useState([]);
+    const [allClearances, setAllClearances] = useState([]); // Menyimpan semua data dari API
     const [loading, setLoading] = useState(true);
-    const [totalPages, setTotalPages] = useState(0);
     
-    const [filterOptions, setFilterOptions] = useState({
-        ships: [],
-        categories: [],
-        goods: [],
-    });
-
     const [filters, setFilters] = useState({
         searchTerm: '',
         selectedShip: '',
@@ -45,78 +38,62 @@ function Clearance() {
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
 
-    // Fungsi utama untuk mengambil data dari API, kini mendukung paginasi & filter server-side
-    const fetchClearances = useCallback(debounce(async (page, limit, currentFilters) => {
+    // 1. Fungsi ini mengambil data dari backend berdasarkan filter
+    const fetchData = useCallback(debounce(async (currentFilters) => {
         setLoading(true);
         let endpoint = '/perjalanan';
-        let params = {
-            page: page,
-            limit: limit,
-        };
-
+        let params = {};
+        
         const hasSpecificFilters = currentFilters.selectedShip || currentFilters.selectedCategory || currentFilters.startDate || currentFilters.endDate || currentFilters.selectedGoods.length > 0;
 
-        // --- INI ADALAH LOGIKA YANG DIPERBAIKI ---
         if (currentFilters.searchTerm) {
-            // Jika ada searchTerm, gunakan endpoint search umum
             params.search = currentFilters.searchTerm;
         } else if (hasSpecificFilters) {
-            // Jika ada filter spesifik, gunakan endpoint get-filter
             endpoint = '/perjalanan/get-filter';
-            Object.assign(params, {
+            params = {
                 nama_kapal: currentFilters.selectedShip,
                 kategori: currentFilters.selectedCategory,
                 tanggal_awal: currentFilters.startDate,
                 tanggal_akhir: currentFilters.endDate,
                 nama_muatan: currentFilters.selectedGoods.length > 0 ? currentFilters.selectedGoods[0].value : ''
-            });
+            };
         }
         
-        // Hapus parameter yang nilainya kosong
         Object.keys(params).forEach(key => {
             if (!params[key]) delete params[key];
         });
 
         try {
             const response = await axiosInstance.get(endpoint, { params });
-            setClearanceData(response.data.datas);
-            setTotalPages(response.data.totalPages);
+            setAllClearances(response.data.datas); // Simpan semua data yang diterima
         } catch (error) {
             console.error('Gagal mengambil data clearance:', error);
             toast.error("Gagal mengambil data clearance.");
-            setClearanceData([]);
-            setTotalPages(0);
         } finally {
             setLoading(false);
         }
     }, 500), []);
 
-    // useEffect utama yang memicu pengambilan data setiap kali dependensi berubah
+    // useEffect ini memicu pengambilan data setiap kali filter berubah
     useEffect(() => {
-        fetchClearances(currentPage, rowsPerPage, filters);
-    }, [currentPage, rowsPerPage, filters, fetchClearances]);
+        fetchData(filters);
+    }, [filters, fetchData]);
 
-    // useEffect untuk mengisi opsi filter, hanya berjalan sekali
-    useEffect(() => {
-        const fetchFilterOptions = async () => {
-            try {
-                const [shipsRes, muatanRes] = await Promise.all([
-                    axiosInstance.get('/kapal/options'),
-                    axiosInstance.get('/kategori-muatan/options')
-                ]);
-                
-                setFilterOptions({ 
-                    ships: shipsRes.data.datas, 
-                    categories: muatanRes.data.datas.categories,
-                    goods: muatanRes.data.datas.goods.map(good => ({ value: good, label: good }))
-                });
-            } catch (error) {
-                toast.error("Gagal memuat opsi filter.");
-                console.error("Gagal mengambil opsi filter:", error);
-            }
-        };
-        fetchFilterOptions();
-    }, []);
+    // 2. Opsi untuk dropdown filter dibuat dari semua data yang ada
+    const filterOptions = useMemo(() => {
+        const ships = [...new Set(allClearances.map(item => item.kapal.nama_kapal).filter(Boolean))];
+        const categories = [...new Set(allClearances.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
+        const goods = [...new Set(allClearances.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
+        return { ships, categories, goods };
+    }, [allClearances]);
+
+    // 3. Logika filter tetap di frontend, tapi sumbernya dari `allClearances`
+    const filteredData = useMemo(() => {
+        // Logika ini tidak diperlukan jika backend sudah melakukan semua filter.
+        // Namun, jika Anda ingin filter tambahan di frontend, Anda bisa meletakkannya di sini.
+        // Untuk saat ini, kita anggap backend sudah mengembalikan data terfilter.
+        return allClearances;
+    }, [allClearances]);
 
     const handleFilterChange = (name, value) => {
         setFilters((prev) => ({ ...prev, [name]: value }));
@@ -124,16 +101,28 @@ function Clearance() {
     };
 
     const handleRowsPerPageChange = (value) => {
-        setRowsPerPage(parseInt(value, 10));
+        if (value === 'Semua') {
+            setRowsPerPage(filteredData.length > 0 ? filteredData.length : 1);
+        } else {
+            setRowsPerPage(parseInt(value, 10));
+        }
         setCurrentPage(1);
     };
     
+    // 4. Logika paginasi sekarang bekerja pada `filteredData`
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     const refreshData = () => {
-        fetchClearances(currentPage, rowsPerPage, filters);
+        fetchData(filters);
     };
 
     const exportXLSX = () => {
-        const worksheet = XLSX.utils.json_to_sheet(clearanceData);
+        const worksheet = XLSX.utils.json_to_sheet(filteredData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Clearance');
         XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -193,7 +182,7 @@ function Clearance() {
                                 <SearchBar
                                     searchTerm={filters.searchTerm}
                                     setSearchTerm={(value) => handleFilterChange('searchTerm', value)}
-                                    placeholder="Cari kapal, agen, tujuan..."
+                                    placeholder="Cari SPB, kapal, agen, tujuan..."
                                 />
                             </div>
                             <FilterDropdown
@@ -240,14 +229,14 @@ function Clearance() {
                         {loading ? (
                             <p className="text-center text-gray-500 py-10">Memuat data...</p>
                         ) : (
-                            <ClearanceTable clearanceItems={clearanceData} onSuccess={refreshData} />
+                            <ClearanceTable clearanceItems={currentRows} onSuccess={refreshData} />
                         )}
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
                             <div className="flex items-center gap-2 text-sm">
                                 <span>Tampilkan</span>
                                 <FilterDropdown
                                     direction="up"
-                                    selectedValue={String(rowsPerPage)}
+                                    selectedValue={rowsPerPage === filteredData.length && filteredData.length > 0 ? 'Semua' : String(rowsPerPage)}
                                     setSelectedValue={handleRowsPerPageChange}
                                     options={rowsPerPageOptions}
                                 />
@@ -257,7 +246,7 @@ function Clearance() {
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
-                                    paginate={setCurrentPage}
+                                    paginate={paginate}
                                 />
                             )}
                         </div>
@@ -265,7 +254,7 @@ function Clearance() {
                 </div>
             </div>
             <div className="print-only">
-                <PrintableClearanceList data={clearanceData} />
+                <PrintableClearanceList data={filteredData} />
             </div>
         </>
     );
