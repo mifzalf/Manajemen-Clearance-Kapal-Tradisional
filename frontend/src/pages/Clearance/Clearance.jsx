@@ -8,7 +8,7 @@ import FilterDropdown from '../../components/common/FilterDropdown';
 import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
 import PrintableClearanceList from '../../components/clearance/PrintableClearanceList';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 import debounce from 'lodash.debounce';
 
 const customStyles = {
@@ -46,15 +46,10 @@ function Clearance() {
   const exportRef = useRef(null);
   const isInitialMount = useRef(true);
 
-  // ambil data awal & opsi filter
   const fetchInitialDataAndOptions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/perjalanan`, {
-        headers: localStorage.getItem('token')
-          ? { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          : {},
-      });
+      const response = await axiosInstance.get('/perjalanan');
       const allData = response.data.datas;
       setClearanceData(allData);
 
@@ -94,7 +89,6 @@ function Clearance() {
     fetchInitialDataAndOptions();
   }, [API_URL]);
 
-  // ambil data berdasarkan filter
   const fetchFilteredData = useCallback(
     debounce(async (currentFilters) => {
       const isFilterEmpty = Object.values(currentFilters).every(
@@ -127,11 +121,8 @@ function Clearance() {
             delete params[key];
           }
         });
-        const response = await axios.get(`${API_URL}/perjalanan`, {
+        const response = await axiosInstance.get('/perjalanan', {
           params,
-          headers: localStorage.getItem('token')
-            ? { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            : {},
         });
         setClearanceData(response.data.datas);
       } catch (error) {
@@ -143,7 +134,6 @@ function Clearance() {
     [API_URL]
   );
 
-  // refresh tabel saja (tanpa reload halaman)
   const refreshData = async () => {
     await fetchFilteredData(filters);
   };

@@ -36,12 +36,16 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            let response;
-            if (isEditMode) {
-                response = await axiosInstance.patch(`/users/update/${currentItem.id_user}`, formData);
-            } else {
-                response = await axiosInstance.post('/users/store', formData);
-            }
+            const method = isEditMode ? 'patch' : 'post';
+            const url = isEditMode
+                ? `/users/update/${currentItem.id_user}`
+                : '/users/store';
+            
+            const response = await axiosInstance({
+                method: method,
+                url: url,
+                data: formData
+            });
 
             if (response.status === 200) {
                 toast.success(`Data pengguna berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
@@ -49,7 +53,8 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
                 onClose();
             }
         } catch (error) {
-            toast.error("Terjadi kesalahan saat menyimpan data.");
+            const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+            toast.error(errorMessage);
             console.error("Save User Error:", error);
         }
     };

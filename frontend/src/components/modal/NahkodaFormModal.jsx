@@ -3,10 +3,9 @@ import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Button from '../ui/Button';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({ nama_nahkoda: '' });
   const isEditMode = Boolean(currentItem);
 
@@ -26,12 +25,8 @@ const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
     e.preventDefault();
     try {
       const response = isEditMode
-        ? await axios.patch(`${API_URL}/nahkoda/update/${currentItem.id_nahkoda}`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          })
-        : await axios.post(`${API_URL}/nahkoda/store`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          });
+        ? await axiosInstance.patch(`/nahkoda/update/${currentItem.id_nahkoda}`, formData)
+        : await axiosInstance.post('/nahkoda/store', formData);
 
       if (response.status === 200) {
         toast.success(`Data Nahkoda Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
@@ -39,8 +34,9 @@ const NahkodaFormModal = ({ onClose, currentItem, onSuccess }) => {
         onClose();
       }
     } catch (error) {
-      console.error("Error:", error.response?.data?.msg || error.message);
-      toast.error(`Terjadi kesalahan saat menyimpan data.`);
+      const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+      console.error("Error:", errorMessage);
+      toast.error(errorMessage);
       onClose();
     }
   };

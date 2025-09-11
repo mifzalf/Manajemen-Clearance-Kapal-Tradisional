@@ -3,10 +3,9 @@ import toast from 'react-hot-toast';
 import UserTable from '../components/table/UserTable';
 import UserFormModal from '../components/modal/UserFormModal';
 import ConfirmationModal from '../components/modal/ConfirmationModal';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 
 function ManajemenUser() {
-    const API_URL = import.meta.env.VITE_API_URL;
     const [userData, setUserData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,10 +20,7 @@ function ManajemenUser() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            // --- DIMODIFIKASI: Mengaktifkan API call ---
-            let response = await axios.get(`${API_URL}/users`, {
-              headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-            });
+            let response = await axiosInstance.get('/users');
             setUserData(response.data.datas || []);
         } catch (error) {
             toast.error("Gagal memuat data pengguna.");
@@ -62,14 +58,9 @@ function ManajemenUser() {
     const handleConfirmDelete = async () => {
         if (itemToDelete) {
             try {
-                // --- DIMODIFIKASI: Mengaktifkan API call dan menggunakan id_user ---
-                await axios.delete(`${API_URL}/users/delete/${itemToDelete.id_user}`,
-                  {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                  }
-                );
+                await axiosInstance.delete(`/users/delete/${itemToDelete.id_user}`);
                 toast.success(`Pengguna "${itemToDelete.nama_lengkap}" berhasil dihapus.`);
-                fetchUsers(); // Refresh data setelah berhasil hapus
+                fetchUsers();
             } catch (error) {
                 toast.error("Gagal menghapus data.");
                 console.error("Delete User Error:", error);

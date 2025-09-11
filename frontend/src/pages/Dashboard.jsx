@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios'
+import axiosInstance from '../api/axiosInstance';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend } from "chart.js";
 import MetricCards from '../components/dashboard/MetricCards';
 import MonthlyClearanceBarChart from '../components/dashboard/MonthlyClearanceBarChart';
@@ -26,44 +26,32 @@ const Dashboard = () => {
   }, [])
 
   const fetchTotalKapal = async () => {
-    let response = await axios.get(API_URL + '/kapal/total',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/kapal/total');
     setTotalKapal(response.data.datas)
   }
 
   const fetchTotalPerjalanan = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/perjalanan/total');
     setTotalPerjalanan(response.data.datas)
   }
 
   const fetchTotalKapalNow = async () => {
-    let response = await axios.get(API_URL + '/kapal/total-today',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/kapal/total-today');
     setTotalKapalNow(response.data.datas)
   }
 
   const fetchTotalPerjalananNow = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-today',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/perjalanan/total-today');
     setTotalPerjalananNow(response.data.datas)
   }
 
   const fetchPerjalananPerBulan = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-month',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/perjalanan/total-month');
     setTotalPerjalananPerBulan(response.data.defaultData)
   }
 
   const fetchTotalKategori = async () => {
-    let response = await axios.get(API_URL + '/perjalanan/total-kategori',{
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    })
+    let response = await axiosInstance.get('/perjalanan/total-kategori');
     setTotalKategori(response.data.defaultDatas)
   }
 

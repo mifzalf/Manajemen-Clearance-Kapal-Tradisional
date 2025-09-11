@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import InputField from "../form/InputField";
 import Button from "../ui/Button";
+import axiosInstance from '../../api/axiosInstance'; 
 
 export default function SignInForm() {
-    const API_URL = import.meta.env.VITE_API_URL;
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         username: '',
@@ -26,7 +25,7 @@ export default function SignInForm() {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(`${API_URL}/users/login`, {
+            const response = await axiosInstance.post('/users/login', {
                 username: formData.username,
                 password: formData.password
             });
@@ -48,7 +47,6 @@ export default function SignInForm() {
 
     return (
         <div className="flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
-
             <div className="mx-auto flex flex-1 w-full max-w-md flex-col justify-center">
                 <div>
                     <div className="mb-8">

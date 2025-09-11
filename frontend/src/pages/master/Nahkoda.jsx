@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import NahkodaTable from '../../components/table/NahkodaTable';
 import NahkodaFormModal from '../../components/modal/NahkodaFormModal';
-import axios from "axios";
+import axiosInstance from "../../api/axiosInstance";
 
 function Nahkoda() {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -18,9 +18,7 @@ function Nahkoda() {
   async function fecthNahkoda() {
     setLoading(true);
     try {
-      let response = await axios.get(`${API_URL}/nahkoda`, {
-        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-      });
+      let response = await axiosInstance.get('/nahkoda');
       setNahkodaData(response?.data?.datas || []);
     } catch (error) {
       toast.error("Gagal memuat data nahkoda.");
@@ -53,11 +51,7 @@ function Nahkoda() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/nahkoda/delete/${item.id_nahkoda}`,
-                  {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                  }
-                );
+                const response = await axiosInstance.delete(`/nahkoda/delete/${item.id_nahkoda}`);
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fecthNahkoda();

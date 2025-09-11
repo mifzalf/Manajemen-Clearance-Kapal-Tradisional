@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import MuatanTable from '../../components/table/MuatanTable';
 import MuatanFormModal from '../../components/modal/MuatanFormModal';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 function KategoriMuatan() {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -18,9 +18,7 @@ function KategoriMuatan() {
   const fetchKategoriMuatan = async () => {
     setLoading(true);
     try {
-      let response = await axios.get(`${API_URL}/kategori-muatan`, {
-        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-      });
+      let response = await axiosInstance.get('/kategori-muatan');
       setMuatanData(response.data.datas || []);
     } catch (error) {
       toast.error("Gagal memuat data muatan.");
@@ -54,11 +52,7 @@ function KategoriMuatan() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/kategori-muatan/delete/${item.id_kategori_muatan}`,
-                  {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                  }
-                );
+                const response = await axiosInstance.delete(`/kategori-muatan/delete/${item.id_kategori_muatan}`);
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchKategoriMuatan();

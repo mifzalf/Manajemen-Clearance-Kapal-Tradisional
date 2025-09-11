@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 import Step1DataKapal from '../../components/clearance/Step1DataKapal';
 import Step2DataMuatan from '../../components/clearance/Step2DataMuatan';
-
-// ... (data sample Anda bisa dihapus jika tidak dipakai lagi)
 
 const initialState = {
     ppk: '', no_spb_asal: '', tanggal_clearance: '', pukul_agen_clearance: '',
@@ -30,7 +28,6 @@ const FormClearance = () => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
 
-    // Config untuk semua request axios yang butuh otorisasi
     const authConfig = {
         headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -40,20 +37,18 @@ const FormClearance = () => {
     useEffect(() => {
         const fetchAllData = async () => {
             try {
-                // Menggunakan Promise.all untuk fetch data secara paralel
                 const [
                     agenRes, kabupatenRes, kapalRes,
                     kecamatanRes, nahkodaRes, kategoriMuatanRes
                 ] = await Promise.all([
-                    axios.get(`${API_URL}/agen`, authConfig),
-                    axios.get(`${API_URL}/kabupaten`, authConfig),
-                    axios.get(`${API_URL}/kapal`, authConfig),
-                    axios.get(`${API_URL}/kecamatan`, authConfig),
-                    axios.get(`${API_URL}/nahkoda`, authConfig),
-                    axios.get(`${API_URL}/kategori-muatan`, authConfig)
+                    axiosInstance.get('/agen'),
+                    axiosInstance.get('/kabupaten'),
+                    axiosInstance.get('/kapal'),
+                    axiosInstance.get('/kecamatan'),
+                    axiosInstance.get('/nahkoda'),
+                    axiosInstance.get('/kategori-muatan')
                 ]);
 
-                // Proses dan set semua data
                 setAgenData(agenRes.data.datas.map(d => ({ nama: d.nama_agen, id: d.id_agen })));
                 setKabupatenData(kabupatenRes.data.datas.map(d => ({ nama: d.nama_kabupaten, id: d.id_kabupaten })));
                 setKapalData(kapalRes.data.datas.map(d => ({ nama: d.nama_kapal, id: d.id_kapal })));
@@ -61,12 +56,9 @@ const FormClearance = () => {
                 setNahkodaData(nahkodaRes.data.datas.map(d => ({ nama: d.nama_nahkoda, id: d.id_nahkoda })));
                 setKategoriMuatanData(kategoriMuatanRes.data.datas.map(d => ({ nama: d.nama_kategori_muatan, id: d.id_kategori_muatan })));
 
-                // Jika mode edit, fetch data clearance
                 if (isEditMode) {
-                    const clearanceRes = await axios.get(`${API_URL}/perjalanan/${id}`, authConfig);
+                    const clearanceRes = await axiosInstance.get(`/perjalanan/${id}`);
                     const clearanceData = clearanceRes.data.data;
-
-                    // Pre-fill form dengan data yang ada
                     const dataToEdit = {
                         ...initialState,
                         ...clearanceData,
@@ -133,12 +125,8 @@ const FormClearance = () => {
             }
 
             const response = isEditMode
-                ? await axios.patch(`${API_URL}/perjalanan/update/${id}`, newData, {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                })
-                : await axios.post(`${API_URL}/perjalanan/store`, newData, {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                });
+                ? await axiosInstance.patch(`/perjalanan/update/${id}`, newData)
+                : await axiosInstance.post('/perjalanan/store', newData);
             if (response.status === 200) {
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
                 if (isEditMode) {

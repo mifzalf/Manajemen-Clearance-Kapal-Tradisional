@@ -5,7 +5,7 @@ import ProvinsiTable from '../../components/table/ProvinsiTable';
 import KabupatenTable from '../../components/table/KabupatenTable';
 import KecamatanTable from '../../components/table/KecamatanTable';
 import DaerahFormModal from '../../components/modal/DaerahFormModal';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 function Daerah() {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -29,30 +29,22 @@ function Daerah() {
   }, []);
   
   const fetchNegara = async () => {
-    let response = await axios.get(`${API_URL}/negara`, {
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    });
+    let response = await axiosInstance.get('/negara');
     setNegaraData(response.data.datas);
   };
 
   const fetchProvinsi = async () => {
-    let response = await axios.get(`${API_URL}/provinsi`, {
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    });
+    let response = await axiosInstance.get('/provinsi');
     setProvinsiData(response.data.datas);
   };
 
   const fetchKabupaten = async () => {
-    let response = await axios.get(`${API_URL}/kabupaten`, {
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    });
+    let response = await axiosInstance.get('/kabupaten');
     setKabupatenData(response.data.datas);
   };
 
   const fetchKecamatan = async () => {
-    let response = await axios.get(`${API_URL}/kecamatan`, {
-      headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-    });
+    let response = await axiosInstance.get('/kecamatan');
     setKecamatanData(response.data.datas);
   };
 
@@ -81,7 +73,6 @@ function Daerah() {
   const handleDelete = (item) => {
     const itemName = item[`nama_${activeTab}`] || item.kode_negara;
     const itemId = item[`id_${activeTab}`];
-    
     toast((t) => (
       <div className="flex flex-col gap-3">
         <p>Apakah Anda yakin ingin menghapus <strong>{itemName}</strong>?</p>
@@ -90,11 +81,7 @@ function Daerah() {
             onClick={async () => {
               toast.dismiss(t.id);
               try {
-                const response = await axios.delete(`${API_URL}/${activeTab}/delete/${itemId}`,
-                  {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                  }
-                );
+                const response = await axiosInstance.delete(`/${activeTab}/delete/${itemId}`);
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchAll();

@@ -3,15 +3,15 @@ import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Button from '../ui/Button';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance'; // <-- 1. Ganti import axios dengan instance Anda
 
 const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL;
+  // const API_URL = import.meta.env.VITE_API_URL; // <-- 2. Baris ini tidak lagi diperlukan
   const [formData, setFormData] = useState({ nama_agen: '' });
   const isEditMode = Boolean(currentItem);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && currentItem) {
       setFormData({ nama_agen: currentItem.nama_agen });
     }
   }, [currentItem, isEditMode]);
@@ -20,25 +20,25 @@ const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async(e) => {
+  // --- 3. Logika handleSubmit disederhanakan ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = isEditMode 
-        ? await axios.patch(`${API_URL}/agen/update/${currentItem.id_agen}`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          }) 
-        : await axios.post(`${API_URL}/agen/store`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          });
+      const response = isEditMode
+        // Gunakan axiosInstance, path relatif, dan hapus header manual
+        ? await axiosInstance.patch(`/agen/update/${currentItem.id_agen}`, formData)
+        // Lakukan hal yang sama untuk method post
+        : await axiosInstance.post('/agen/store', formData);
 
-      if(response.status === 200){
+      if (response.status === 200) {
         toast.success(`Data Agen Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
         onSuccess();
         onClose();
       }
     } catch (error) {
-      console.error("Error:", error.response?.data?.msg || error.message);
-      toast.error(`Terjadi kesalahan saat menyimpan data.`);
+      const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+      console.error("Error:", errorMessage);
+      toast.error(errorMessage);
       onClose();
     }
   };

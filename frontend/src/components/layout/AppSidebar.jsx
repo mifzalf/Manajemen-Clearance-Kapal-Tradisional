@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
+import { useAuth } from '../../context/AuthContext';
 import SidebarWidget from './SidebarWidget';
 import {
   GridIcon,
@@ -14,6 +15,7 @@ import {
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { user } = useAuth();
   const location = useLocation();
   const subMenuRefs = useRef({});
   
@@ -73,6 +75,14 @@ const AppSidebar = () => {
   
   const isSidebarWide = isExpanded || isHovered || isMobileOpen;
 
+  // Filter menu khusus superuser
+  const filteredNavItems = navItems.filter(item => {
+    if (["Log Aktivitas", "Manajemen User"].includes(item.name)) {
+      return user && user.role === "superuser";
+    }
+    return true;
+  });
+
   return (
     <aside
       className={`fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-gray-200 bg-white px-5 transition-all duration-300 ease-in-out
@@ -106,7 +116,7 @@ const AppSidebar = () => {
           </h2>
           
           <ul className="flex flex-col gap-1.5">
-            {navItems.map((item, index) => {
+            {filteredNavItems.map((item, index) => {
               const isParentActive = isSubMenuActive(item.subItems);
               const isOpen = openSubmenus.includes(index);
               return (
@@ -170,7 +180,9 @@ const AppSidebar = () => {
           </ul>
         </nav>
         
-        {isSidebarWide && <SidebarWidget />}
+        {isSidebarWide && (
+          <SidebarWidget />
+        )}
       </div>
     </aside>
   );

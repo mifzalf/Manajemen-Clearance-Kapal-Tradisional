@@ -4,10 +4,9 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allProvinsi = [], allKabupaten = [], onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({});
   const isEditMode = Boolean(currentItem);
 
@@ -61,13 +60,17 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const response = isEditMode
-            ? await axios.patch(`${API_URL}/${activeTab}/update/${currentItem[`id_${activeTab}`]}`, formData, {
-                headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-              })
-            : await axios.post(`${API_URL}/${activeTab}/store`, formData, {
-                headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-              });
+        const url = isEditMode
+            ? `/${activeTab}/update/${currentItem[`id_${activeTab}`]}`
+            : `/${activeTab}/store`;
+        
+        const method = isEditMode ? 'patch' : 'post';
+
+        const response = await axiosInstance({
+            method: method,
+            url: url,
+            data: formData,
+        });
         
         if (response.status === 200) {
             toast.success(`Data ${activeTab} berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
@@ -75,8 +78,9 @@ const DaerahFormModal = ({ activeTab, onClose, currentItem, allNegara = [], allP
             onClose();
         }
     } catch (error) {
-        console.error("Error:", error.response?.data?.msg || error.message);
-        toast.error(`Terjadi kesalahan saat menyimpan data.`);
+        const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+        console.error("Error:", errorMessage);
+        toast.error(errorMessage);
         onClose();
     }
   };

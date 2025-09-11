@@ -3,10 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DetailItem from '../../components/ui/DetailItem';
-import MuatanDetailTable from './MuatanDetailTable';
+import MuatanDetailTable from '../../components/table/MuatanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
 import ConfirmationModal from '../../components/modal/ConfirmationModal';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 const sampleClearanceDetailData = {
     id: 1, jenisPkk: 'Dalam Negeri', noSpbAsal: '123/SPB-LMG/08-2025', noSpbKalianget: '456/SPB-KGT/08-2025', registerBulan: '08-2025', noUrut: 12, tanggalClearance: '2025-08-20', pukulClearance: '09:45', pukulKapalBerangkat: '14:00',
@@ -18,7 +18,6 @@ const sampleClearanceDetailData = {
 };
 
 const DetailClearance = () => {
-    const API_URL = import.meta.env.VITE_API_URL
     const { id } = useParams();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
@@ -30,9 +29,7 @@ const DetailClearance = () => {
     }, [id]);
 
     const fetchDetail = async () => {
-        let response = await axios.get(`${API_URL}/perjalanan/${id}`, {
-          headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-        })
+        let response = await axiosInstance.get(`/perjalanan/${id}`);
         setData(response.data.data)
     }
 
@@ -43,16 +40,9 @@ const DetailClearance = () => {
     const handleConfirmDelete = () => {
         if (data) {
             console.log("Menghapus item:", data.id_perjalanan);
-            axios.delete(`${API_URL}/perjalanan/delete/${data.id_perjalanan}`, {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
+            axiosInstance.delete(`/perjalanan/delete/${data.id_perjalanan}`);
             setIsConfirmOpen(false); 
             toast.success(`Data SPB ${data.no_spb} berhasil dihapus.`);
-            
-            // Arahkan kembali ke daftar setelah beberapa saat
             setTimeout(() => {
                 navigate('/clearance');
             }, 1500);

@@ -4,7 +4,7 @@ import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 const statusOptions = [
   { value: '', label: 'Pilih Status Muatan', disabled: true },
@@ -13,7 +13,6 @@ const statusOptions = [
 ];
 
 const MuatanFormModal = ({ onClose, currentItem, onSuccess }) => {
-  const API_URL = import.meta.env.VITE_API_URL;
   const [formData, setFormData] = useState({ nama_kategori_muatan: '', status_kategori_muatan: '' });
   const isEditMode = Boolean(currentItem);
 
@@ -36,12 +35,8 @@ const MuatanFormModal = ({ onClose, currentItem, onSuccess }) => {
     e.preventDefault();
     try {
       const response = isEditMode 
-        ? await axios.patch(`${API_URL}/kategori-muatan/update/${currentItem.id_kategori_muatan}`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          }) 
-        : await axios.post(`${API_URL}/kategori-muatan/store`, formData, {
-            headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-          });
+        ? await axiosInstance.patch(`/kategori-muatan/update/${currentItem.id_kategori_muatan}`, formData) 
+        : await axiosInstance.post(`/kategori-muatan/store`, formData);
 
       if (response.status === 200) {
         toast.success(`Data Muatan Berhasil ${isEditMode ? 'Diperbarui' : 'Disimpan'}!`);
@@ -49,8 +44,9 @@ const MuatanFormModal = ({ onClose, currentItem, onSuccess }) => {
         onClose();
       }
     } catch (error) {
-      console.error("Data Gagal Disimpan:", error.response?.data?.msg || error.message);
-      toast.error(`Terjadi Kesalahan saat menyimpan data.`);
+      const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
+      console.error("Data Gagal Disimpan:", errorMessage);
+      toast.error(errorMessage);
       onClose();
     }
   };

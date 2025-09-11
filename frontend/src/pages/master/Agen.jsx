@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import AgenTable from '../../components/table/AgenTable';
 import AgenFormModal from '../../components/modal/AgenFormModal';
-import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 
 function Agen() {
   const API_URL = import.meta.env.VITE_API_URL;
@@ -18,9 +18,7 @@ function Agen() {
   const fetchAgen = async() => {
     setLoading(true);
     try {
-      let response = await axios.get(`${API_URL}/agen`, {
-        headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-      });
+      let response = await axiosInstance.get('/agen');
       setAgenData(response?.data?.datas || []);
     } catch (error) {
       toast.error("Gagal memuat data agen.");
@@ -52,11 +50,7 @@ function Agen() {
           <button 
             onClick={async () => {
               try {
-                const response = await axios.delete(`${API_URL}/agen/delete/${item.id_agen}`,
-                  {
-                    headers: localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}
-                  }
-                );
+                const response = await axiosInstance.delete(`/agen/delete/${item.id_agen}`);
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
                   fetchAgen();
