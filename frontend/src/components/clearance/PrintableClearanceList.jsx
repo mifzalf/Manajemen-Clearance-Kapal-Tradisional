@@ -17,12 +17,12 @@ const PrintableClearanceList = ({ data = [] }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((item) => (
-            <tr key={item.id}>
-              <td className="px-4 py-2 text-sm text-gray-700">{item.spb.nomor_spb}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{item.kapal.nama_kapal}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{item.tujuan_akhir.nama_kecamatan}</td>
+            <tr key={item.id_perjalanan}>
+              <td className="px-4 py-2 text-sm text-gray-700">{item.spb?.no_spb || '-'}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">{item.kapal?.nama_kapal || '-'}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">{item.tujuan_akhir?.nama_kecamatan || '-'}</td>
               <td className="px-4 py-2 text-sm text-gray-700">{new Date(item.tanggal_berangkat).toLocaleDateString('id-ID')}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{item.agen.nama_agen}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">{item.agen?.nama_agen || '-'}</td>
             </tr>
           ))}
         </tbody>

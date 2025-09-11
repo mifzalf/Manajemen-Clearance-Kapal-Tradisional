@@ -7,11 +7,12 @@ import InputField from '../components/form/InputField';
 import axiosInstance from '../api/axiosInstance'; 
 import debounce from 'lodash.debounce';
 
-const rowsPerPageOptions = ['5', '10', '20', 'All'];
+const rowsPerPageOptions = ['5', '10', '20', '50'];
 
 function LogAktivitas() {
     const [logData, setLogData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [totalPages, setTotalPages] = useState(0);
     
     const [filterOptions, setFilterOptions] = useState({
         users: [],
@@ -30,49 +31,28 @@ function LogAktivitas() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const isInitialMount = useRef(true);
 
-    useEffect(() => {
-        const fetchInitialDataAndOptions = async () => {
-            setLoading(true);
-            try {
-                const response = await axiosInstance.get('/log-user');
-                const allData = response.data.datas;
-                
-                setLogData(allData);
-
-                setFilterOptions({
-                    users: [...new Set(allData.map(item => item.username))],
-                    actions: [...new Set(allData.map(item => item.aksi))],
-                    dataTypes: [...new Set(allData.map(item => item.jenis_data))],
-                });
-            } catch (error) {
-                console.error("Gagal mengambil data log awal:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchInitialDataAndOptions();
-    }, []);
-
-    const fetchLogs = useCallback(debounce(async (currentFilters) => {
+    const fetchLogs = useCallback(async (page, limit, currentFilters) => {
         setLoading(true);
         let endpoint = '/log-user';
-        let params = {};
+        let params = {
+            page: page,
+            limit: limit,
+        };
 
         if (currentFilters.searchTerm) {
             params.search = currentFilters.searchTerm;
         } else {
             endpoint = '/log-user/get-filter';
-            params = {
+            Object.assign(params, {
                 username: currentFilters.selectedUser,
                 aksi: currentFilters.selectedAction,
                 jenis_data: currentFilters.selectedDataType,
                 tanggal_awal: currentFilters.startDate,
                 tanggal_akhir: currentFilters.endDate,
-            };
+            });
         }
-
+        
         Object.keys(params).forEach(key => {
             if (!params[key]) delete params[key];
         });
@@ -80,22 +60,42 @@ function LogAktivitas() {
         try {
             const response = await axiosInstance.get(endpoint, { params });
             setLogData(response.data.datas);
+            setTotalPages(response.data.totalPages);
         } catch (error) {
-            console.error("Gagal memfilter data log:", error);
+            console.error("Gagal mengambil data log:", error);
             setLogData([]);
+            setTotalPages(0);
         } finally {
             setLoading(false);
         }
-    }, 500), []);
+    }, []);
+
+    const debouncedFetch = useCallback(debounce((p, l, f) => fetchLogs(p, l, f), 500), [fetchLogs]);
 
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-        } else {
-            fetchLogs(filters);
-        }
-    }, [filters, fetchLogs]);
+        debouncedFetch(currentPage, rowsPerPage, filters);
 
+        return () => {
+            debouncedFetch.cancel();
+        };
+    }, [currentPage, rowsPerPage, filters, debouncedFetch]);
+
+    useEffect(() => {
+        const fetchFilterOptions = async () => {
+            try {
+                const response = await axiosInstance.get('/log-user');
+                const allData = response.data.datas;
+                setFilterOptions({
+                    users: [...new Set(allData.map(item => item.username))],
+                    actions: [...new Set(allData.map(item => item.aksi))],
+                    dataTypes: [...new Set(allData.map(item => item.jenis_data))],
+                });
+            } catch (error) {
+                console.error("Gagal mengambil opsi filter:", error);
+            }
+        };
+        fetchFilterOptions();
+    }, []);
 
     const handleFilterChange = (name, value) => {
         setFilters(prev => ({ ...prev, [name]: value }));
@@ -103,12 +103,7 @@ function LogAktivitas() {
     };
     
     const handleRowsPerPageChange = (value) => {
-        const totalData = logData.length;
-        if (value === 'Semua') {
-            setRowsPerPage(totalData > 0 ? totalData : 1);
-        } else {
-            setRowsPerPage(parseInt(value, 10));
-        }
+        setRowsPerPage(parseInt(value, 10));
         setCurrentPage(1);
     };
 
@@ -120,13 +115,6 @@ function LogAktivitas() {
         dataType: item.jenis_data,
         changedData: item.data_diubah
     }));
-
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = mappedData.slice(indexOfFirstRow, indexOfLastRow);
-    const totalPages = Math.ceil(mappedData.length / rowsPerPage);
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    const selectedRowsPerPage = rowsPerPageOptions.includes(String(rowsPerPage)) ? String(rowsPerPage) : 'Semua';
 
     return (
         <div className="p-4 md:p-6 space-y-6">
@@ -153,15 +141,20 @@ function LogAktivitas() {
                     </div>
                 </div>
                 
-                {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <LogAktivitasTable logItems={currentRows} />}
+                {loading ? <p className="text-center text-gray-500 py-10">Memuat data...</p> : <LogAktivitasTable logItems={mappedData} />}
                 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
                     <div className="flex items-center gap-2 text-sm">
                         <span>Tampilkan</span>
-                        <FilterDropdown direction="up" selectedValue={selectedRowsPerPage} setSelectedValue={handleRowsPerPageChange} options={rowsPerPageOptions} />
+                        <FilterDropdown 
+                            direction="up" 
+                            selectedValue={String(rowsPerPage)} 
+                            setSelectedValue={handleRowsPerPageChange} 
+                            options={rowsPerPageOptions} 
+                        />
                         <span>baris</span>
                     </div>
-                    {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />}
+                    {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} paginate={setCurrentPage} />}
                 </div>
             </div>
         </div>
