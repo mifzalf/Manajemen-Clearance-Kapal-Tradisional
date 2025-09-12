@@ -23,7 +23,7 @@ const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 function Clearance() {
     const [masterData, setMasterData] = useState([]); // Menyimpan data asli dari API
     const [loading, setLoading] = useState(true);
-    
+
     const [filters, setFilters] = useState({
         searchTerm: '',
         selectedShip: '',
@@ -45,7 +45,7 @@ function Clearance() {
             setLoading(true);
             try {
                 // Panggil endpoint yang mengembalikan SEMUA data perjalanan
-                const response = await axiosInstance.get('/perjalanan'); 
+                const response = await axiosInstance.get('/perjalanan');
                 setMasterData(response.data.datas);
             } catch (error) {
                 console.error("Gagal mengambil data awal:", error);
@@ -69,13 +69,13 @@ function Clearance() {
     const filteredData = useMemo(() => {
         return masterData.filter(item => {
             const searchTerm = filters.searchTerm.toLowerCase();
-            
-            const searchMatch = !searchTerm || 
-                                (item.kapal?.nama_kapal && item.kapal.nama_kapal.toLowerCase().includes(searchTerm)) ||
-                                (item.agen?.nama_agen && item.agen.nama_agen.toLowerCase().includes(searchTerm)) ||
-                                (item.tujuan_akhir?.nama_kecamatan && item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm)) ||
-                                (item.spb?.no_spb && item.spb.no_spb.toLowerCase().includes(searchTerm));
-            
+
+            const searchMatch = !searchTerm ||
+                (item.kapal?.nama_kapal && item.kapal.nama_kapal.toLowerCase().includes(searchTerm)) ||
+                (item.agen?.nama_agen && item.agen.nama_agen.toLowerCase().includes(searchTerm)) ||
+                (item.tujuan_akhir?.nama_kecamatan && item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm)) ||
+                (item.spb?.no_spb && item.spb.no_spb.toLowerCase().includes(searchTerm));
+
             const shipMatch = !filters.selectedShip || item.kapal?.nama_kapal === filters.selectedShip;
             const categoryMatch = !filters.selectedCategory || item.muatans?.some(m => m.kategori_muatan?.status_kategori_muatan === filters.selectedCategory);
             const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === sg.value));
@@ -99,7 +99,7 @@ function Clearance() {
         }
         setCurrentPage(1);
     };
-    
+
     // 4. Paginasi bekerja pada `filteredData` yang sudah diproses di frontend
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     const indexOfLastRow = currentPage * rowsPerPage;
@@ -113,7 +113,7 @@ function Clearance() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const response = await axiosInstance.get('/perjalanan'); 
+                const response = await axiosInstance.get('/perjalanan');
                 setMasterData(response.data.datas);
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
@@ -124,8 +124,98 @@ function Clearance() {
         fetchInitialData();
     };
 
+    function angkaKeHuruf(n) {
+        const angka = ["", "satu", "dua", "tiga", "empat", "lima",
+            "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+
+        if (n < 12) return angka[n];
+        if (n < 20) return angka[n - 10] + " belas";
+        if (n < 100) return angka[Math.floor(n / 10)] + " puluh " + angkaKeHuruf(n % 10);
+        if (n < 200) return "seratus " + angkaKeHuruf(n - 100);
+        if (n < 1000) return angka[Math.floor(n / 100)] + " ratus " + angkaKeHuruf(n % 100);
+        if (n < 2000) return "seribu " + angkaKeHuruf(n - 1000);
+        if (n < 1000000) return angkaKeHuruf(Math.floor(n / 1000)) + " ribu " + angkaKeHuruf(n % 1000);
+
+        return n.toString();
+    }
+
     const exportXLSX = () => {
-        const worksheet = XLSX.utils.json_to_sheet(filteredData);
+        let data = filteredData.map(d => {
+            const {
+                tanggal_clearance,
+                ppk,
+                spb,
+                no_urut,
+                kapal,
+                nahkoda,
+                jumlah_crew,
+                kedudukan_kapal,
+                tanggal_datang,
+                datang_dari,
+                tanggal_berangkat,
+                tempat_singgah,
+                tujuan_akhir,
+                agen,
+                pukul_agen_clearance,
+                pukul_kapal_berangkat,
+                status_muatan_berangkat
+            } = d
+
+            const tanggalClearance = new Date(tanggal_clearance)
+            const tanggalOnlyClearance = tanggalClearance.getDate()
+            const bulanClearance = new Intl.DateTimeFormat('id-ID', { month: "long" }).format(tanggalClearance)
+            const angkaBulan = tanggalClearance.getMonth() + 1
+            const angkaHuruf = angkaKeHuruf(jumlah_crew)
+            const tanggalDatang = new Date(tanggal_datang)
+            const tanggalOnlyDatang = tanggalDatang.getDate()
+            const bulanDatang = new Intl.DateTimeFormat("id-ID", {month: "long"}).format(tanggalDatang)
+            const tahunDatang = tanggalDatang.getFullYear()
+            const tanggalBerangkat = new Date(tanggal_berangkat)
+            const tanggalOnlyBerangkat = tanggalBerangkat.getDate()
+            const bulanBerangkat = tanggalBerangkat.getMonth() + 1
+            const tahunBerangkat = tanggalBerangkat.getFullYear()
+
+            return {
+                "REGISTER BULAN": bulanClearance,
+                "ANGKA BULAN": angkaBulan,
+                "PPK": ppk,
+                "No. SPB Asal": spb.no_spb_asal,
+                "No. SPB": spb.no_spb,
+                "No. Urut": no_urut,
+                "Nama Kapal": kapal.nama_kapal,
+                "Jenis": kapal.jeni.nama_jenis,
+                "bendera": kapal.bendera.kode_negara,
+                "nahkoda": nahkoda.nama_nahkoda,
+                "CREW": jumlah_crew,
+                "TERBILANG": `(${angkaHuruf.toUpperCase()})`,
+                "GT": kapal.gt,
+                "NT": kapal.nt,
+                "NO": "NO. ",
+                "Selar": kapal.nomor_selar,
+                "Tanda Selar": kapal.tanda_selar,
+                "Nomor IMO": kapal.nomor_imo || '-',
+                "Call Sign": kapal.call_sign || '-',
+                "Kedudukan Kapal": kedudukan_kapal.nama_kabupaten,
+                "Tgl Dtg": tanggalOnlyDatang,
+                "Bln Dtg": bulanDatang,
+                "Thn Dtg": tahunDatang,
+                "Datang Dari": datang_dari.nama_kecamatan,
+                "Tgl brkt": tanggalOnlyBerangkat,
+                "Bln brkt": bulanBerangkat,
+                "Thn brkt": tahunBerangkat,
+                "Tempat Yang Pertama Disinggahi": tempat_singgah.nama_kecamatan,
+                "Tujuan Terakhir": tujuan_akhir.nama_kecamatan,
+                "Agen": agen.nama_agen,
+                "TANGGAL CLEARANCE": tanggalOnlyClearance,
+                "PUKUL AGEN CLEARANCE": pukul_agen_clearance,
+                "TANGGAL BERANGKAT": tanggalBerangkat,
+                "PUKUL KAPAL BERANGKAT": pukul_kapal_berangkat,
+                "MUATAN BERANGKAT": status_muatan_berangkat
+            }
+        })
+
+        console.log(data)
+        const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Clearance');
         XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
