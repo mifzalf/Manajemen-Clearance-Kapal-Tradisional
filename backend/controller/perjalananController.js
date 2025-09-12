@@ -14,6 +14,7 @@ const jenis = require("../model/jenisModel")
 const muatan = require("../model/muatanModel")
 const kategoriMuatan = require("../model/kategoriMuatanModel")
 const logUserController = require("./logUserController")
+
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page } = req.query;
 
@@ -239,7 +240,7 @@ const storePerjalanan = async (req, res) => {
         console.log(req.body)
         let no_urut
         let tanggalSekarang = new Date()
-        let bulanSekarang = `0${tanggalSekarang.getMonth()}`
+        let bulanSekarang = `0${tanggalSekarang.getMonth() + 1}`
         let latestData = await perjalanan.findOne({
             order: [['createdAt', 'DESC']]
         })
