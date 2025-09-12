@@ -3,59 +3,116 @@ import React from 'react';
 const PrintableSPB = React.forwardRef(({ data }, ref) => {
   if (!data) return null;
 
+  const generatePPKNumber = () => {
+    const jenisPPK = data.ppk;
+    const noRegister = data.no_urut ;
+    const bulan = new Date(data.tanggal_clearance).getMonth() + 1;
+    const tahun = new Date(data.tanggal_clearance).getFullYear();
+    return `PPK.${jenisPPK} ${noRegister} ${bulan} ${tahun}`;
+  };
+
+  const generateSPBNumber = () => {
+    const nomorSPB = data.spb?.no_spb;
+    const bulan = new Date(data.tanggal_clearance).getMonth() + 1;
+    const tahun = new Date(data.tanggal_clearance).getFullYear();
+    return `N.7 K.M.17 ${nomorSPB} ${bulan} ${tahun}`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatLongDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getCargoStatus = () => {
+    if (data.muatans && data.muatans.length > 0) {
+      return "SESUAI MANIFEST";
+    }
+    return "NIHIL";
+  };
+
   return (
-    <div ref={ref} className="p-8 font-serif text-black">
+    <div ref={ref} className="p-8 font-serif text-black bg-white">
       <div className="w-[180mm] mx-auto">
-        <header className="flex justify-between items-start mb-8">
-          <div>
-            <p className="text-sm">KEMENTERIAN PERHUBUNGAN</p>
-            <p className="text-sm font-bold border-b-2 border-black">DIREKTORAT JENDERAL PERHUBUNGAN LAUT</p>
-            <p className="text-sm">KANTOR UNIT PENYELENGGARA KELAS III</p>
-            <p className="text-sm font-bold">KALIANGGET</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm">PKK. 70 &nbsp;&nbsp;&nbsp; {data.no_urut || '0037'} &nbsp;&nbsp;&nbsp; {data.tanggal_clearance || '08-2025'}</p>
-          </div>
+        <header className="text-right mb-8">
+          <p className="text-sm">{generatePPKNumber()}</p>
         </header>
 
         <main>
-          <div className="border-2 border-red-600 p-2 text-center my-4">
-            <p className="text-sm font-bold text-red-600">
-              "PERTIMBANGAN CUACA DIUTAMAKAN DEMI KESELAMATAN PELAYARAN, PELAYARAN DITUNDA BILA CUACA BURUK"
-            </p>
+          <div className="flex justify-end mb-8">
+            <div className="border-2 border-red-600 p-2 inline-block">
+              <p className="text-sm font-bold text-red-600 text-center">
+                <span className="underline">* PERINGATAN AWAL *</span><br/>
+                UTAMAKAN KESELAMATAN BERLAYAR<br/>
+                BERLAYAR BILA CUACA BURUK
+              </p>
+            </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-x-8">
-            <div className="space-y-4">
-              <div className="flex"><p className="w-48">N.V / K.M / L.S / M.V</p><p>: {data.kapal.nama_kapal}</p></div>
-              <div className="flex"><p className="w-48">BENDERA</p><p>: {data.kapal.bendera.kode_negara}</p></div>
-              <div className="flex"><p className="w-48">CALL SIGN</p><p>: {data.kapal.call_sign}</p></div>
-              <div className="flex"><p className="w-48">PELABUHAN TUJUAN</p><p>: {data.tujuan_akhir.nama_kecamatan}</p></div>
-              <div className="flex"><p className="w-48">TANGGAL TIBA</p><p>: {new Date(data.tanggal_datang).toLocaleDateString('id-ID')}</p></div>
-              <div className="flex"><p className="w-48">TEMPAT SINGGAH</p><p>: {data.tempat_singgah.nama_kecamatan}</p></div>
-              <div className="flex"><p className="w-48">TANGGAL BERANGKAT</p><p>: {new Date(data.tanggal_clearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p></div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex"><p className="w-48">GT.</p><p>: {data.kapal.gt}</p></div>
-              <div className="flex"><p className="w-48">JAM KEBERANGKATAN</p><p>: {data.pukul_kapal_berangkat}</p></div>
-              <div className="flex"><p className="w-48">NAHKODA</p><p>: {data.nahkoda.nama_nahkoda}</p></div>
-              <div className="flex"><p className="w-48">SELAKU PEMRAKARSA</p><p>: {data.agen.nama_agen}</p></div>
+          <div className="text-center mb-6">
+            <p className="text-sm font-bold">{generateSPBNumber()}</p>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="inline-block space-y-4 text-sm">
+              {/* --- DATA BLOK 1 --- */}
+              <div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{data.kapal?.nama_kapal}</span>
+                  <span>GT.{data.kapal?.gt}</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{data.kapal?.bendera?.kode_negara}</span>
+                  <span>{data.nahkoda?.nama_nahkoda}</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{data.kapal?.call_sign || '-'}</span>
+                  <span>{data.kapal?.nomor_imo || '-'}</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{formatDate(data.tanggal_clearance)}</span>
+                  <span>{data.pukul_agen_clearance}</span>
+                </div>
+              </div>
+
+              <div className='h-5'></div>
+
+              {/* --- DATA BLOK 2 --- */}
+              <div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>KALIANGET</span>
+                  <span>{data.tujuan_akhir?.nama_kecamatan}</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{data.jumlah_crew} ORANG</span>
+                  <span>{formatDate(data.tanggal_berangkat)} {data.pukul_kapal_berangkat} LT</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>KALIANGET</span>
+                  <span>{getCargoStatus()}</span>
+                </div>
+                <div className="grid grid-cols-[200px_1fr] gap-4">
+                  <span>{formatLongDate(data.tanggal_berangkat)}</span>
+                  <span></span>
+                </div>
+              </div>
+
             </div>
           </div>
+          
         </main>
-
-        <footer className="mt-24">
-          <div className="flex justify-end">
-            <div className="text-center">
-              <p>Kaliangget, {new Date(data.tanggal_clearance).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
-              <p className="font-bold">An. KEPALA KANTOR UPP KELAS III KALIANGGET</p>
-              <p className="font-bold">Syahbandar</p>
-              <div className="h-24"></div>
-              <p className="font-bold underline">NAMA PEJABAT</p>
-              <p>NIP. XXXXXXXXXXXXXXXXX</p>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );
