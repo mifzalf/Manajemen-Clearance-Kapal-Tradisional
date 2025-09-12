@@ -21,7 +21,7 @@ const customStyles = {
 const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 
 function Clearance() {
-    const [allClearances, setAllClearances] = useState([]); // Menyimpan semua data dari API
+    const [masterData, setMasterData] = useState([]); // Menyimpan data asli dari API
     const [loading, setLoading] = useState(true);
     
     const [filters, setFilters] = useState({
@@ -35,65 +35,56 @@ function Clearance() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    // [LANGKAH 1] Menambahkan kembali state dan ref untuk tombol ekspor
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
 
-    // 1. Fungsi ini mengambil data dari backend berdasarkan filter
-    const fetchData = useCallback(debounce(async (currentFilters) => {
-        setLoading(true);
-        let endpoint = '/perjalanan';
-        let params = {};
-        
-        const hasSpecificFilters = currentFilters.selectedShip || currentFilters.selectedCategory || currentFilters.startDate || currentFilters.endDate || currentFilters.selectedGoods.length > 0;
-
-        if (currentFilters.searchTerm) {
-            params.search = currentFilters.searchTerm;
-        } else if (hasSpecificFilters) {
-            endpoint = '/perjalanan/get-filter';
-            params = {
-                nama_kapal: currentFilters.selectedShip,
-                kategori: currentFilters.selectedCategory,
-                tanggal_awal: currentFilters.startDate,
-                tanggal_akhir: currentFilters.endDate,
-                nama_muatan: currentFilters.selectedGoods.length > 0 ? currentFilters.selectedGoods[0].value : ''
-            };
-        }
-        
-        Object.keys(params).forEach(key => {
-            if (!params[key]) delete params[key];
-        });
-
-        try {
-            const response = await axiosInstance.get(endpoint, { params });
-            setAllClearances(response.data.datas); // Simpan semua data yang diterima
-        } catch (error) {
-            console.error('Gagal mengambil data clearance:', error);
-            toast.error("Gagal mengambil data clearance.");
-        } finally {
-            setLoading(false);
-        }
-    }, 500), []);
-
-    // useEffect ini memicu pengambilan data setiap kali filter berubah
+    // 1. Mengambil SEMUA data dari backend, hanya sekali saat halaman dimuat
     useEffect(() => {
-        fetchData(filters);
-    }, [filters, fetchData]);
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                // Panggil endpoint yang mengembalikan SEMUA data perjalanan
+                const response = await axiosInstance.get('/perjalanan'); 
+                setMasterData(response.data.datas);
+            } catch (error) {
+                console.error("Gagal mengambil data awal:", error);
+                toast.error("Gagal mengambil data awal.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInitialData();
+    }, []);
 
-    // 2. Opsi untuk dropdown filter dibuat dari semua data yang ada
+    // 2. Opsi untuk dropdown dibuat dari data master dan tidak akan berubah
     const filterOptions = useMemo(() => {
-        const ships = [...new Set(allClearances.map(item => item.kapal.nama_kapal).filter(Boolean))];
-        const categories = [...new Set(allClearances.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
-        const goods = [...new Set(allClearances.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
+        const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
+        const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
+        const goods = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
         return { ships, categories, goods };
-    }, [allClearances]);
+    }, [masterData]);
 
-    // 3. Logika filter tetap di frontend, tapi sumbernya dari `allClearances`
+    // 3. Data difilter di frontend berdasarkan state `filters`
     const filteredData = useMemo(() => {
-        // Logika ini tidak diperlukan jika backend sudah melakukan semua filter.
-        // Namun, jika Anda ingin filter tambahan di frontend, Anda bisa meletakkannya di sini.
-        // Untuk saat ini, kita anggap backend sudah mengembalikan data terfilter.
-        return allClearances;
-    }, [allClearances]);
+        return masterData.filter(item => {
+            const searchTerm = filters.searchTerm.toLowerCase();
+            
+            const searchMatch = !searchTerm || 
+                                (item.kapal?.nama_kapal && item.kapal.nama_kapal.toLowerCase().includes(searchTerm)) ||
+                                (item.agen?.nama_agen && item.agen.nama_agen.toLowerCase().includes(searchTerm)) ||
+                                (item.tujuan_akhir?.nama_kecamatan && item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm)) ||
+                                (item.spb?.no_spb && item.spb.no_spb.toLowerCase().includes(searchTerm));
+            
+            const shipMatch = !filters.selectedShip || item.kapal?.nama_kapal === filters.selectedShip;
+            const categoryMatch = !filters.selectedCategory || item.muatans?.some(m => m.kategori_muatan?.status_kategori_muatan === filters.selectedCategory);
+            const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === sg.value));
+            const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
+            const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
+
+            return searchMatch && shipMatch && categoryMatch && goodsMatch && startDateMatch && endDateMatch;
+        });
+    }, [filters, masterData]);
 
     const handleFilterChange = (name, value) => {
         setFilters((prev) => ({ ...prev, [name]: value }));
@@ -109,7 +100,7 @@ function Clearance() {
         setCurrentPage(1);
     };
     
-    // 4. Logika paginasi sekarang bekerja pada `filteredData`
+    // 4. Paginasi bekerja pada `filteredData` yang sudah diproses di frontend
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -118,7 +109,19 @@ function Clearance() {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const refreshData = () => {
-        fetchData(filters);
+        // Fungsi refresh sekarang mengambil ulang semua data master
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                const response = await axiosInstance.get('/perjalanan'); 
+                setMasterData(response.data.datas);
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInitialData();
     };
 
     const exportXLSX = () => {
@@ -129,11 +132,13 @@ function Clearance() {
         setIsExportOpen(false);
     };
 
+    // [LANGKAH 2] Menambahkan kembali fungsi untuk mencetak
     const handlePrintPDF = () => {
         setIsExportOpen(false);
         setTimeout(() => window.print(), 100);
     };
 
+    // [LANGKAH 3] Menambahkan kembali useEffect untuk menutup dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (exportRef.current && !exportRef.current.contains(event.target)) {
@@ -151,6 +156,7 @@ function Clearance() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <h1 className="text-2xl font-bold text-gray-800">Daftar Clearance</h1>
                         <div className="flex items-center gap-3">
+                            {/* [LANGKAH 4] Menambahkan kembali JSX untuk tombol ekspor */}
                             <div className="relative" ref={exportRef}>
                                 <button
                                     onClick={() => setIsExportOpen(!isExportOpen)}
@@ -198,19 +204,9 @@ function Clearance() {
                                 placeholder="Kategori Barang"
                             />
                             <div className="flex flex-col sm:flex-row items-center gap-2 lg:col-span-2">
-                                <InputField
-                                    type="date"
-                                    name="startDate"
-                                    value={filters.startDate}
-                                    onChange={(e) => handleFilterChange(e.target.name, e.target.value)}
-                                />
+                                <InputField type="date" name="startDate" value={filters.startDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
                                 <span className="text-gray-500 hidden sm:block">-</span>
-                                <InputField
-                                    type="date"
-                                    name="endDate"
-                                    value={filters.endDate}
-                                    onChange={(e) => handleFilterChange(e.target.name, e.target.value)}
-                                />
+                                <InputField type="date" name="endDate" value={filters.endDate} onChange={(e) => handleFilterChange(e.target.name, e.target.value)} />
                             </div>
                             <div className="lg:col-span-4">
                                 <Select
