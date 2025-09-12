@@ -73,8 +73,8 @@ const getPerjalananByFilter = async (req, res) => {
             },
             include: [
                 {
-                    model: kapal, 
-                    attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'], 
+                    model: kapal,
+                    attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'],
                     include: [
                         { model: jenis, attributes: ['nama_jenis'] },
                         { model: negara, as: "bendera", attributes: ['kode_negara'] }
@@ -455,9 +455,11 @@ const getTotalPerKategori = async (req, res) => {
             ],
             where: literal(`MONTH(perjalanan.tanggal_clearance) = ${currentMonth}`),
             include: [{
+                as: "muatans",
                 model: muatan,
                 attributes: [],
                 include: [{
+                    as: "kategori_muatan",
                     model: kategoriMuatan,
                     attributes: []
                 }]
