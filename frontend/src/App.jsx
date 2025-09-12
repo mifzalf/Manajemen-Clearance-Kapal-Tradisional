@@ -58,18 +58,19 @@ function App() {
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/forbidden" element={<Forbidden />} />
+            <Route path="/master/kapal" element={<Kapal />} />
+            <Route path="/master/nahkoda" element={<Nahkoda />} />
+            <Route path="/master/agen" element={<Agen />} />
+            <Route path="/master/muatan" element={<KategoriMuatan />} />
+            <Route path="/master/daerah" element={<Daerah />} />
 
             <Route element={<ProtectedRouteRole allowedRole="superuser" />}>
-              <Route path="/manajemen-user" element={<ManajemenUser />} />
               <Route path="/log-aktivitas" element={<LogAktivitas />} />
-              <Route path="/master/kapal" element={<Kapal />} />
-              <Route path="/master/nahkoda" element={<Nahkoda />} />
-              <Route path="/master/agen" element={<Agen />} />
-              <Route path="/master/muatan" element={<KategoriMuatan />} />
-              <Route path="/master/daerah" element={<Daerah />} />
+              <Route path="/manajemen-user" element={<ManajemenUser />} />
             </Route>
-
+            
           </Route>
+
         </Route>
 
         <Route path="*" element={

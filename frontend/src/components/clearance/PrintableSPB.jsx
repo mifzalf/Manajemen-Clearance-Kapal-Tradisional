@@ -88,7 +88,6 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
               </div>
 
               <div className='h-5'></div>
-
               {/* --- DATA BLOK 2 --- */}
               <div>
                 <div className="grid grid-cols-[200px_1fr] gap-4">
