@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; // <-- PERBAIKAN DI SINI
 import { Link, useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
@@ -6,9 +6,11 @@ import Label from "../form/Label";
 import InputField from "../form/InputField";
 import Button from "../ui/Button";
 import axiosInstance from '../../api/axiosInstance'; 
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignInForm() {
     const navigate = useNavigate();
+    const { login } = useAuth(); 
 
     const [formData, setFormData] = useState({
         username: '',
@@ -30,11 +32,14 @@ export default function SignInForm() {
                 password: formData.password
             });
 
-            localStorage.setItem('token', response.data.token);
-            
-            toast.success('Login berhasil! Mengarahkan ke dashboard...');
-            
-            navigate('/');
+            const token = response.data.token;
+            if (token) {
+                await login(token);
+                toast.success('Login berhasil! Mengarahkan ke dashboard...');
+                navigate('/');
+            } else {
+                toast.error("Gagal login: Token tidak diterima.");
+            }
 
         } catch (error) {
             const errorMessage = error.response?.data?.msg || "Terjadi kesalahan. Coba lagi.";
