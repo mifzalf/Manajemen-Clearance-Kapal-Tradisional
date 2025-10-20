@@ -15,11 +15,17 @@ const muatan = require("../model/muatanModel")
 const kategoriMuatan = require("../model/kategoriMuatanModel")
 const muatanKendaraan = require("../model/muatanKendaraanModel");
 const logUserController = require("./logUserController")
+const users = require("../model/userModel")
 
 const getPerjalananByFilter = async (req, res) => {
-    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page } = req.query;
+    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page, wilker } = req.query;
 
     try {
+        const dataUser = await users.findByPk(req.user.id);
+        let dataWilker = dataUser.wilayah_kerja;
+        if (wilker != dataWilker && dataWilker != "pusat")
+            return res.status(500).json({ msg: "Tidak ada akses" });
+
         let wherePerjalanan = {};
         let whereKapal = {};
         let whereKategoriMuatan = {};
@@ -50,27 +56,35 @@ const getPerjalananByFilter = async (req, res) => {
             wherePerjalanan.tanggal_berangkat = { [Op.lte]: new Date(tanggal_akhir) };
         }
 
-        const perjalananIds = await muatan.findAll({
-            attributes: ["id_perjalanan"],
-            include: [
-                {
-                    model: kategoriMuatan,
-                    as: "kategori_muatan",
-                    required: true,
-                    where: whereKategoriMuatan
-                }
-            ],
-            raw: true
-        }).then(rows => rows.map(r => r.id_perjalanan));
+        // ============================
+        // 🔍 Filter muatan hanya jika ada
+        // ============================
+        let perjalananIds = null;
+        if (nama_muatan || kategori) {
+            perjalananIds = await muatan.findAll({
+                attributes: ["id_perjalanan"],
+                include: [
+                    {
+                        model: kategoriMuatan,
+                        as: "kategori_muatan",
+                        required: true,
+                        where: whereKategoriMuatan
+                    }
+                ],
+                raw: true
+            }).then(rows => rows.map(r => r.id_perjalanan));
 
-        if (perjalananIds.length === 0) {
-            return res.status(200).json({ msg: "Tidak ada data", datas: [] });
+            // Jika filter muatan diberikan tapi tidak ada hasil
+            if (perjalananIds.length === 0) {
+                return res.status(200).json({ msg: "Tidak ada data", datas: [] });
+            }
         }
+        // ============================
 
         const datas = await perjalanan.findAll({
             where: {
                 ...wherePerjalanan,
-                id_perjalanan: { [Op.in]: perjalananIds }
+                ...(perjalananIds ? { id_perjalanan: { [Op.in]: perjalananIds } } : {}), // hanya gunakan kalau ada filter muatan
             },
             include: [
                 {
@@ -86,6 +100,7 @@ const getPerjalananByFilter = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
+                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker } },
                 {
                     model: muatan,
                     as: "muatans",
@@ -96,15 +111,12 @@ const getPerjalananByFilter = async (req, res) => {
                             model: kategoriMuatan,
                             as: "kategori_muatan",
                             attributes: ["nama_kategori_muatan", "status_kategori_muatan"],
-                            where: whereKategoriMuatan
+                            where: (nama_muatan || kategori) ? whereKategoriMuatan : undefined
                         }
                     ]
                 },
                 {
-                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
-                    where: {
-                        golongan_kendaraan: { [Op.like]: `%${search}%` }
-                    }
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan']
                 },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
@@ -127,6 +139,15 @@ const getPerjalanan = async (req, res) => {
     console.log(limit)
 
     try {
+        const dataUser = await users.findByPk(req.user.id)
+        let wilker = dataUser.wilayah_kerja
+
+        let whereUser
+        if (wilker != "pusat") {
+            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker } }
+        } else {
+            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'] }
+        }
 
         let pagination = {}
 
@@ -150,6 +171,7 @@ const getPerjalanan = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
+                whereUser,
                 {
                     model: muatan, as: "muatans", separate: true, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         {
@@ -164,7 +186,6 @@ const getPerjalanan = async (req, res) => {
                     where: {
                         golongan_kendaraan: { [Op.like]: `%${search}%` }
                     }
-
                 },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
@@ -191,6 +212,9 @@ const getPerjalanan = async (req, res) => {
 const getPerjalananById = async (req, res) => {
     let search = req.query.search
     try {
+        const dataUser = await users.findByPk(req.user.id)
+        let wilker = dataUser.wilayah_kerja
+
         let id = req.params.id
         let data = await perjalanan.findByPk(id, {
             include: [
@@ -203,6 +227,7 @@ const getPerjalananById = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
+                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'] },
                 {
                     model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
@@ -218,6 +243,7 @@ const getPerjalananById = async (req, res) => {
             ]
         })
         if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+        if (data.user.wilayah_kerja != wilker && wilker != "pusat") return res.status(500).json({ msg: "tidak ada akses" })
 
         return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
@@ -267,12 +293,12 @@ const storePerjalanan = async (req, res) => {
         }
 
         let filteredMuatanKendaraan = muatan_kendaraan.map(m => {
-            return {...m, id_perjalanan: newPerjalanan.id_perjalanan}
+            return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
         })
 
         console.log(filteredMuatanKendaraan)
 
-        await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, {transaction: t});
+        await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, { transaction: t });
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -334,13 +360,13 @@ const updatePerjalanan = async (req, res) => {
         })
         await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
 
-        await muatanKendaraan.destroy({where: {id_perjalanan: req.params.id}})
-        if(muatan_kendaraan.length > 0) {
+        await muatanKendaraan.destroy({ where: { id_perjalanan: req.params.id } })
+        if (muatan_kendaraan.length > 0) {
             let filteredMuatanKendaraan = muatan_kendaraan.map(m => {
-                return {...m, id_perjalanan: req.params.id}
+                return { ...m, id_perjalanan: req.params.id }
             })
             console.log(filteredMuatanKendaraan)
-            await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, {transaction: t});
+            await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, { transaction: t });
         }
 
 
