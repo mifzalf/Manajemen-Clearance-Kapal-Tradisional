@@ -6,10 +6,20 @@ import Step1DataKapal from '../../components/clearance/Step1DataKapal';
 import Step2DataMuatan from '../../components/clearance/Step2DataMuatan';
 
 const initialState = {
-    ppk: '', no_spb_asal: '', tanggal_clearance: '', pukul_agen_clearance: '',
+    ppk: '',
+    spb: { no_spb_asal: '', no_spb: '' },
+    no_urut: '', 
+    tanggal_clearance: '',
+    pukul_agen_clearance: '',
     id_kapal: '', id_nahkoda: '', jumlah_crew: '',
-    id_kedudukan_kapal: '', id_datang_dari: '', tanggal_datang: '', tanggal_berangkat: '', pukul_kapal_berangkat: '', id_tempat_singgah: '', id_tujuan_akhir: '', id_agen: '',
-    status_muatan_berangkat: 'Kosong', barangDatang: [], barangBerangkat: [],
+    id_kedudukan_kapal: '', id_datang_dari: '', tanggal_datang: '', tanggal_berangkat: '', pukul_kapal_berangkat: '', 
+    id_tempat_singgah: '',
+    id_tujuan_akhir: '', id_agen: '',
+    status_muatan_berangkat: 'Kosong',
+    barangDatang: [],
+    barangBerangkat: [],
+    penumpang_naik: '',
+    penumpang_turun: '', 
 };
 
 const FormClearance = () => {
@@ -27,12 +37,6 @@ const FormClearance = () => {
     const [kategoriMuatanData, setKategoriMuatanData] = useState([]);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
-
-    const authConfig = {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-    };
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -59,11 +63,25 @@ const FormClearance = () => {
                 if (isEditMode) {
                     const clearanceRes = await axiosInstance.get(`/perjalanan/${id}`);
                     const clearanceData = clearanceRes.data.data;
+
+                    const barang = (clearanceData.muatans || []).map(m => ({
+                        ...m,
+                        type: 'barang'
+                    }));
+
+                    const kendaraan = (clearanceData.muatan_kendaraan || []).map(k => ({
+                        ...k,
+                        type: 'kendaraan'
+                    }));
+
+                    const allMuatan = [...barang, ...kendaraan];
+
                     const dataToEdit = {
                         ...initialState,
                         ...clearanceData,
-                        barangDatang: clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'datang') || [],
-                        barangBerangkat: clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'berangkat') || [],
+                        spb: clearanceData.spb || initialState.spb,
+                        barangDatang: allMuatan.filter(m => m.jenis_perjalanan === 'datang'),
+                        barangBerangkat: allMuatan.filter(m => m.jenis_perjalanan === 'berangkat'),
                     };
                     setFormData(dataToEdit);
                 }
@@ -89,27 +107,45 @@ const FormClearance = () => {
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
+    
     const handleSubmit = async (e) => {
-        console.log("Hai")
         e.preventDefault();
         if (!formRef.current?.checkValidity()) {
             formRef.current?.reportValidity();
             return;
         }
+
         let { barangBerangkat, barangDatang, ...cleanData } = formData;
-        let newData
-        if (formData.status_muatan_berangkat == 'NIHIL') {
-            newData = {
-                ...cleanData,
-                muatan: [...formData.barangDatang]
-            };
-        } else {
-            newData = {
-                ...cleanData,
-                muatan: [...formData.barangBerangkat, ...formData.barangDatang]
-            };
+        if (cleanData.id_tempat_singgah === '') {
+            cleanData.id_tempat_singgah = null;
         }
-        console.log(newData)
+        if (cleanData.penumpang_naik === '') {
+            cleanData.penumpang_naik = null;
+        }
+        if (cleanData.penumpang_turun === '') {
+            cleanData.penumpang_turun = null;
+        }
+        let allMuatan = [];
+        if (formData.status_muatan_berangkat === 'NIHIL') {
+            allMuatan = [...formData.barangDatang];
+        } else {
+            allMuatan = [...formData.barangBerangkat, ...formData.barangDatang];
+        }
+        const muatanBarang = allMuatan
+            .filter(m => m.type === 'barang')
+            .map(({ type, ...barang }) => barang);
+            
+        const muatanKendaraan = allMuatan
+            .filter(m => m.type === 'kendaraan')
+            .map(({ type, ...kendaraan }) => kendaraan); 
+
+        const newData = {
+            ...cleanData,
+            muatan: muatanBarang,
+            muatan_kendaraan: muatanKendaraan
+        };
+
+        console.log("Data yang dikirim ke backend (SUDAH DIPERBAIKI):", newData); 
 
         const config = {
             headers: {
@@ -127,6 +163,7 @@ const FormClearance = () => {
             const response = isEditMode
                 ? await axiosInstance.patch(`/perjalanan/update/${id}`, newData)
                 : await axiosInstance.post('/perjalanan/store', newData);
+                
             if (response.status === 200) {
                 toast.success(`Data Clearance berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
                 if (isEditMode) {

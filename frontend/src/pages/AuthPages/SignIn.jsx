@@ -6,8 +6,8 @@ export default function SignIn() {
   return (
     <>
       <PageMeta
-        title="Sign In | KSOP-K Arsip"
-        description="Halaman Sign In untuk sistem arsip surat KSOP-K"
+        title="Sign In | KSOP-K Si-Cekatan"
+        description="Sistem Clearance kapal Tradisional"
       />
       <AuthLayout>
         <SignInForm />

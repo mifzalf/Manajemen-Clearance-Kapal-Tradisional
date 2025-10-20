@@ -21,7 +21,7 @@ const customStyles = {
 const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 
 function Clearance() {
-    const [masterData, setMasterData] = useState([]); // Menyimpan data asli dari API
+    const [masterData, setMasterData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [filters, setFilters] = useState({
@@ -35,16 +35,13 @@ function Clearance() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    // [LANGKAH 1] Menambahkan kembali state dan ref untuk tombol ekspor
     const [isExportOpen, setIsExportOpen] = useState(false);
     const exportRef = useRef(null);
 
-    // 1. Mengambil SEMUA data dari backend, hanya sekali saat halaman dimuat
     useEffect(() => {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                // Panggil endpoint yang mengembalikan SEMUA data perjalanan
                 const response = await axiosInstance.get('/perjalanan');
                 setMasterData(response.data.datas);
             } catch (error) {
@@ -57,7 +54,6 @@ function Clearance() {
         fetchInitialData();
     }, []);
 
-    // 2. Opsi untuk dropdown dibuat dari data master dan tidak akan berubah
     const filterOptions = useMemo(() => {
         const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
@@ -65,7 +61,6 @@ function Clearance() {
         return { ships, categories, goods };
     }, [masterData]);
 
-    // 3. Data difilter di frontend berdasarkan state `filters`
     const filteredData = useMemo(() => {
         return masterData.filter(item => {
             const searchTerm = filters.searchTerm.toLowerCase();
@@ -100,7 +95,6 @@ function Clearance() {
         setCurrentPage(1);
     };
 
-    // 4. Paginasi bekerja pada `filteredData` yang sudah diproses di frontend
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -109,7 +103,6 @@ function Clearance() {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const refreshData = () => {
-        // Fungsi refresh sekarang mengambil ulang semua data master
         const fetchInitialData = async () => {
             setLoading(true);
             try {
@@ -222,13 +215,11 @@ function Clearance() {
         setIsExportOpen(false);
     };
 
-    // [LANGKAH 2] Menambahkan kembali fungsi untuk mencetak
     const handlePrintPDF = () => {
         setIsExportOpen(false);
         setTimeout(() => window.print(), 100);
     };
 
-    // [LANGKAH 3] Menambahkan kembali useEffect untuk menutup dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (exportRef.current && !exportRef.current.contains(event.target)) {
@@ -246,7 +237,6 @@ function Clearance() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <h1 className="text-2xl font-bold text-gray-800">Daftar Clearance</h1>
                         <div className="flex items-center gap-3">
-                            {/* [LANGKAH 4] Menambahkan kembali JSX untuk tombol ekspor */}
                             <div className="relative" ref={exportRef}>
                                 <button
                                     onClick={() => setIsExportOpen(!isExportOpen)}

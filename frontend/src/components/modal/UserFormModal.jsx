@@ -12,20 +12,28 @@ const roleOptions = [
     { value: 'user', label: 'User' },
 ];
 
+const wilkerOptions = [
+    { value: '', label: 'Pilih Wilayah Kerja', disabled: true },
+    { value: 'Pusat', label: 'Pusat' },
+    { value: 'Dungkek', label: 'Dungkek' },
+];
+
 const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
     const [formData, setFormData] = useState({});
     const isEditMode = Boolean(currentItem);
 
     useEffect(() => {
+        const initial = { nama_lengkap: '', username: '', password: '', jabatan: '', wilayah_kerja: '', role: '' };
         if (isEditMode && currentItem) {
             setFormData({
                 nama_lengkap: currentItem.nama_lengkap || '',
                 username: currentItem.username || '',
                 jabatan: currentItem.jabatan || '',
+                wilayah_kerja: currentItem.wilayah_kerja || '', 
                 role: currentItem.role || '',
             });
         } else {
-            setFormData({ nama_lengkap: '', username: '', password: '', jabatan: '', role: '' });
+            setFormData(initial);
         }
     }, [currentItem, isEditMode]);
 
@@ -41,17 +49,11 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
                 ? `/users/update/${currentItem.id_user}`
                 : '/users/store';
             
-            const response = await axiosInstance({
-                method: method,
-                url: url,
-                data: formData
-            });
+            await axiosInstance({ method, url, data: formData }); 
 
-            if (response.status === 200) {
-                toast.success(`Data pengguna berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
-                onSuccess();
-                onClose();
-            }
+            toast.success(`Data pengguna berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
+            onSuccess();
+            onClose();
         } catch (error) {
             const errorMessage = error.response?.data?.msg || "Terjadi kesalahan saat menyimpan data.";
             toast.error(errorMessage);
@@ -75,7 +77,20 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
 
                             <div><Label htmlFor="jabatan">Jabatan</Label><InputField name="jabatan" id="jabatan" value={formData.jabatan || ''} onChange={handleChange} required /></div>
                             
-                            <div>
+                            <div className="md:col-span-2">
+                                <Label htmlFor="wilayah_kerja">Wilayah Kerja</Label>
+                                <Select 
+                                    name="wilayah_kerja" 
+                                    id="wilayah_kerja" 
+                                    value={formData.wilayah_kerja || ''} 
+                                    onChange={handleChange} 
+                                    options={wilkerOptions}
+                                    direction="up"
+                                    required 
+                                />
+                            </div>
+                            
+                            <div className="md:col-span-2">
                                 <Label htmlFor="role">Role</Label>
                                 <Select 
                                     name="role" 
