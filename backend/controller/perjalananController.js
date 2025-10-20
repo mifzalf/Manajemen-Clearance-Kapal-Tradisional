@@ -237,7 +237,6 @@ const storePerjalanan = async (req, res) => {
         let uniqueId = [
             req.body.id_datang_dari,
             req.body.id_tujuan_akhir,
-            req.body.id_tempat_singgah
         ]
         let kecamatanId = [...new Set(uniqueId)]
         let kecamatanData = await kecamatan.findAll({
@@ -306,7 +305,6 @@ const updatePerjalanan = async (req, res) => {
         let uniqueId = [
             req.body.id_datang_dari,
             req.body.id_tujuan_akhir,
-            req.body.id_tempat_singgah
         ]
         let kecamatanId = [...new Set(uniqueId)]
         let kecamatanData = await kecamatan.findAll({

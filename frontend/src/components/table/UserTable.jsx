@@ -12,7 +12,6 @@ const RoleBadge = ({ role }) => {
         case 'user':
             styleClass = 'bg-gray-100 text-gray-800';
             break;
-        // Menambahkan default case untuk menghindari class kosong
         default:
             styleClass = 'bg-gray-100 text-gray-800';
             break;
@@ -49,6 +48,7 @@ const UserTable = ({ userItems = [], onEdit, onDelete }) => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wilayah Kerja</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -57,9 +57,10 @@ const UserTable = ({ userItems = [], onEdit, onDelete }) => {
                     {userItems.length > 0 ? (
                         userItems.map((item) => (
                             <tr key={item.id_user}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nama_lengkap}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.username}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.jabatan}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.nama_lengkap || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.username || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.jabatan || '-'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.wilayah_kerja || '-'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm"><RoleBadge role={item.role} /></td>
                                 <td className="px-6 py-4 flex justify-end">
                                     <ActionDropdown item={item} onEdit={onEdit} onDelete={onDelete} />
@@ -67,7 +68,7 @@ const UserTable = ({ userItems = [], onEdit, onDelete }) => {
                             </tr>
                         ))
                     ) : (
-                        <tr><td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data pengguna.</td></tr>
+                        <tr><td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data pengguna.</td></tr>
                     )}
                 </tbody>
             </table>

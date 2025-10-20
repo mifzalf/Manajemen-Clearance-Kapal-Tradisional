@@ -100,14 +100,7 @@ export default function SignInForm() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-end">
-                                <Link
-                                    to="#"
-                                    className="text-sm text-brand-500 hover:text-brand-600"
-                                >
-                                    Lupa password?
-                                </Link>
-                            </div>
+                            <hr class="border-t border-gray-500 w-1/2 mx-auto my-6"></hr>
                             <div>
                                 <Button className="w-full" type="submit" disabled={loading}>
                                     {loading ? 'Memproses...' : 'Sign In'}
