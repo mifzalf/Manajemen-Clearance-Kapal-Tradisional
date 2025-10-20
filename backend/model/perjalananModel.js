@@ -93,7 +93,18 @@ const perjalanan = db.define("perjalanan", {
     tanggal_clearance: DataTypes.DATEONLY,
     pukul_agen_clearance: DataTypes.TIME,
     pukul_kapal_berangkat: DataTypes.STRING,
-    status_muatan_berangkat: DataTypes.ENUM("NIHIL", "SESUAI MANIFEST")
+    status_muatan_berangkat: DataTypes.ENUM("NIHIL", "SESUAI MANIFEST"),
+    penumpang_turun: DataTypes.INTEGER,
+    penumpang_naik: DataTypes.INTEGER,
+    id_user: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: agen,
+            key: "id_agen"
+        },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
+    }
 }, 
 {
     freezeTableName: true

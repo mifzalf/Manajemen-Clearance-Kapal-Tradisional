@@ -13,6 +13,7 @@ const users = db.define("users", {
     email: DataTypes.STRING,
     no_hp: DataTypes.STRING,
     jabatan: DataTypes.STRING,
+    wilayah_kerja: DataTypes.STRING,
     foto: DataTypes.STRING,
     role: DataTypes.ENUM("user", "superuser"),
 })

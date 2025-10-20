@@ -13,6 +13,7 @@ const negara = require("../model/negaraModel")
 const jenis = require("../model/jenisModel")
 const muatan = require("../model/muatanModel")
 const kategoriMuatan = require("../model/kategoriMuatanModel")
+const muatanKendaraan = require("../model/muatanKendaraanModel");
 const logUserController = require("./logUserController")
 
 const getPerjalananByFilter = async (req, res) => {
@@ -99,6 +100,12 @@ const getPerjalananByFilter = async (req, res) => {
                         }
                     ]
                 },
+                {
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
+                    where: {
+                        golongan_kendaraan: { [Op.like]: `%${search}%` }
+                    }
+                },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
@@ -152,6 +159,13 @@ const getPerjalanan = async (req, res) => {
                         }
                     ]
                 },
+                {
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
+                    where: {
+                        golongan_kendaraan: { [Op.like]: `%${search}%` }
+                    }
+
+                },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
@@ -194,6 +208,9 @@ const getPerjalananById = async (req, res) => {
                         { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
                     ]
                 },
+                {
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
+                },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
@@ -212,7 +229,7 @@ const getPerjalananById = async (req, res) => {
 const storePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
-        let { muatan } = req.body
+        let { muatan, muatan_kendaraan } = req.body
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -237,28 +254,9 @@ const storePerjalanan = async (req, res) => {
             kecamatanData.length < kecamatanId.length ||
             !agenData) return res.status(500).json({ msg: "data kapal / nahkoda / daerah / agen tidak ditemukan" })
 
-        console.log(req.body)
-        let no_urut
-        let tanggalSekarang = new Date()
-        let bulanSekarang = `0${tanggalSekarang.getMonth() + 1}`
-        let latestData = await perjalanan.findOne({
-            order: [['createdAt', 'DESC']]
-        })
-        console.log(latestData)
-        no_urut = bulanSekarang + "01"
-        if (latestData) {
-            let latestNumber = latestData.no_urut.substring(2)
-            latestNumber = parseInt(latestNumber) + 1
-            if (String(latestNumber).startsWith(0)) {
-                latestNumber = parseInt(latestNumber.substring(1)) + 1
-            }
-            if (latestNumber < 10) latestNumber = "0" + String(latestNumber)
-            no_urut = `${bulanSekarang}${latestNumber}`
-        }
+        let spb = await spbController.storeSpb(req.body.spb.no_spb_asal, req.body.spb.no_spb, t)
 
-        let spb = await spbController.storeSpb(req.body.spb.no_spb_asal, t)
-
-        let newPerjalanan = await perjalanan.create({ ...req.body, no_urut, id_spb: spb.id_spb }, { transaction: t })
+        let newPerjalanan = await perjalanan.create({ ...req.body, id_spb: spb.id_spb, id_user: req.user.id }, { transaction: t })
 
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
@@ -267,6 +265,14 @@ const storePerjalanan = async (req, res) => {
         if (muatan.length > 0) {
             await muatanController.storeMuatan(filteredMuatan, t)
         }
+
+        let filteredMuatanKendaraan = muatan_kendaraan.map(m => {
+            return {...m, id_perjalanan: newPerjalanan.id_perjalanan}
+        })
+
+        console.log(filteredMuatanKendaraan)
+
+        await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, {transaction: t});
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -287,7 +293,7 @@ const storePerjalanan = async (req, res) => {
 const updatePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
-        let { muatan } = req.body
+        let { muatan, muatan_kendaraan } = req.body
         let perjalananData = await perjalanan.findByPk(req.params.id, {
             include: {
                 model: spb,
@@ -317,7 +323,7 @@ const updatePerjalanan = async (req, res) => {
             kecamatanData.length < kecamatanId.length ||
             !agenData) return res.status(500).json({ msg: "data kapal / nahkoda / daerah / agen tidak ditemukan" })
 
-        await spbController.updateSpb(req.body.spb.no_spb_asal, perjalananData.id_spb, t)
+        await spbController.updateSpb(req.body.spb.no_spb_asal, req.body.spb.no_spb, perjalananData.id_spb, t)
 
         let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t })
 
@@ -326,8 +332,17 @@ const updatePerjalanan = async (req, res) => {
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: req.params.id }
         })
-        console.log(filteredMuatan)
         await muatanController.updateMuatan(filteredMuatan, req.params.id, t)
+
+        await muatanKendaraan.destroy({where: {id_perjalanan: req.params.id}})
+        if(muatan_kendaraan.length > 0) {
+            let filteredMuatanKendaraan = muatan_kendaraan.map(m => {
+                return {...m, id_perjalanan: req.params.id}
+            })
+            console.log(filteredMuatanKendaraan)
+            await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, {transaction: t});
+        }
+
 
         let log = await logUserController.storeLogUser(
             req.user.username,

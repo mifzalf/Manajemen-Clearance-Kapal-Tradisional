@@ -25,15 +25,10 @@ const getSpbById = async (req, res) => {
     }
 }
 
-const storeSpb = async (no_spb_asal, t) => {
+const storeSpb = async (no_spb_asal, no_spb, t) => {
     try {
         if (no_spb_asal == "") no_spb_asal = null
-        let latestData = await spb.findOne({ order: [["createdAt", "DESC"]] })
-        no_spb = "0000001"
-        if (latestData) {
-            let num = String(parseInt(latestData.no_spb) + 1)
-            no_spb = num.padStart(latestData.no_spb.length, "0")
-        }
+        if (no_spb == "") no_spb = null
         let newSpb = await spb.create({ no_spb_asal, no_spb }, {transaction: t})
 
         return newSpb
@@ -43,11 +38,12 @@ const storeSpb = async (no_spb_asal, t) => {
     }
 }
 
-const updateSpb = async (no_spb_asal, id, t) => {
+const updateSpb = async (no_spb_asal, no_spb, id, t) => {
     try {
         if (no_spb_asal == "") no_spb_asal = null
+        if (no_spb == "") no_spb = null
         
-        let result = await spb.update({ no_spb_asal }, { where: { id_spb: id }, transaction: t })
+        let result = await spb.update({ no_spb_asal, no_spb }, { where: { id_spb: id }, transaction: t })
         console.log(result, id)
         if (result == 0) throw new Error("Data spb tidak ditemukan")
     } catch (error) {

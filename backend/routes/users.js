@@ -21,7 +21,7 @@ const fileFilter = (req, file, cb) => {
   const allowedTypes = ['.png', '.jpg', '.jpeg']
   const ext = path.extname(file.originalname)
 
-  if(!allowedTypes.includes(ext)) return cb(new Error("Format file tidak sesuai"))
+  if(!allowedTypes.includes(ext.toLowerCase())) return cb(new Error("Format file tidak sesuai"))
     cb(null, true)
 }
 
