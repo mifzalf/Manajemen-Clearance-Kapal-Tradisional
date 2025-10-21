@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import DetailItem from '../../components/ui/DetailItem';
 import MuatanDetailTable from '../../components/table/MuatanDetailTable';
-import PenumpangDetailTable from '../../components/table/PenumpangDetailTable';
+import PenumpangDetailTable from '../../components/table/PenumpangDetailTable'; // (PERBAIKAN) Impor kembali
 import KendaraanDetailTable from '../../components/table/KendaraanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
 import ConfirmationModal from '../../components/modal/ConfirmationModal';
@@ -34,7 +34,8 @@ const DetailClearance = () => {
     const handleConfirmDelete = async () => {
         if (data) {
             try {
-                await axiosInstance.delete(`/perjalanan/delete/${data.id_perjalanan}`);
+                // (PERBAIKAN) Menggunakan endpoint DELETE yang benar
+                await axiosInstance.delete(`/perjalanan/${data.id_perjalanan}`);
                 toast.success(`Data SPB ${data.spb.no_spb} berhasil dihapus.`);
                 navigate('/clearance');
             } catch (error) {
@@ -50,9 +51,12 @@ const DetailClearance = () => {
     // Pisahkan data terlebih dahulu
     const barangDatang = data.muatans?.filter(d => d.jenis_perjalanan === "datang") || [];
     const barangBerangkat = data.muatans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
-    const penumpangData = data.penumpangs || [];
-    const kendaraanDatang = data.kendaraans?.filter(d => d.jenis_perjalanan === "datang") || [];
-    const kendaraanBerangkat = data.kendaraans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
+    
+    // (PERBAIKAN) Data penumpang ada di 'data', tidak perlu dipisah
+    
+    // Data kendaraan sudah benar dari 'muatan_kendaraan'
+    const kendaraanDatang = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "datang") || [];
+    const kendaraanBerangkat = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "berangkat") || [];
 
     // Helper untuk class tab
     const tabClass = (tabName) => `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tabName ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
@@ -118,6 +122,7 @@ const DetailClearance = () => {
                                 <button onClick={() => setActiveTab('barangBerangkat')} className={tabClass('barangBerangkat')}>Barang Berangkat</button>
                                 <button onClick={() => setActiveTab('kendaraanDatang')} className={tabClass('kendaraanDatang')}>Kendaraan Datang</button>
                                 <button onClick={() => setActiveTab('kendaraanBerangkat')} className={tabClass('kendaraanBerangkat')}>Kendaraan Berangkat</button>
+                                {/* (PERBAIKAN) Aktifkan kembali tab Penumpang */}
                                 <button onClick={() => setActiveTab('penumpang')} className={tabClass('penumpang')}>Penumpang</button>
                             </nav>
                         </div>
@@ -126,7 +131,8 @@ const DetailClearance = () => {
                             {activeTab === 'barangBerangkat' && <MuatanDetailTable data={barangBerangkat} />}
                             {activeTab === 'kendaraanDatang' && <KendaraanDetailTable data={kendaraanDatang} />}
                             {activeTab === 'kendaraanBerangkat' && <KendaraanDetailTable data={kendaraanBerangkat} />}
-                            {activeTab === 'penumpang' && <PenumpangDetailTable data={penumpangData} />}
+                            {/* (PERBAIKAN) Kirim seluruh objek 'data' ke PenumpangDetailTable */}
+                            {activeTab === 'penumpang' && <PenumpangDetailTable data={data} />}
                         </div>
                     </div>
                 </div>

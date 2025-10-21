@@ -6,6 +6,7 @@ const nahkoda = require('./nahkodaModel')
 const kecamatan = require('./kecamatanModel')
 const agen = require('./agenModel')
 const kabupaten = require('./kabupatenModel')
+const users = require('./userModel')
 
 const perjalanan = db.define("perjalanan", {
     id_perjalanan: {
@@ -99,8 +100,8 @@ const perjalanan = db.define("perjalanan", {
     id_user: {
         type: DataTypes.INTEGER,
         references: {
-            model: agen,
-            key: "id_agen"
+            model: users,
+            key: "id_user"
         },
         onDelete: "SET NULL",
         onUpdate: "CASCADE"

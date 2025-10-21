@@ -23,7 +23,7 @@ const getPerjalananByFilter = async (req, res) => {
     try {
         const dataUser = await users.findByPk(req.user.id);
         let dataWilker = dataUser.wilayah_kerja;
-        if (wilker != dataWilker && dataWilker != "pusat")
+        if (wilker.toLowerCase() != dataWilker.toLowerCase() && dataWilker.toLowerCase() != "pusat")
             return res.status(500).json({ msg: "Tidak ada akses" });
 
         let wherePerjalanan = {};
@@ -100,7 +100,7 @@ const getPerjalananByFilter = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
-                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker } },
+                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker.toLowerCase() } },
                 {
                     model: muatan,
                     as: "muatans",
@@ -143,8 +143,8 @@ const getPerjalanan = async (req, res) => {
         let wilker = dataUser.wilayah_kerja
 
         let whereUser
-        if (wilker != "pusat") {
-            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker } }
+        if (wilker.toLowerCase() != "pusat") {
+            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker.toLowerCase() } }
         } else {
             whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'] }
         }
@@ -243,7 +243,7 @@ const getPerjalananById = async (req, res) => {
             ]
         })
         if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
-        if (data.user.wilayah_kerja != wilker && wilker != "pusat") return res.status(500).json({ msg: "tidak ada akses" })
+        if (data.user.wilayah_kerja.toLowerCase() != wilker.toLowerCase() && wilker.toLowerCase() != "pusat") return res.status(500).json({ msg: "tidak ada akses" })
 
         return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
