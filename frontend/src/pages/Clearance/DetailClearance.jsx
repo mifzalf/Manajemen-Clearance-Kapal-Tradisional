@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Helmet } from 'react-helmet-async';
 import DetailItem from '../../components/ui/DetailItem';
 import MuatanDetailTable from '../../components/table/MuatanDetailTable';
-import PenumpangDetailTable from '../../components/table/PenumpangDetailTable'; // (PERBAIKAN) Impor kembali
+import PenumpangDetailTable from '../../components/table/PenumpangDetailTable';
 import KendaraanDetailTable from '../../components/table/KendaraanDetailTable';
 import PrintableSPB from '../../components/clearance/PrintableSPB';
 import ConfirmationModal from '../../components/modal/ConfirmationModal';
@@ -34,7 +35,6 @@ const DetailClearance = () => {
     const handleConfirmDelete = async () => {
         if (data) {
             try {
-                // (PERBAIKAN) Menggunakan endpoint DELETE yang benar
                 await axiosInstance.delete(`/perjalanan/${data.id_perjalanan}`);
                 toast.success(`Data SPB ${data.spb.no_spb} berhasil dihapus.`);
                 navigate('/clearance');
@@ -48,24 +48,21 @@ const DetailClearance = () => {
 
     if (!data) return <div className="p-6 text-center">Memuat data...</div>;
 
-    // Pisahkan data terlebih dahulu
     const barangDatang = data.muatans?.filter(d => d.jenis_perjalanan === "datang") || [];
     const barangBerangkat = data.muatans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
     
-    // (PERBAIKAN) Data penumpang ada di 'data', tidak perlu dipisah
-    
-    // Data kendaraan sudah benar dari 'muatan_kendaraan'
     const kendaraanDatang = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "datang") || [];
     const kendaraanBerangkat = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "berangkat") || [];
 
-    // Helper untuk class tab
     const tabClass = (tabName) => `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tabName ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
 
     return (
         <>
+            <Helmet>
+                <title>SPB No. {data.spb?.no_spb || 'Detail'}</title>
+            </Helmet>
             <div className="screen-only">
                 <div className="p-4 md:p-6 space-y-6">
-                    {/* --- HEADER HALAMAN --- */}
                     <div>
                         <Link to="/clearance" className="text-sm text-gray-500 hover:text-indigo-600 inline-flex items-center gap-2 mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -80,8 +77,6 @@ const DetailClearance = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* --- KARTU INFORMASI UMUM & KAPAL --- */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -99,8 +94,6 @@ const DetailClearance = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* --- KARTU INFORMASI PERJALANAN --- */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Perjalanan</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -113,8 +106,6 @@ const DetailClearance = () => {
                             <DetailItem label="Status Muatan Berangkat" value={data.status_muatan_berangkat || '-'} />
                         </div>
                     </div>
-
-                    {/* --- STRUKTUR TAB BARU --- */}
                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
                         <div className="border-b border-gray-200">
                             <nav className="-mb-px flex gap-x-4 px-4 overflow-x-auto" aria-label="Tabs">
@@ -122,7 +113,6 @@ const DetailClearance = () => {
                                 <button onClick={() => setActiveTab('barangBerangkat')} className={tabClass('barangBerangkat')}>Barang Berangkat</button>
                                 <button onClick={() => setActiveTab('kendaraanDatang')} className={tabClass('kendaraanDatang')}>Kendaraan Datang</button>
                                 <button onClick={() => setActiveTab('kendaraanBerangkat')} className={tabClass('kendaraanBerangkat')}>Kendaraan Berangkat</button>
-                                {/* (PERBAIKAN) Aktifkan kembali tab Penumpang */}
                                 <button onClick={() => setActiveTab('penumpang')} className={tabClass('penumpang')}>Penumpang</button>
                             </nav>
                         </div>
@@ -131,7 +121,6 @@ const DetailClearance = () => {
                             {activeTab === 'barangBerangkat' && <MuatanDetailTable data={barangBerangkat} />}
                             {activeTab === 'kendaraanDatang' && <KendaraanDetailTable data={kendaraanDatang} />}
                             {activeTab === 'kendaraanBerangkat' && <KendaraanDetailTable data={kendaraanBerangkat} />}
-                            {/* (PERBAIKAN) Kirim seluruh objek 'data' ke PenumpangDetailTable */}
                             {activeTab === 'penumpang' && <PenumpangDetailTable data={data} />}
                         </div>
                     </div>

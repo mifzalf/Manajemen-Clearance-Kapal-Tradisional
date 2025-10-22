@@ -1,8 +1,5 @@
-import React from 'react';
-
 const PenumpangDetailTable = ({ data }) => {
     
-    // Cek jika data ada, jika tidak, gunakan 0
     const penumpangNaik = data?.penumpang_naik || 0;
     const penumpangTurun = data?.penumpang_turun || 0;
 
@@ -17,7 +14,6 @@ const PenumpangDetailTable = ({ data }) => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     
-                    {/* (PERBAIKAN) Baris statis untuk Penumpang Naik */}
                     <tr className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Penumpang Naik</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
@@ -25,7 +21,6 @@ const PenumpangDetailTable = ({ data }) => {
                         </td>
                     </tr>
                     
-                    {/* (PERBAIKAN) Baris statis untuk Penumpang Turun */}
                     <tr className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Penumpang Turun</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">

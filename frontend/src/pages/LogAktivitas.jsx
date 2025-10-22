@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import LogAktivitasTable from '../components/table/LogAktivitasTable';
 import Pagination from '../components/ui/Pagination';
 import SearchBar from '../components/common/SearchBar';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 const KendaraanDetailTable = ({ data = [] }) => {
   return (
     <div className="overflow-x-auto">
@@ -13,11 +11,9 @@ const KendaraanDetailTable = ({ data = [] }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {data.length > 0 ? data.map((item, index) => (
             <tr key={index} className="hover:bg-gray-50">
-              {/* (PERBAIKAN) Menggunakan 'golongan_kendaraan' */}
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 Golongan {item.golongan_kendaraan}
               </td>
-              {/* (PERBAIKAN) Menggunakan 'jumlah_kendaraan' */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                 {item.jumlah_kendaraan?.toLocaleString('id-ID')} Unit
               </td>
