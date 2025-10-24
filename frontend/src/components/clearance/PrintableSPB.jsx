@@ -33,7 +33,7 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
 
   const getCargoStatus = () => {
     if (data.status_muatan_berangkat) {
-        return data.status_muatan_berangkat;
+      return data.status_muatan_berangkat;
     }
     if (data.muatans && data.muatans.length > 0) {
       return "SESUAI MANIFEST";
@@ -64,19 +64,18 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
      <div
         style={{
           position: "absolute",
-          top: "20mm",
-          left: "150mm",
+          top: "16mm",
+          left: "133.2mm",
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
       >
-        {/* --- PERBAIKAN DI SINI --- */}
-        <div>PK. {data.ppk}</div>
-        <div>{data.no_urut}</div>
-        <div>{bulan}</div>
-        <div>{tahun}</div>
+        <div style={{ width: "11mm" }}>PK. {data.ppk}</div>
+        <div style={{ width: "11mm" }}>{data.no_urut}</div>
+        <div style={{ width: "11mm" }}>{bulan}</div>
+        <div style={{ width: "11mm" }}>{tahun}</div>
       </div>
 
       {/* === Warning Box === */}
@@ -107,20 +106,19 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "430px",
-          left: "290px",
+          top: "98mm",
+          left: "278.1px",
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
-          fontSize: "12pt",
+          fontSize: "11pt",
         }}
       >
-        {/* --- PERBAIKAN DI SINI --- */}
-        <div>N.7</div>
-        <div>K.M.17</div>
-        <div>{data.spb?.no_spb}</div>
-        <div>{bulan}</div>
-        <div>{tahun}</div>
+        <div style={{ width: "13.3mm" }}>N.7</div>
+        <div style={{ width: "12.1mm" }} >K.M.17</div>
+        <div style={{ width: "12.1mm" }}>{data.spb?.no_spb}0</div>
+        <div style={{ width: "12.1mm" }}>{bulan}</div>
+        <div style={{ width: "12.1mm" }}>{tahun}</div>
       </div>
       
 
@@ -128,8 +126,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "130mm",
-          left: "30mm",
+          top: "113mm",
+          left: "39.5mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -140,8 +138,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "130mm",
-          left: "145mm",
+          top: "113mm",
+          left: "135.2mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -152,8 +150,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "145mm",
-          left: "50mm",
+          top: "123.5mm",
+          left: "58mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -164,8 +162,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "145mm",
-          left: "145mm",
+          top: "123.5mm",
+          left: "125mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -176,8 +174,20 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "160mm",
-          left: "45mm",
+          top: "136mm", 
+          left: "40mm",
+          fontWeight: "bold",
+          fontSize: "12pt",
+        }}
+      >
+        {data.kapal?.nomor_imo || "-"}        
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "136mm", 
+          left: "140mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -185,26 +195,14 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
         {data.kapal?.call_sign || "-"}
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          top: "160mm",
-          left: "145mm",
-          fontWeight: "bold",
-          fontSize: "12pt",
-        }}
-      >
-        {data.kapal?.nomor_imo || "-"}
-      </div>
-
       {/* === tanggal clearance + waktu === */}
       <div
         style={{
           position: "absolute",
-          top: "175mm",
-          left: "135mm",
+          top: "146.5mm",
+          left: "138.2mm",
           fontWeight: "bold",
-          fontSize: "10pt",
+          fontSize: "9pt",
         }}
       >
         {formatDate(data.tanggal_clearance)}
@@ -213,10 +211,10 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "175mm",
-          left: "165mm",
+          top: "146.5mm",
+          left: "164.2mm",
           fontWeight: "bold",
-          fontSize: "10pt",
+          fontSize: "9pt",
         }}
       >
         {formatTime(data.pukul_agen_clearance)}
@@ -226,8 +224,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "190mm",
-          left: "35mm",
+          top: "176mm",
+          left: "40mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -238,10 +236,10 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "190mm",
-          left: "95mm",
+          top: "176mm",
+          left: "103mm",
           fontWeight: "bold",
-          fontSize: "12pt",
+          fontSize: "10pt",
         }}
       >
         {formatDate(data.tanggal_berangkat)}
@@ -250,8 +248,20 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "190mm",
-          left: "145mm",
+          top: "181mm",
+          left: "103mm",
+          fontWeight: "bold",
+          fontSize: "10pt",
+        }}
+      >
+        {formatTime(data.pukul_kapal_berangkat)}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "176mm", 
+          left: "151mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -262,20 +272,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "195mm",
-          left: "95mm",
-          fontWeight: "bold",
-          fontSize: "12pt",
-        }}
-      >
-        {formatTime(data.pukul_kapal_berangkat)}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          top: "200mm",
-          left: "45mm",
+          top: "186mm",
+          left: "53mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -286,8 +284,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "200mm",
-          left: "145mm",
+          top: "185mm",
+          left: "149mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -298,8 +296,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "210mm",
-          left: "45mm",
+          top: "196mm",
+          left: "53mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -310,8 +308,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "220mm",
-          left: "45mm",
+          top: "207mm",
+          left: "53mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}

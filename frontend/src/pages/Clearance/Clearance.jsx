@@ -8,9 +8,9 @@ import SearchBar from '../../components/common/SearchBar';
 import FilterDropdown from '../../components/common/FilterDropdown';
 import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
-import PrintableClearanceList from '../../components/clearance/PrintableClearanceList';
+// import PrintableClearanceList from '../../components/clearance/PrintableClearanceList'; // Dihapus
 import axiosInstance from '../../api/axiosInstance';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
 
 const customStyles = {
     multiValue: (styles) => ({ ...styles, backgroundColor: '#E0E7FF' }),
@@ -22,7 +22,7 @@ const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 
 function Clearance() {
     const [masterData, setMasterData] = useState([]);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const { user, loading: authLoading } = useAuth();
 
     const [filters, setFilters] = useState({
@@ -69,7 +69,7 @@ function Clearance() {
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
         const goods = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
         const wilayahKerja = [...new Set(masterData.map(item => item.user?.wilayah_kerja).filter(Boolean))];
-        
+
         return { ships, categories, goods, wilayahKerja };
     }, [masterData]);
 
@@ -88,14 +88,14 @@ function Clearance() {
             const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === sg.value));
             const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
             const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
-            
+
             const wilayahMatch = !filters.selectedWilayah || item.user?.wilayah_kerja === filters.selectedWilayah;
 
             return searchMatch && shipMatch && categoryMatch && goodsMatch && startDateMatch && endDateMatch && wilayahMatch;
         });
     }, [filters, masterData]);
 
-    
+
     const handleFilterChange = (name, value) => {
         setFilters((prev) => ({ ...prev, [name]: value }));
         setCurrentPage(1);
@@ -143,42 +143,112 @@ function Clearance() {
         return n.toString();
     }
 
+    // Fungsi Ekspor Clearance (Excel)
     const exportXLSX = () => {
         let data = filteredData.map(d => {
             const {
                 tanggal_clearance, ppk, spb, no_urut, kapal, nahkoda, jumlah_crew,
-                tanggal_datang, datang_dari, tanggal_berangkat, tujuan_akhir, agen,
-                status_muatan_berangkat,
-            } = d;
+                kedudukan_kapal, tanggal_datang, datang_dari, tanggal_berangkat,
+                tempat_singgah, tujuan_akhir, agen, pukul_agen_clearance,
+                pukul_kapal_berangkat, status_muatan_berangkat
+            } = d
+
+            const safeKapal = kapal || {};
+            const safeJeni = safeKapal.jeni || {};
+            const safeBendera = safeKapal.bendera || {};
+            const safeNahkoda = nahkoda || {};
+            const safeSpb = spb || {};
+            const safeKedudukan = kedudukan_kapal || {};
+            const safeDatangDari = datang_dari || {};
+            const safeTempatSinggah = tempat_singgah || {};
+            const safeTujuanAkhir = tujuan_akhir || {};
+            const safeAgen = agen || {};
+
             const tanggalClearance = new Date(tanggal_clearance);
+            const tanggalOnlyClearance = tanggalClearance.getDate();
             const bulanClearance = new Intl.DateTimeFormat('id-ID', { month: "long" }).format(tanggalClearance);
+            const angkaBulan = tanggalClearance.getMonth() + 1;
             const angkaHuruf = angkaKeHuruf(jumlah_crew);
+            
             const tanggalDatang = new Date(tanggal_datang);
+            const tanggalOnlyDatang = tanggalDatang.getDate();
+            const bulanDatang = new Intl.DateTimeFormat("id-ID", { month: "long" }).format(tanggalDatang);
+            const tahunDatang = tanggalDatang.getFullYear();
+            
             const tanggalBerangkat = new Date(tanggal_berangkat);
+            const tanggalOnlyBerangkat = tanggalBerangkat.getDate();
+            const bulanBerangkat = tanggalBerangkat.getMonth() + 1;
+            const tahunBerangkat = tanggalBerangkat.getFullYear();
+
             return {
-                "REGISTER BULAN": bulanClearance, "PPK": ppk, "No. SPB Asal": spb?.no_spb_asal || '-',
-                "No. SPB": spb?.no_spb || '-', "No. Urut": no_urut, "Nama Kapal": kapal?.nama_kapal,
-                "Jenis": kapal?.jeni?.nama_jenis, "Bendera": kapal?.bendera?.kode_negara,
-                "Nahkoda": nahkoda?.nama_nahkoda, "Crew": jumlah_crew, "Terbilang": `(${angkaHuruf.toUpperCase()})`,
-                "GT": kapal?.gt, "NT": kapal?.nt, "Datang Dari": datang_dari?.nama_kecamatan,
-                "Tujuan Akhir": tujuan_akhir?.nama_kecamatan, "Agen": agen?.nama_agen,
-                "Tanggal Clearance": tanggalClearance.toLocaleDateString('id-ID'),
-                "Tanggal Datang": tanggalDatang.toLocaleDateString('id-ID'),
-                "Tanggal Berangkat": tanggalBerangkat.toLocaleDateString('id-ID'),
-                "Muatan Berangkat": status_muatan_berangkat
-            };
-        });
+                "REGISTER BULAN": bulanClearance,
+                "ANGKA BULAN": angkaBulan,
+                "PPK": ppk,
+                "No. SPB Asal": safeSpb.no_spb_asal || '-',
+                "No. SPB": safeSpb.no_spb || '-',
+                "No. Urut": no_urut,
+                "Nama Kapal": safeKapal.nama_kapal || '-',
+                "Jenis": safeJeni.nama_jenis || '-',
+                "bendera": safeBendera.kode_negara || '-',
+                "nahkoda": safeNahkoda.nama_nahkoda || '-',
+                "CREW": jumlah_crew,
+                "TERBILANG": `(${angkaHuruf.toUpperCase()})`,
+                "GT": safeKapal.gt,
+                "NT": safeKapal.nt,
+                "NO": "NO. ",
+                "Selar": safeKapal.nomor_selar || '-',
+                "Tanda Selar": safeKapal.tanda_selar || '-',
+                "Nomor IMO": safeKapal.nomor_imo || '-',
+                "Call Sign": safeKapal.call_sign || '-',
+                "Kedudukan Kapal": safeKedudukan.nama_kabupaten || '-',
+                "Tgl Dtg": tanggalOnlyDatang,
+                "Bln Dtg": bulanDatang,
+                "Thn Dtg": tahunDatang,
+                "Datang Dari": safeDatangDari.nama_kecamatan || '-',
+                "Tgl brkt": tanggalOnlyBerangkat,
+                "Bln brkt": bulanBerangkat,
+                "Thn brkt": tahunBerangkat,
+                "Tempat Yang Pertama Disinggahi": safeTempatSinggah.nama_kecamatan || '-',
+                "Tujuan Terakhir": safeTujuanAkhir.nama_kecamatan || '-',
+                "Agen": safeAgen.nama_agen || '-',
+                "TANGGAL CLEARANCE": tanggalOnlyClearance,
+                "PUKUL AGEN CLEARANCE": pukul_agen_clearance || '-',
+                "TANGGAL BERANGKAT": tanggalBerangkat,
+                "PUKUL KAPAL BERANGKAT": pukul_kapal_berangkat || '-',
+                "MUATAN BERANGKAT": status_muatan_berangkat || '-'
+            }
+        })
+
+        console.log(data)
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Clearance');
         XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        
         setIsExportOpen(false);
     };
 
-    const handlePrintPDF = () => {
-        setIsExportOpen(false);
-        setTimeout(() => window.print(), 100);
+    // [BARU] Fungsi Ekspor Bongkar Muat (Kosong)
+    const exportXLSX_BongkarMuat = () => {
+        // TODO: Implementasikan logika ekspor bongkar muat di sini
+        // Untuk saat ini, kita hanya akan menampilkan pesan
+        console.log("Fungsi exportXLSX_BongkarMuat dipanggil.");
+        toast.success("Fitur Ekspor Bongkar Muat (Excel) sedang dalam pengembangan.");
+        
+        // Anda bisa menyiapkan data kosong atau contoh data di sini jika perlu
+        // const dataKosong = [
+        //     { "Kolom 1": "Data Contoh", "Kolom 2": 123 },
+        // ];
+        // const worksheet = XLSX.utils.json_to_sheet(dataKosong);
+        // const workbook = XLSX.utils.book_new();
+        // XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Bongkar Muat');
+        // XLSX.writeFile(workbook, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+        setIsExportOpen(false); // Tetap tutup dropdown
     };
+
+    // [DIHAPUS] Fungsi handlePrintPDF
+    // const handlePrintPDF = () => { ... };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -191,7 +261,7 @@ function Clearance() {
     }, []);
 
     if (authLoading || loading) {
-         return <p className="text-center text-gray-500 py-10">Memuat data...</p>
+        return <p className="text-center text-gray-500 py-10">Memuat data...</p>
     }
 
     return (
@@ -209,14 +279,15 @@ function Clearance() {
                                     Ekspor
                                 </button>
                                 {isExportOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-20">
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border z-20"> {/* Lebar disesuaikan */}
                                         <ul className="p-1">
                                             <li onClick={exportXLSX} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                                Ekspor ke Excel (XLSX)
+                                                Ekspor Clearance (XLSX)
                                             </li>
-                                            <li onClick={handlePrintPDF} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                                Ekspor ke PDF
+                                            <li onClick={exportXLSX_BongkarMuat} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                                Ekspor Bongkar Muat (XLSX)
                                             </li>
+                                            {/* Opsi PDF dihapus */}
                                         </ul>
                                     </div>
                                 )}
@@ -307,9 +378,11 @@ function Clearance() {
                 </div>
             </div>
 
-            <div className="print-only">
+            {/* [DIHAPUS] Bagian print-only */}
+            {/* <div className="print-only">
                 <PrintableClearanceList data={filteredData} />
-            </div>
+            </div> 
+            */}
         </>
     );
 }
