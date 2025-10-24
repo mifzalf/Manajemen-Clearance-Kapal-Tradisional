@@ -487,7 +487,7 @@ const getTotalPerjalananPerMonth = async (req, res) => {
 const getTotalPerKategori = async (req, res) => {
     try {
         const currentMonth = new Date().getMonth() + 1
-        const datas = await perjalanan.findAll({
+        const datas = await await perjalanan.findAll({
             attributes: [
                 [col('muatans.kategori_muatan.status_kategori_muatan'), "status_kategori_muatan"],
                 [fn("COUNT", col("muatans.kategori_muatan.status_kategori_muatan")), 'jumlah_kategori_muatan'],
@@ -496,18 +496,18 @@ const getTotalPerKategori = async (req, res) => {
             include: [{
                 as: "muatans",
                 model: muatan,
+                required: true, // 🔥 wajib ada muatan
                 attributes: [],
                 include: [{
                     as: "kategori_muatan",
                     model: kategoriMuatan,
+                    required: true, // 🔥 wajib ada kategori_muatan
                     attributes: []
                 }]
             }],
-            group: [
-                col('muatans.kategori_muatan.status_kategori_muatan')
-            ],
+            group: [col('muatans.kategori_muatan.status_kategori_muatan')],
             raw: true
-        })
+        });
 
         const defaultDatas = [
             {
@@ -519,6 +519,8 @@ const getTotalPerKategori = async (req, res) => {
                 jumlah_kategori_muatan: 0
             },
         ]
+
+        console.log(datas)
 
         datas.forEach(d => {
             if (d.status_kategori_muatan.toLowerCase() == "berbahaya") {
