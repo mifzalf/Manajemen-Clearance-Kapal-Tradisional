@@ -48,7 +48,7 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       className="page-container print-only"
       style={{
         width: "210mm",
-        minHeight: "287mm", 
+        minHeight: "287mm",
         margin: "0 auto",
         position: "relative",
         backgroundColor: "#fff",
@@ -61,11 +61,11 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       }}
     >
       {/* === PPK Number (Top Right) === */}
-     <div
+      <div
         style={{
           position: "absolute",
-          top: "16mm",
-          left: "133.2mm",
+          top: "21mm", // DIUBAH
+          left: "136mm", // DIUBAH
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
@@ -82,8 +82,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "45mm",
-          left: "120mm",
+          top: "47mm", // DIUBAH
+          left: "122mm", // DIUBAH
           width: "70mm",
           border: "5px double #c00000",
           padding: "4px",
@@ -106,28 +106,27 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "98mm",
-          left: "278.1px",
+          top: "101mm", // DIUBAH
+          left: "280.1px", // DIUBAH
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
           fontSize: "11pt",
         }}
       >
-        <div style={{ width: "13.3mm" }}>N.7</div>
-        <div style={{ width: "12.1mm" }} >K.M.17</div>
-        <div style={{ width: "12.1mm" }}>{data.spb?.no_spb}0</div>
-        <div style={{ width: "12.1mm" }}>{bulan}</div>
-        <div style={{ width: "12.1mm" }}>{tahun}</div>
+        <div style={{ width: "13.3mm", textAlign: "center" }}>N.7</div>
+        <div style={{ width: "12.1mm", textAlign: "center" }}>K.M.17</div>
+        <div style={{ width: "12.1mm", textAlign: "center" }}>{data.spb?.no_spb}0</div>
+        <div style={{ width: "12.1mm", textAlign: "center" }}>{bulan}</div>
+        <div style={{ width: "12.1mm", textAlign: "center" }}>{tahun}</div>
       </div>
-      
 
       {/* === Kapal & Data === */}
       <div
         style={{
           position: "absolute",
-          top: "113mm",
-          left: "39.5mm",
+          top: "117mm", // DIUBAH
+          left: "41.5mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -138,8 +137,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "113mm",
-          left: "135.2mm",
+          top: "117mm", // DIUBAH
+          left: "137.2mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -150,8 +149,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "123.5mm",
-          left: "58mm",
+          top: "128mm", // DIUBAH
+          left: "60mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -162,8 +161,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "123.5mm",
-          left: "125mm",
+          top: "128mm", // DIUBAH
+          left: "127mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -174,20 +173,20 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "136mm", 
-          left: "40mm",
+          top: "141mm", // DIUBAH
+          left: "42mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
       >
-        {data.kapal?.nomor_imo || "-"}        
+        {data.kapal?.nomor_imo || "-"}
       </div>
 
       <div
         style={{
           position: "absolute",
-          top: "136mm", 
-          left: "140mm",
+          top: "141mm", // DIUBAH
+          left: "142mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -199,8 +198,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "146.5mm",
-          left: "138.2mm",
+          top: "151mm", // DIUBAH
+          left: "140.2mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "9pt",
         }}
@@ -211,8 +210,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "146.5mm",
-          left: "164.2mm",
+          top: "151mm", // DIUBAH
+          left: "166.2mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "9pt",
         }}
@@ -224,8 +223,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "176mm",
-          left: "40mm",
+          top: "179.2mm", // DIUBAH
+          left: "42mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -236,8 +235,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "176mm",
-          left: "103mm",
+          top: "180mm", // DIUBAH
+          left: "105mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "10pt",
         }}
@@ -248,8 +247,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "181mm",
-          left: "103mm",
+          top: "185mm", // DIUBAH
+          left: "105mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "10pt",
         }}
@@ -260,8 +259,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "176mm", 
-          left: "151mm",
+          top: "179.2mm", // DIUBAH
+          left: "153mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -272,8 +271,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "186mm",
-          left: "53mm",
+          top: "190mm", // DIUBAH
+          left: "55mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -284,8 +283,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "185mm",
-          left: "149mm",
+          top: "189mm", // DIUBAH
+          left: "151mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -296,8 +295,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "196mm",
-          left: "53mm",
+          top: "200mm", // DIUBAH
+          left: "55mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -308,8 +307,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "207mm",
-          left: "53mm",
+          top: "211mm", // DIUBAH
+          left: "55mm", // DIUBAH
           fontWeight: "bold",
           fontSize: "12pt",
         }}
