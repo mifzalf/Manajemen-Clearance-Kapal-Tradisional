@@ -68,7 +68,9 @@ function Clearance() {
         const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
         const goods = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
-        const wilayahKerja = [...new Set(masterData.map(item => item.user?.wilayah_kerja).filter(Boolean))];
+        
+        // [DIUBAH] Mengambil data wilker dari item.wilayah_kerja
+        const wilayahKerja = [...new Set(masterData.map(item => item.wilayah_kerja).filter(Boolean))];
 
         return { ships, categories, goods, wilayahKerja };
     }, [masterData]);
@@ -88,8 +90,9 @@ function Clearance() {
             const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === sg.value));
             const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
             const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
-
-            const wilayahMatch = !filters.selectedWilayah || item.user?.wilayah_kerja === filters.selectedWilayah;
+            
+            // [DIUBAH] Memfilter data wilker dari item.wilayah_kerja
+            const wilayahMatch = !filters.selectedWilayah || item.wilayah_kerja === filters.selectedWilayah;
 
             return searchMatch && shipMatch && categoryMatch && goodsMatch && startDateMatch && endDateMatch && wilayahMatch;
         });
@@ -241,7 +244,7 @@ function Clearance() {
             'BONGKAR - KOMODITI', 'BONGKAR - JENIS', 'BONGKAR - TON', 'BONGKAR - LITER', 'BONGKAR - UNIT', 'BONGKAR - ORANG',
             'MUAT - KOMODITI', 'MUAT - JENIS', 'MUAT - TON', 'MUAT - LITER', 'MUAT - UNIT', 'MUAT - ORANG'
         ];
-                const headerRow1 = [
+        const headerRow1 = [
             '', '', '', '', '', '',
             'BONGKAR', '', '', '', '', '',
             'MUAT', '', '', '', '', ''
@@ -303,7 +306,7 @@ function Clearance() {
             }
 
             const groupEndRow = currentRowIndex - 1;
-                if (groupStartRow < groupEndRow) {
+            if (groupStartRow < groupEndRow) {
                 for (let col = 0; col <= 5; col++) {
                     merges.push({ 
                         s: { r: groupStartRow, c: col },
@@ -403,7 +406,7 @@ function Clearance() {
                                     </div>
                                 )}
                             </div>
-                            <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                            <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-7V00 transition-colors whitespace-nowrap">
                                 + Tambah Data
                             </Link>
                         </div>

@@ -15,6 +15,8 @@ const initialState = {
     id_kedudukan_kapal: '', id_datang_dari: '', tanggal_datang: '', tanggal_berangkat: '', pukul_kapal_berangkat: '', 
     id_tempat_singgah: '',
     id_tujuan_akhir: '', id_agen: '',
+    id_tolak: '',
+    id_sandar: '',
     status_muatan_berangkat: 'Kosong',
     barangDatang: [],
     barangBerangkat: [],
@@ -35,6 +37,7 @@ const FormClearance = () => {
     const [kecamatanData, setKecamatanData] = useState([]);
     const [agenData, setAgenData] = useState([]);
     const [kategoriMuatanData, setKategoriMuatanData] = useState([]);
+    const [pelabuhanData, setPelabuhanData] = useState([]);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
 
@@ -43,14 +46,16 @@ const FormClearance = () => {
             try {
                 const [
                     agenRes, kabupatenRes, kapalRes,
-                    kecamatanRes, nahkodaRes, kategoriMuatanRes
+                    kecamatanRes, nahkodaRes, kategoriMuatanRes,
+                    pelabuhanRes
                 ] = await Promise.all([
                     axiosInstance.get('/agen'),
                     axiosInstance.get('/kabupaten'),
                     axiosInstance.get('/kapal'),
                     axiosInstance.get('/kecamatan'),
                     axiosInstance.get('/nahkoda'),
-                    axiosInstance.get('/kategori-muatan')
+                    axiosInstance.get('/kategori-muatan'),
+                    axiosInstance.get('/pelabuhan') 
                 ]);
 
                 setAgenData(agenRes.data.datas.map(d => ({ nama: d.nama_agen, id: d.id_agen })));
@@ -59,6 +64,7 @@ const FormClearance = () => {
                 setKecamatanData(kecamatanRes.data.datas.map(d => ({ nama: d.nama_kecamatan, id: d.id_kecamatan })));
                 setNahkodaData(nahkodaRes.data.datas.map(d => ({ nama: d.nama_nahkoda, id: d.id_nahkoda })));
                 setKategoriMuatanData(kategoriMuatanRes.data.datas.map(d => ({ nama: d.nama_kategori_muatan, id: d.id_kategori_muatan })));
+                setPelabuhanData(pelabuhanRes.data.datas.map(d => ({ nama: d.nama_pelabuhan, id: d.id_pelabuhan }))); // [DITAMBAHKAN]
 
                 if (isEditMode) {
                     const clearanceRes = await axiosInstance.get(`/perjalanan/${id}`);
@@ -116,8 +122,15 @@ const FormClearance = () => {
         }
 
         let { barangBerangkat, barangDatang, ...cleanData } = formData;
+        
         if (cleanData.id_tempat_singgah === '') {
             cleanData.id_tempat_singgah = null;
+        }
+        if (cleanData.id_tolak === '' || cleanData.id_tolak === null) { 
+            cleanData.id_tolak = null;
+        }
+        if (cleanData.id_sandar === '' || cleanData.id_sandar === null) {
+            cleanData.id_sandar = null;
         }
         if (cleanData.penumpang_naik === '') {
             cleanData.penumpang_naik = null;
@@ -125,6 +138,7 @@ const FormClearance = () => {
         if (cleanData.penumpang_turun === '') {
             cleanData.penumpang_turun = null;
         }
+        
         let allMuatan = [];
         if (formData.status_muatan_berangkat === 'NIHIL') {
             allMuatan = [...formData.barangDatang];
@@ -145,7 +159,7 @@ const FormClearance = () => {
             muatan_kendaraan: muatanKendaraan
         };
 
-        console.log("Data yang dikirim ke backend (SUDAH DIPERBAIKI):", newData); 
+        console.log("Data yang dikirim ke backend:", newData); 
 
         const config = {
             headers: {
@@ -201,6 +215,7 @@ const FormClearance = () => {
                             handleKapalChange={handleKapalChange} kapalOptions={kapalData}
                             nahkodaOptions={nahkodaData} kabupatenOptions={kabupatenData}
                             kecamatanOptions={kecamatanData} agenOptions={agenData}
+                            pelabuhanOptions={pelabuhanData} // [DITAMBAHKAN]
                             jenisPpkOptions={[{ id: '27', nama: '27' }, { id: '29', nama: '29' }]}
                         />
                     )}
