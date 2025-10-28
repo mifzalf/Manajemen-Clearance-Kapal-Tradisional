@@ -228,51 +228,38 @@ function Clearance() {
         setIsExportOpen(false);
     };
 
-    // [DIUPDATE] Fungsi Ekspor Bongkar Muat (Merge + Auto-Width + Alignment)
     const exportXLSX_BongkarMuat = () => {
         console.log("Fungsi exportXLSX_BongkarMuat dipanggil (fokus alignment).");
-
-        // Template kolom kargo
         const cargoColumnsTemplate = {
             'BONGKAR - KOMODITI': null, 'BONGKAR - JENIS': null, 'BONGKAR - TON': null,
             'BONGKAR - LITER': null, 'BONGKAR - UNIT': null, 'BONGKAR - ORANG': null,
             'MUAT - KOMODITI': null, 'MUAT - JENIS': null, 'MUAT - TON': null,
             'MUAT - LITER': null, 'MUAT - UNIT': null, 'MUAT - ORANG': null,
         };
-
-        // Kunci urutan untuk konversi dari Objek ke Array
         const orderedKeys = [
             'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
             'BONGKAR - KOMODITI', 'BONGKAR - JENIS', 'BONGKAR - TON', 'BONGKAR - LITER', 'BONGKAR - UNIT', 'BONGKAR - ORANG',
             'MUAT - KOMODITI', 'MUAT - JENIS', 'MUAT - TON', 'MUAT - LITER', 'MUAT - UNIT', 'MUAT - ORANG'
         ];
-        
-        // --- Persiapan Header ---
-        const headerRow1 = [
-            '', '', '', '', '', '', // Kolom base (A-F)
-            'BONGKAR', '', '', '', '', '', // Kolom Bongkar (G-L)
-            'MUAT', '', '', '', '', ''  // Kolom Muat (M-R)
+                const headerRow1 = [
+            '', '', '', '', '', '',
+            'BONGKAR', '', '', '', '', '',
+            'MUAT', '', '', '', '', ''
         ];
         const headerRow2 = [
             'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
-            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG', // Detail Bongkar
-            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG'  // Detail Muat
+            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG',
+            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG'
         ];
-
-        // --- Persiapan Data dan Merges ---
-        const dataAsAoA = []; // Ini HANYA akan berisi baris data
+        const dataAsAoA = [];
         const merges = [
-            // Merge Header Horizontal
-            { s: { r: 0, c: 6 }, e: { r: 0, c: 11 } }, // BONGKAR
-            { s: { r: 0, c: 12 }, e: { r: 0, c: 17 } }  // MUAT
+            { s: { r: 0, c: 6 }, e: { r: 0, c: 11 } },
+            { s: { r: 0, c: 12 }, e: { r: 0, c: 17 } }
         ];
-
-        let currentRowIndex = 2; // Data dimulai di baris ke-3 (index 2)
-
-        // 1. Iterasi setiap perjalanan
+        let currentRowIndex = 2;
         filteredData.forEach(perjalanan => {
             const tglBerangkat = new Date(perjalanan.tanggal_berangkat);
-            const baseData = { // Data SPB yang akan di-merge
+            const baseData = { 
                 'Nomor SPB': perjalanan.spb?.no_spb || '-',
                 'Nama Kapal': perjalanan.kapal?.nama_kapal || '-',
                 'Tujuan': perjalanan.tujuan_akhir?.nama_kecamatan || '-',
@@ -280,22 +267,16 @@ function Clearance() {
                 'Pukul Berangkat': perjalanan.pukul_kapal_berangkat || '-',
                 'Agen': perjalanan.agen?.nama_agen || '-',
             };
-            
             const allCargo = [];
             perjalanan.muatans?.forEach(m => allCargo.push({ ...m, item_type: 'muatan' }));
             perjalanan.muatan_kendaraan?.forEach(k => allCargo.push({ ...k, item_type: 'kendaraan' }));
-
-            const groupStartRow = currentRowIndex; // Catat baris awal grup ini
-            
-            // 2. Proses kargo
+            const groupStartRow = currentRowIndex;
             if (allCargo.length === 0) {
-                // Jika tidak ada kargo, push 1 baris
                 const rowObject = { ...baseData, ...cargoColumnsTemplate };
                 const rowData = orderedKeys.map(key => rowObject[key] || null);
                 dataAsAoA.push(rowData);
-                currentRowIndex++; // Naikkan counter baris
+                currentRowIndex++;
             } else {
-                // Jika ada kargo, loop dan push
                 allCargo.forEach(item => {
                     let cargoData = { ...cargoColumnsTemplate };
                     const isBongkar = item.jenis_perjalanan === 'datang';
@@ -317,25 +298,20 @@ function Clearance() {
                     const rowObject = { ...baseData, ...cargoData };
                     const rowData = orderedKeys.map(key => rowObject[key] || null);
                     dataAsAoA.push(rowData);
-                    currentRowIndex++; // Naikkan counter baris
+                    currentRowIndex++;
                 });
             }
 
-            const groupEndRow = currentRowIndex - 1; // Baris terakhir yang *baru saja* ditambahkan
-            
-            // 3. Tambahkan Merge Vertikal untuk grup ini
-            if (groupStartRow < groupEndRow) { // Hanya merge jika grup > 1 baris
-                // Gabungkan 6 kolom pertama (0=A, 1=B, 2=C, 3=D, 4=E, 5=F)
+            const groupEndRow = currentRowIndex - 1;
+                if (groupStartRow < groupEndRow) {
                 for (let col = 0; col <= 5; col++) {
                     merges.push({ 
-                        s: { r: groupStartRow, c: col }, // Mulai: (baris_awal_grup, kolom)
-                        e: { r: groupEndRow, c: col }   // Selesai: (baris_akhir_grup, kolom)
+                        s: { r: groupStartRow, c: col },
+                        e: { r: groupEndRow, c: col }
                     });
                 }
             }
         });
-
-        // 4. Finalisasi
         if (dataAsAoA.length === 0) {
             toast.error("Tidak ada data untuk diekspor.");
             setIsExportOpen(false);
@@ -343,8 +319,6 @@ function Clearance() {
         }
 
         const finalAoA = [headerRow1, headerRow2, ...dataAsAoA];
-
-        // --- Logika Auto-Width ---
         const colWidths = [];
         for (let i = 0; i < headerRow2.length; i++) {
             colWidths[i] = 0;
@@ -358,19 +332,9 @@ function Clearance() {
             });
         });
         const wsCols = colWidths.map(width => ({ wch: width + 2 })); 
-        // --- Selesai Auto-Width ---
-
-        // 5. Buat Worksheet
         const worksheet = XLSX.utils.aoa_to_sheet(finalAoA);
-        
-        // Terapkan Merges (Vertikal + Horizontal)
         worksheet['!merges'] = merges; 
-        
-        // Terapkan Lebar Kolom
         worksheet['!cols'] = wsCols;
-
-        // --- [BARU] Logika Alignment (Versi Free-Tier Friendly) ---
-        // Menghapus semua referensi ke 'fill' (warna) dan 'border'
         const numRows = finalAoA.length;
         const numCols = headerRow2.length;
 
@@ -379,25 +343,17 @@ function Clearance() {
                 const cellAddress = XLSX.utils.encode_cell({ r, c });
                 const cell = worksheet[cellAddress];
                 
-                if (!cell) continue; // Lewati sel kosong
+                if (!cell) continue;
                 
-                // Inisialisasi style object jika belum ada
                 if (!cell.s) cell.s = {};
                 
-                // Set alignment (ini seharusnya didukung)
-                // Kita juga set alignment vertikal ke tengah
                 if (r < 2) {
-                    // Baris 0 dan 1 (Header) -> TENGAH
                     cell.s.alignment = { vertical: 'center', horizontal: 'center' };
                 } else {
-                    // Baris 2 ke bawah (Data) -> KANAN
                     cell.s.alignment = { vertical: 'center', horizontal: 'right' };
                 }
             }
         }
-        // --- Selesai Alignment ---
-
-        // 6. Buat Workbook dan Unduh
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Bongkar Muat');
         XLSX.writeFile(workbook, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);

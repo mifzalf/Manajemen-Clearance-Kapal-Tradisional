@@ -64,8 +64,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "21mm", // DIUBAH
-          left: "136mm", // DIUBAH
+          top: "21mm",
+          left: "136mm",
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
@@ -82,8 +82,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "47mm", // DIUBAH
-          left: "122mm", // DIUBAH
+          top: "47mm",
+          left: "122mm",
           width: "70mm",
           border: "5px double #c00000",
           padding: "4px",
@@ -106,8 +106,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "101mm", // DIUBAH
-          left: "280.1px", // DIUBAH
+          top: "101mm",
+          left: "280.1px",
           display: "flex",
           gap: "10px",
           fontWeight: "bold",
@@ -125,8 +125,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "117mm", // DIUBAH
-          left: "41.5mm", // DIUBAH
+          top: "117mm",
+          left: "41.5mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -137,8 +137,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "117mm", // DIUBAH
-          left: "137.2mm", // DIUBAH
+          top: "117mm",
+          left: "137.2mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -149,8 +149,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "128mm", // DIUBAH
-          left: "60mm", // DIUBAH
+          top: "128mm",
+          left: "60mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -161,8 +161,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "128mm", // DIUBAH
-          left: "127mm", // DIUBAH
+          top: "128mm",
+          left: "127mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -173,8 +173,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "141mm", // DIUBAH
-          left: "42mm", // DIUBAH
+          top: "141mm",
+          left: "42mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -185,8 +185,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "141mm", // DIUBAH
-          left: "142mm", // DIUBAH
+          top: "141mm",
+          left: "142mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -198,8 +198,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "151mm", // DIUBAH
-          left: "140.2mm", // DIUBAH
+          top: "151mm",
+          left: "140.2mm",
           fontWeight: "bold",
           fontSize: "9pt",
         }}
@@ -210,8 +210,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "151mm", // DIUBAH
-          left: "166.2mm", // DIUBAH
+          top: "151mm",
+          left: "166.2mm",
           fontWeight: "bold",
           fontSize: "9pt",
         }}
@@ -223,8 +223,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "179.2mm", // DIUBAH
-          left: "42mm", // DIUBAH
+          top: "179.2mm",
+          left: "42mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -235,8 +235,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "180mm", // DIUBAH
-          left: "105mm", // DIUBAH
+          top: "180mm",
+          left: "105mm",
           fontWeight: "bold",
           fontSize: "10pt",
         }}
@@ -247,8 +247,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "185mm", // DIUBAH
-          left: "105mm", // DIUBAH
+          top: "185mm",
+          left: "105mm",
           fontWeight: "bold",
           fontSize: "10pt",
         }}
@@ -259,8 +259,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "179.2mm", // DIUBAH
-          left: "153mm", // DIUBAH
+          top: "179.2mm",
+          left: "153mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -271,8 +271,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "190mm", // DIUBAH
-          left: "55mm", // DIUBAH
+          top: "190mm",
+          left: "55mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -283,8 +283,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "189mm", // DIUBAH
-          left: "151mm", // DIUBAH
+          top: "189mm",
+          left: "151mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -295,8 +295,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "200mm", // DIUBAH
-          left: "55mm", // DIUBAH
+          top: "200mm",
+          left: "55mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
@@ -307,8 +307,8 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
       <div
         style={{
           position: "absolute",
-          top: "211mm", // DIUBAH
-          left: "55mm", // DIUBAH
+          top: "211mm",
+          left: "55mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
