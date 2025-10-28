@@ -228,27 +228,139 @@ function Clearance() {
         setIsExportOpen(false);
     };
 
-    // [BARU] Fungsi Ekspor Bongkar Muat (Kosong)
     const exportXLSX_BongkarMuat = () => {
-        // TODO: Implementasikan logika ekspor bongkar muat di sini
-        // Untuk saat ini, kita hanya akan menampilkan pesan
-        console.log("Fungsi exportXLSX_BongkarMuat dipanggil.");
-        toast.success("Fitur Ekspor Bongkar Muat (Excel) sedang dalam pengembangan.");
-        
-        // Anda bisa menyiapkan data kosong atau contoh data di sini jika perlu
-        // const dataKosong = [
-        //     { "Kolom 1": "Data Contoh", "Kolom 2": 123 },
-        // ];
-        // const worksheet = XLSX.utils.json_to_sheet(dataKosong);
-        // const workbook = XLSX.utils.book_new();
-        // XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Bongkar Muat');
-        // XLSX.writeFile(workbook, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        console.log("Fungsi exportXLSX_BongkarMuat dipanggil (fokus alignment).");
+        const cargoColumnsTemplate = {
+            'BONGKAR - KOMODITI': null, 'BONGKAR - JENIS': null, 'BONGKAR - TON': null,
+            'BONGKAR - LITER': null, 'BONGKAR - UNIT': null, 'BONGKAR - ORANG': null,
+            'MUAT - KOMODITI': null, 'MUAT - JENIS': null, 'MUAT - TON': null,
+            'MUAT - LITER': null, 'MUAT - UNIT': null, 'MUAT - ORANG': null,
+        };
+        const orderedKeys = [
+            'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
+            'BONGKAR - KOMODITI', 'BONGKAR - JENIS', 'BONGKAR - TON', 'BONGKAR - LITER', 'BONGKAR - UNIT', 'BONGKAR - ORANG',
+            'MUAT - KOMODITI', 'MUAT - JENIS', 'MUAT - TON', 'MUAT - LITER', 'MUAT - UNIT', 'MUAT - ORANG'
+        ];
+                const headerRow1 = [
+            '', '', '', '', '', '',
+            'BONGKAR', '', '', '', '', '',
+            'MUAT', '', '', '', '', ''
+        ];
+        const headerRow2 = [
+            'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
+            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG',
+            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG'
+        ];
+        const dataAsAoA = [];
+        const merges = [
+            { s: { r: 0, c: 6 }, e: { r: 0, c: 11 } },
+            { s: { r: 0, c: 12 }, e: { r: 0, c: 17 } }
+        ];
+        let currentRowIndex = 2;
+        filteredData.forEach(perjalanan => {
+            const tglBerangkat = new Date(perjalanan.tanggal_berangkat);
+            const baseData = { 
+                'Nomor SPB': perjalanan.spb?.no_spb || '-',
+                'Nama Kapal': perjalanan.kapal?.nama_kapal || '-',
+                'Tujuan': perjalanan.tujuan_akhir?.nama_kecamatan || '-',
+                'Tgl Berangkat': tglBerangkat.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                'Pukul Berangkat': perjalanan.pukul_kapal_berangkat || '-',
+                'Agen': perjalanan.agen?.nama_agen || '-',
+            };
+            const allCargo = [];
+            perjalanan.muatans?.forEach(m => allCargo.push({ ...m, item_type: 'muatan' }));
+            perjalanan.muatan_kendaraan?.forEach(k => allCargo.push({ ...k, item_type: 'kendaraan' }));
+            const groupStartRow = currentRowIndex;
+            if (allCargo.length === 0) {
+                const rowObject = { ...baseData, ...cargoColumnsTemplate };
+                const rowData = orderedKeys.map(key => rowObject[key] || null);
+                dataAsAoA.push(rowData);
+                currentRowIndex++;
+            } else {
+                allCargo.forEach(item => {
+                    let cargoData = { ...cargoColumnsTemplate };
+                    const isBongkar = item.jenis_perjalanan === 'datang';
+                    const prefix = isBongkar ? 'BONGKAR' : 'MUAT';
 
-        setIsExportOpen(false); // Tetap tutup dropdown
+                    if (item.item_type === 'muatan') {
+                        cargoData[`${prefix} - KOMODITI`] = item.kategori_muatan?.nama_kategori_muatan || '-';
+                        cargoData[`${prefix} - JENIS`] = item.kategori_muatan?.status_kategori_muatan || '-';
+                        if (item.satuan_muatan === 'TON') cargoData[`${prefix} - TON`] = item.jumlah_muatan;
+                        else if (item.satuan_muatan === 'LITER') cargoData[`${prefix} - LITER`] = item.jumlah_muatan;
+                        else if (item.satuan_muatan === 'UNIT') cargoData[`${prefix} - UNIT`] = item.jumlah_muatan;
+                        else if (item.satuan_muatan === 'ORANG') cargoData[`${prefix} - ORANG`] = item.jumlah_muatan;
+                    } else if (item.item_type === 'kendaraan') {
+                        cargoData[`${prefix} - KOMODITI`] = item.golongan_kendaraan || '-';
+                        cargoData[`${prefix} - JENIS`] = 'Kendaraan';
+                        cargoData[`${prefix} - UNIT`] = item.jumlah_kendaraan;
+                    }
+
+                    const rowObject = { ...baseData, ...cargoData };
+                    const rowData = orderedKeys.map(key => rowObject[key] || null);
+                    dataAsAoA.push(rowData);
+                    currentRowIndex++;
+                });
+            }
+
+            const groupEndRow = currentRowIndex - 1;
+                if (groupStartRow < groupEndRow) {
+                for (let col = 0; col <= 5; col++) {
+                    merges.push({ 
+                        s: { r: groupStartRow, c: col },
+                        e: { r: groupEndRow, c: col }
+                    });
+                }
+            }
+        });
+        if (dataAsAoA.length === 0) {
+            toast.error("Tidak ada data untuk diekspor.");
+            setIsExportOpen(false);
+            return;
+        }
+
+        const finalAoA = [headerRow1, headerRow2, ...dataAsAoA];
+        const colWidths = [];
+        for (let i = 0; i < headerRow2.length; i++) {
+            colWidths[i] = 0;
+        }
+        finalAoA.forEach(row => {
+            row.forEach((cellContent, colIndex) => {
+                const length = cellContent ? String(cellContent).length : 0;
+                if (colWidths[colIndex] < length) {
+                    colWidths[colIndex] = length;
+                }
+            });
+        });
+        const wsCols = colWidths.map(width => ({ wch: width + 2 })); 
+        const worksheet = XLSX.utils.aoa_to_sheet(finalAoA);
+        worksheet['!merges'] = merges; 
+        worksheet['!cols'] = wsCols;
+        const numRows = finalAoA.length;
+        const numCols = headerRow2.length;
+
+        for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+                const cellAddress = XLSX.utils.encode_cell({ r, c });
+                const cell = worksheet[cellAddress];
+                
+                if (!cell) continue;
+                
+                if (!cell.s) cell.s = {};
+                
+                if (r < 2) {
+                    cell.s.alignment = { vertical: 'center', horizontal: 'center' };
+                } else {
+                    cell.s.alignment = { vertical: 'center', horizontal: 'right' };
+                }
+            }
+        }
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Bongkar Muat');
+        XLSX.writeFile(workbook, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+        toast.success("Ekspor Bongkar Muat berhasil!");
+        setIsExportOpen(false);
     };
-
-    // [DIHAPUS] Fungsi handlePrintPDF
-    // const handlePrintPDF = () => { ... };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -287,7 +399,6 @@ function Clearance() {
                                             <li onClick={exportXLSX_BongkarMuat} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                                                 Ekspor Bongkar Muat (XLSX)
                                             </li>
-                                            {/* Opsi PDF dihapus */}
                                         </ul>
                                     </div>
                                 )}
@@ -377,12 +488,6 @@ function Clearance() {
                     </div>
                 </div>
             </div>
-
-            {/* [DIHAPUS] Bagian print-only */}
-            {/* <div className="print-only">
-                <PrintableClearanceList data={filteredData} />
-            </div> 
-            */}
         </>
     );
 }
