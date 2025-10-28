@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../api/axiosInstance';
-import ConfirmationModal from '../../components/modal/ConfirmationModal';
 import PelabuhanFormModal from '../../components/modal/PelabuhanFormModal';
 import PelabuhanTable from '../../components/table/PelabuhanTable';
 
@@ -10,10 +9,7 @@ function Pelabuhan() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
 
-  // Fungsi untuk mengambil data
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -46,30 +42,37 @@ function Pelabuhan() {
     setEditingItem(null);
   };
 
-  const handleDeleteClick = (item) => {
-    setItemToDelete(item);
-    setIsConfirmOpen(true);
+  const handleDelete = (item) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p>Apakah Anda yakin ingin menghapus <strong>{item.nama_pelabuhan}</strong>?</p>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await axiosInstance.delete(`/pelabuhan/delete/${item.id_pelabuhan}`);
+                toast.success(`Data "${item.nama_pelabuhan}" berhasil dihapus.`);
+                fetchData(); 
+              } catch (error) {
+                toast.error("Gagal menghapus data.");
+              }
+            }}
+            className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+          >
+            Ya, Hapus
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="w-full px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            Batal
+          </button>
+        </div>
+      </div>
+    ));
   };
-
-  const handleCloseConfirm = () => {
-    setItemToDelete(null);
-    setIsConfirmOpen(false);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (itemToDelete) {
-      try {
-        await axiosInstance.delete(`/pelabuhan/delete/${itemToDelete.id_pelabuhan}`);
-        toast.success(`Data "${itemToDelete.nama_pelabuhan}" berhasil dihapus.`);
-        fetchData();
-      } catch (error) {
-        toast.error("Gagal menghapus data.");
-      } finally {
-        handleCloseConfirm();
-      }
-    }
-  };
-
+  
   return (
     <>
       <div className="p-4 md:p-6 space-y-6">
@@ -84,7 +87,7 @@ function Pelabuhan() {
           {loading ? (
             <p className="text-center py-10 text-gray-500">Memuat data...</p>
           ) : (
-            <PelabuhanTable items={data} onEdit={handleEdit} onDelete={handleDeleteClick} />
+            <PelabuhanTable items={data} onEdit={handleEdit} onDelete={handleDelete} />
           )}
         </div>
       </div>
@@ -97,13 +100,6 @@ function Pelabuhan() {
         />
       )}
       
-      <ConfirmationModal
-        isOpen={isConfirmOpen}
-        onClose={handleCloseConfirm}
-        onConfirm={handleConfirmDelete}
-        title="Konfirmasi Hapus"
-        message={`Apakah Anda yakin ingin menghapus data pelabuhan "${itemToDelete?.nama_pelabuhan}"?`}
-      />
     </>
   );
 }

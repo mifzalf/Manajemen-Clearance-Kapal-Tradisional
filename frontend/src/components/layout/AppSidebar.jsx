@@ -34,6 +34,7 @@ const AppSidebar = () => {
         { name: 'Agen', path: '/master/agen' },
         { name: 'Daerah', path: '/master/daerah' },
         { name: 'Kategori Muatan', path: '/master/muatan' },
+        { name: 'Pelabuhan', path: '/master/pelabuhan' },
       ],
     },
     { name: 'Log Aktivitas', path: '/log-aktivitas', icon: <ListIcon /> },

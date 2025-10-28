@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import UserTable from '../components/table/UserTable';
 import UserFormModal from '../components/modal/UserFormModal';
-import ConfirmationModal from '../components/modal/ConfirmationModal';
+import ConfirmationModal from '../components/modal/ConfirmationModal'; // (Meskipun tidak dipakai, bisa disimpan untuk penggunaan lain)
 import axiosInstance from '../api/axiosInstance';
 
 function ManajemenUser() {
@@ -10,8 +10,10 @@ function ManajemenUser() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState(null);
+
+    // --- State untuk ConfirmationModal tidak lagi diperlukan ---
+    // const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    // const [itemToDelete, setItemToDelete] = useState(null);
 
     useEffect(() => {
         fetchUsers();
@@ -45,29 +47,37 @@ function ManajemenUser() {
         setEditingItem(null);
     };
 
-    const handleDeleteClick = (item) => {
-        setItemToDelete(item);
-        setIsConfirmOpen(true);
-    };
-
-    const handleCloseConfirm = () => {
-        setItemToDelete(null);
-        setIsConfirmOpen(false);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (itemToDelete) {
-            try {
-                await axiosInstance.delete(`/users/delete/${itemToDelete.id_user}`);
-                toast.success(`Pengguna "${itemToDelete.nama_lengkap}" berhasil dihapus.`);
-                fetchUsers();
-            } catch (error) {
-                toast.error("Gagal menghapus data.");
-                console.error("Delete User Error:", error);
-            } finally {
-                handleCloseConfirm();
-            }
-        }
+    // --- FUNGSI DELETE DIUBAH MENGGUNAKAN TOAST ---
+    const handleDelete = (item) => {
+        toast((t) => (
+            <div className="flex flex-col gap-3">
+                <p>Apakah Anda yakin ingin menghapus pengguna <strong>{item.nama_lengkap}</strong>?</p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                await axiosInstance.delete(`/users/delete/${item.id_user}`);
+                                toast.success(`Pengguna "${item.nama_lengkap}" berhasil dihapus.`);
+                                fetchUsers(); // Refresh data tabel
+                            } catch (error) {
+                                toast.error("Gagal menghapus data.");
+                                console.error("Delete User Error:", error);
+                            }
+                        }}
+                        className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                    >
+                        Ya, Hapus
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="w-full px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    >
+                        Batal
+                    </button>
+                </div>
+            </div>
+        ));
     };
 
     return (
@@ -85,19 +95,14 @@ function ManajemenUser() {
                 {loading ? (
                     <p className="text-center text-gray-500">Memuat data...</p>
                 ) : (
-                    <UserTable userItems={userData} onEdit={handleEdit} onDelete={handleDeleteClick} />
+                    // Kirim 'handleDelete' sebagai prop 'onDelete'
+                    <UserTable userItems={userData} onEdit={handleEdit} onDelete={handleDelete} />
                 )}
             </div>
 
             {isModalOpen && <UserFormModal onClose={handleCloseModal} currentItem={editingItem} onSuccess={fetchUsers} />}
             
-            <ConfirmationModal
-                isOpen={isConfirmOpen}
-                onClose={handleCloseConfirm}
-                onConfirm={handleConfirmDelete}
-                title="Konfirmasi Hapus"
-                message={`Apakah Anda yakin ingin menghapus pengguna "${itemToDelete?.nama_lengkap}"?`}
-            />
+            {/* --- Komponen ConfirmationModal tidak lagi dipanggil di sini --- */}
         </>
     );
 }

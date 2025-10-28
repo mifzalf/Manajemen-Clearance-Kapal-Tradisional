@@ -1,7 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import axiosInstance from './api/axiosInstance';
 
+// Layout
 import AppLayout from "./components/layout/AppLayout";
+
+// Halaman Utama
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/AuthPages/SignIn";
 import Clearance from "./pages/Clearance/Clearance";
@@ -9,16 +13,22 @@ import FormClearance from "./pages/Clearance/FormClearance";
 import DetailClearance from "./pages/Clearance/DetailClearance";
 import UserProfiles from "./pages/profile/UserProfiles";
 import Settings from "./pages/profile/Settings";
+
+// Halaman Master Data
 import Kapal from "./pages/master/Kapal";
 import Nahkoda from "./pages/master/Nahkoda";
 import Agen from "./pages/master/Agen";
 import KategoriMuatan from "./pages/master/KategoriMuatan";
 import Daerah from "./pages/master/Daerah";
+import Pelabuhan from "./pages/master/Pelabuhan"; // <-- PERBAIKAN 1: Impor Pelabuhan
+
+// Halaman Superuser
 import LogAktivitas from "./pages/LogAktivitas"; 
 import ManajemenUser from "./pages/ManajemenUser";
 import Forbidden from './pages/Forbidden';
 import ProtectedRouteRole from './components/auth/ProtectedRouteRole';
 
+// Komponen Proteksi Rute
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -30,15 +40,26 @@ const ProtectedRoute = () => {
 function App() {
 
   React.useEffect(() => {
+    // (useEffect Anda untuk interceptor sudah benar)
     const handleStorageChange = () => {
       if (!localStorage.getItem('token')) {
         window.location.href = '/signin';
       }
     };
     window.addEventListener('storage', handleStorageChange);
-
+    const interceptor = axiosInstance.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/signin';
+        }
+        return Promise.reject(error);
+      }
+    );
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      axiosInstance.interceptors.response.eject(interceptor);
     };
   }, []);
 
@@ -58,19 +79,19 @@ function App() {
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/forbidden" element={<Forbidden />} />
-            <Route path="/master/kapal" element={<Kapal />} />
-            <Route path="/master/nahkoda" element={<Nahkoda />} />
-            <Route path="/master/agen" element={<Agen />} />
-            <Route path="/master/muatan" element={<KategoriMuatan />} />
-            <Route path="/master/daerah" element={<Daerah />} />
 
             <Route element={<ProtectedRouteRole allowedRole="superuser" />}>
+              <Route path="/master/kapal" element={<Kapal />} />
+              <Route path="/master/nahkoda" element={<Nahkoda />} />
+              <Route path="/master/agen" element={<Agen />} />
+              <Route path="/master/muatan" element={<KategoriMuatan />} />
+              <Route path="/master/daerah" element={<Daerah />} />
+              <Route path="/master/pelabuhan" element={<Pelabuhan />} />
               <Route path="/log-aktivitas" element={<LogAktivitas />} />
               <Route path="/manajemen-user" element={<ManajemenUser />} />
             </Route>
             
           </Route>
-
         </Route>
 
         <Route path="*" element={
