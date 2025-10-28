@@ -16,7 +16,7 @@ const kapal = db.define('kapal', {
             model: jenis,
             key: "id_jenis"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     id_bendera: {
@@ -25,7 +25,7 @@ const kapal = db.define('kapal', {
             model: negara,
             key: "id_negara"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     gt: DataTypes.INTEGER,

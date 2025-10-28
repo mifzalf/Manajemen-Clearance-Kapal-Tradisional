@@ -16,6 +16,7 @@ const kategoriMuatan = require("../model/kategoriMuatanModel")
 const muatanKendaraan = require("../model/muatanKendaraanModel");
 const logUserController = require("./logUserController")
 const users = require("../model/userModel")
+const pelabuhan = require("../model/pelabuhanModel")
 
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page, wilker } = req.query;
@@ -56,9 +57,6 @@ const getPerjalananByFilter = async (req, res) => {
             wherePerjalanan.tanggal_berangkat = { [Op.lte]: new Date(tanggal_akhir) };
         }
 
-        // ============================
-        // 🔍 Filter muatan hanya jika ada
-        // ============================
         let perjalananIds = null;
         if (nama_muatan || kategori) {
             perjalananIds = await muatan.findAll({
@@ -74,17 +72,15 @@ const getPerjalananByFilter = async (req, res) => {
                 raw: true
             }).then(rows => rows.map(r => r.id_perjalanan));
 
-            // Jika filter muatan diberikan tapi tidak ada hasil
             if (perjalananIds.length === 0) {
                 return res.status(200).json({ msg: "Tidak ada data", datas: [] });
             }
         }
-        // ============================
 
         const datas = await perjalanan.findAll({
             where: {
                 ...wherePerjalanan,
-                ...(perjalananIds ? { id_perjalanan: { [Op.in]: perjalananIds } } : {}), // hanya gunakan kalau ada filter muatan
+                ...(perjalananIds ? { id_perjalanan: { [Op.in]: perjalananIds } } : {}),
             },
             include: [
                 {
@@ -118,6 +114,8 @@ const getPerjalananByFilter = async (req, res) => {
                 {
                     model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan']
                 },
+                { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
+                { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
@@ -136,18 +134,35 @@ const getPerjalananByFilter = async (req, res) => {
 const getPerjalanan = async (req, res) => {
     let search = req.query.search || ""
     let { limit, page } = req.query
-    console.log(limit)
 
     try {
         const dataUser = await users.findByPk(req.user.id)
         let wilker = dataUser.wilayah_kerja
 
-        let whereUser
+        console.log(wilker)
+        let whereClause
         if (wilker.toLowerCase() != "pusat") {
-            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker.toLowerCase() } }
+            whereClause = {
+                wilayah_kerja: "dungkek",
+                [Op.or]: [
+                    { '$kapal.nama_kapal$': { [Op.like]: `%${search}%` } },
+                    { '$nahkoda.nama_nahkoda$': { [Op.like]: `%${search}%` } },
+                    { '$agen.nama_agen$': { [Op.like]: `%${search}%` } },
+                    { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${search}%` } },
+                ]
+            }
         } else {
-            whereUser = { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'] }
+            whereClause = {
+                [Op.or]: [
+                    { '$kapal.nama_kapal$': { [Op.like]: `%${search}%` } },
+                    { '$nahkoda.nama_nahkoda$': { [Op.like]: `%${search}%` } },
+                    { '$agen.nama_agen$': { [Op.like]: `%${search}%` } },
+                    { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${search}%` } },
+                ]
+            }
         }
+
+        console.log(whereClause)
 
         let pagination = {}
 
@@ -171,7 +186,6 @@ const getPerjalanan = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
-                whereUser,
                 {
                     model: muatan, as: "muatans", separate: true, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         {
@@ -187,19 +201,14 @@ const getPerjalanan = async (req, res) => {
                         golongan_kendaraan: { [Op.like]: `%${search}%` }
                     }
                 },
+                { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
+                { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tujuan_akhir", attributes: ['nama_kecamatan'] },
             ],
-            where: {
-                [Op.or]: [
-                    { '$kapal.nama_kapal$': { [Op.like]: `%${search}%` } },
-                    { '$nahkoda.nama_nahkoda$': { [Op.like]: `%${search}%` } },
-                    { '$agen.nama_agen$': { [Op.like]: `%${search}%` } },
-                    { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${search}%` } },
-                ]
-            },
+            where: whereClause,
             ...pagination
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
@@ -236,6 +245,8 @@ const getPerjalananById = async (req, res) => {
                 {
                     model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
                 },
+                { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
+                { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
                 { model: kecamatan, as: "datang_dari", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
@@ -243,7 +254,7 @@ const getPerjalananById = async (req, res) => {
             ]
         })
         if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
-        if (data.user.wilayah_kerja.toLowerCase() != wilker.toLowerCase() && wilker.toLowerCase() != "pusat") return res.status(500).json({ msg: "tidak ada akses" })
+        if (data.wilayah_kerja.toLowerCase() != wilker.toLowerCase() && wilker.toLowerCase() != "pusat") return res.status(500).json({ msg: "tidak ada akses" })
 
         return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
@@ -394,6 +405,13 @@ const deletePerjalanan = async (req, res) => {
             }
         })
 
+        let perjalananDate = new Date(perjalananData.createdAt)
+        let now = new Date()
+
+        let dateDifference = Math.floor((now - perjalananDate) / (1000 * 60 * 60 * 24))
+
+        if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
+
         let result = await perjalanan.destroy({ where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
@@ -496,12 +514,12 @@ const getTotalPerKategori = async (req, res) => {
             include: [{
                 as: "muatans",
                 model: muatan,
-                required: true, // 🔥 wajib ada muatan
+                required: true,
                 attributes: [],
                 include: [{
                     as: "kategori_muatan",
                     model: kategoriMuatan,
-                    required: true, // 🔥 wajib ada kategori_muatan
+                    required: true,
                     attributes: []
                 }]
             }],

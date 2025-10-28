@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize')
-const {db} = require('../config/db')
+const { db } = require('../config/db')
 const spb = require('./spbModel')
 const kapal = require('./kapalModel')
 const nahkoda = require('./nahkodaModel')
@@ -7,6 +7,7 @@ const kecamatan = require('./kecamatanModel')
 const agen = require('./agenModel')
 const kabupaten = require('./kabupatenModel')
 const users = require('./userModel')
+const pelabuhan = require('./pelabuhanModel')
 
 const perjalanan = db.define("perjalanan", {
     id_perjalanan: {
@@ -21,7 +22,7 @@ const perjalanan = db.define("perjalanan", {
             model: spb,
             key: "id_spb"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     no_urut: DataTypes.STRING,
@@ -31,7 +32,7 @@ const perjalanan = db.define("perjalanan", {
             model: kapal,
             key: "id_kapal"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     id_nahkoda: {
@@ -40,7 +41,7 @@ const perjalanan = db.define("perjalanan", {
             model: nahkoda,
             key: "id_nahkoda"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     jumlah_crew: DataTypes.INTEGER,
@@ -50,7 +51,7 @@ const perjalanan = db.define("perjalanan", {
             model: kabupaten,
             key: "id_kabupaten"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     tanggal_datang: DataTypes.DATEONLY,
@@ -60,7 +61,7 @@ const perjalanan = db.define("perjalanan", {
             model: kecamatan,
             key: "id_kecamatan"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     tanggal_berangkat: DataTypes.DATEONLY,
@@ -70,7 +71,7 @@ const perjalanan = db.define("perjalanan", {
             model: kecamatan,
             key: "id_kecamatan"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     id_tujuan_akhir: {
@@ -79,7 +80,25 @@ const perjalanan = db.define("perjalanan", {
             model: kecamatan,
             key: "id_kecamatan"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
+    },
+    id_tolak: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: pelabuhan,
+            key: "id_pelabuhan"
+        },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE"
+    },
+    id_sandar: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: pelabuhan,
+            key: "id_pelabuhan"
+        },
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     id_agen: {
@@ -88,7 +107,7 @@ const perjalanan = db.define("perjalanan", {
             model: agen,
             key: "id_agen"
         },
-        onDelete: "CASCADE",
+        onDelete: "SET NULL",
         onUpdate: "CASCADE"
     },
     tanggal_clearance: DataTypes.DATEONLY,
@@ -97,18 +116,10 @@ const perjalanan = db.define("perjalanan", {
     status_muatan_berangkat: DataTypes.ENUM("NIHIL", "SESUAI MANIFEST"),
     penumpang_turun: DataTypes.INTEGER,
     penumpang_naik: DataTypes.INTEGER,
-    id_user: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: users,
-            key: "id_user"
-        },
-        onDelete: "SET NULL",
-        onUpdate: "CASCADE"
-    }
-}, 
-{
-    freezeTableName: true
-})
+    wilayah_kerja: DataTypes.ENUM("dungkek", "pusat")
+},
+    {
+        freezeTableName: true
+    })
 
 module.exports = perjalanan

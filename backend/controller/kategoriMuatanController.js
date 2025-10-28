@@ -98,8 +98,16 @@ const deleteKategoriMuatan = async (req, res) => {
     try {
         let kategoriData = await kategoriMuatan.findOne({
             where: { id_kategori_muatan: req.params.id },
-            attributes: ['nama_kategori_muatan']
+            attributes: ['nama_kategori_muatan', 'createdAt']
         })
+
+        let kategoriDate = new Date(kategoriData.createdAt)
+        let now = new Date()
+
+        let dateDifference = Math.floor((now - kategoriDate) / (1000 * 60 * 60 * 24))
+
+        if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
+
         let result = await kategoriMuatan.destroy({ where: { id_kategori_muatan: req.params.id } })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })

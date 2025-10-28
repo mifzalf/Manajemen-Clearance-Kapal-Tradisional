@@ -72,8 +72,15 @@ const deleteNahkoda = async (req, res) => {
     try {
         let nahkodaData = await nahkoda.findOne({
             where: { id_nahkoda: req.params.id },
-            attributes: ['nama_nahkoda']
+            attributes: ['nama_nahkoda', 'createdAt']
         })
+        let nahkodaDate = new Date(nahkodaData.createdAt)
+        let now = new Date()
+
+        let dateDifference = Math.floor((now - nahkodaDate) / (1000 * 60 * 60 * 24))
+
+        if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
+        console.log(dateDifference)
         let result = await nahkoda.destroy({where: {id_nahkoda: req.params.id}})
         
         if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})

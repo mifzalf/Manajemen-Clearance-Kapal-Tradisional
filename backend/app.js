@@ -17,6 +17,7 @@ var {
   muatan, 
   nahkoda, 
   perjalanan, 
+  pelabuhan,
   spb 
 } = require('./model/association')
 var verifyToken = require(`./middleware/jwt`)
@@ -35,6 +36,7 @@ var jenisRouter = require('./routes/jenis')
 var kategoriMuatanRouter = require('./routes/kategoriMuatan')
 var kapalRouter = require('./routes/kapal')
 var perjalananRouter = require('./routes/perjalanan')
+var pelabuhanRouter = require('./routes/pelabuhan')
 
 var app = express();
 
@@ -75,6 +77,7 @@ app.use('/jenis', jenisRouter);
 app.use('/kategori-muatan', kategoriMuatanRouter);
 app.use('/kapal', kapalRouter);
 app.use('/perjalanan', perjalananRouter);
+app.use('/pelabuhan', pelabuhanRouter);
 app.use('/log-user', logUserRouter);
 
 // catch 404 and forward to error handler

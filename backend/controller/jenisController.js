@@ -72,8 +72,16 @@ const deleteJenis = async (req, res) => {
     try {
         let jenisData = await jenis.findOne({
             where: { id_jenis: req.params.id },
-            attributes: ['nama_jenis']
+            attributes: ['nama_jenis', 'createdAt']
         })
+
+        let jenisDate = new Date(jenisData.createdAt)
+        let now = new Date()
+
+        let dateDifference = Math.floor((now - jenisDate) / (1000 * 60 * 60 * 24))
+
+        if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
+
         let result = await jenis.destroy({ where: { id_jenis: req.params.id } })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
