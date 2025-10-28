@@ -269,6 +269,7 @@ const storePerjalanan = async (req, res) => {
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
         let agenData = await agen.findByPk(req.body.id_agen)
+        let userData = await users.findByPk(req.user.id)
         let uniqueId = [
             req.body.id_datang_dari,
             req.body.id_tujuan_akhir,
@@ -290,7 +291,7 @@ const storePerjalanan = async (req, res) => {
 
         let spb = await spbController.storeSpb(req.body.spb.no_spb_asal, req.body.spb.no_spb, t)
 
-        let newPerjalanan = await perjalanan.create({ ...req.body, id_spb: spb.id_spb, id_user: req.user.id }, { transaction: t })
+        let newPerjalanan = await perjalanan.create({ ...req.body, wilayah_kerja: userData.wilayah_kerja, id_spb: spb.id_spb, id_user: req.user.id }, { transaction: t })
 
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
@@ -337,6 +338,7 @@ const updatePerjalanan = async (req, res) => {
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
         let agenData = await agen.findByPk(req.body.id_agen)
+        let userData = await users.findByPk(req.user.id)
         let uniqueId = [
             req.body.id_datang_dari,
             req.body.id_tujuan_akhir,
@@ -358,7 +360,7 @@ const updatePerjalanan = async (req, res) => {
 
         await spbController.updateSpb(req.body.spb.no_spb_asal, req.body.spb.no_spb, perjalananData.id_spb, t)
 
-        let result = await perjalanan.update({ ...req.body }, { where: { id_perjalanan: req.params.id }, transaction: t })
+        let result = await perjalanan.update({ ...req.body, wilayah_kerja: userData.wilayah_kerja }, { where: { id_perjalanan: req.params.id }, transaction: t })
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
