@@ -96,7 +96,6 @@ const getPerjalananByFilter = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
-                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'], where: { wilayah_kerja: wilker.toLowerCase() } },
                 {
                     model: muatan,
                     as: "muatans",
@@ -236,7 +235,6 @@ const getPerjalananById = async (req, res) => {
                 { model: spb, attributes: ['no_spb', 'no_spb_asal'] },
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
-                { model: users, attributes: ['nama_lengkap', 'wilayah_kerja'] },
                 {
                     model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
                         { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
