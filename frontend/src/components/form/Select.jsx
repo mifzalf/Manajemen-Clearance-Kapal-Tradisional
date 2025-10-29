@@ -3,7 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 const Select = ({ options, value, onChange, name, id, required, direction = 'down' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
-  const selectedLabel = options.find(opt => opt.value === value)?.label || options[0]?.label;
+
+  const selectedLabel = options.find(opt => opt.value === value)?.label || 
+                       (options[0]?.value === '' ? options[0]?.label : 'Pilih Opsi');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -17,7 +19,23 @@ const Select = ({ options, value, onChange, name, id, required, direction = 'dow
 
   return (
     <div className="relative w-full" ref={selectRef}>
-      <select name={name} id={id} value={value} onChange={onChange} required={required} className="hidden">
+      <select 
+        name={name} 
+        id={id} 
+        value={value} 
+        required={required} 
+        onChange={onChange}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: -1 
+        }}
+      >
         {options.map(option => (
           <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
@@ -32,18 +50,21 @@ const Select = ({ options, value, onChange, name, id, required, direction = 'dow
       >
         {selectedLabel}
       </button>
+
       {isOpen && (
         <div 
           className={`absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg
             ${direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}
           `}
         >
-          <ul className="py-1">
-            {options.map(option => (
-              !option.disabled && (
+          <ul className="py-1 max-h-60 overflow-y-auto">
+            {options.map((option, index) => (
+              (!option.disabled || index === 0) && (
                 <li
                   key={option.value}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  className={`px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer ${
+                    option.value === value ? 'bg-gray-100 font-medium' : ''
+                  }`}
                   onClick={() => {
                     onChange({ target: { name, value: option.value } });
                     setIsOpen(false);
