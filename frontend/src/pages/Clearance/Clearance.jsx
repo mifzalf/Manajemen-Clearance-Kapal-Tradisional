@@ -394,7 +394,7 @@ function Clearance() {
                                     Ekspor
                                 </button>
                                 {isExportOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border z-20"> {/* Lebar disesuaikan */}
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border z-20">
                                         <ul className="p-1">
                                             <li onClick={exportXLSX} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                                                 Ekspor Clearance (XLSX)

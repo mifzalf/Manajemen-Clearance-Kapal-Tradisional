@@ -3,25 +3,6 @@ import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
 
-const StatusBadge = ({ status }) => {
-    let styleClass = '';
-    switch (String(status).toLowerCase()) {
-        case 'berbahaya':
-            styleClass = 'bg-red-100 text-red-800';
-            break;
-        case 'umum':
-            styleClass = 'bg-blue-100 text-blue-800';
-            break;
-        default:
-            styleClass = 'bg-gray-100 text-gray-800';
-    }
-    return (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${styleClass}`}>
-            {status}
-        </span>
-    );
-};
-
 const ActionDropdown = ({ item, onEdit, onDelete }) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef(null);
@@ -48,37 +29,23 @@ const ActionDropdown = ({ item, onEdit, onDelete }) => {
     );
 };
 
-const MuatanTable = ({ muatanItems = [], jenisList = [], onEdit, onDelete }) => {
-    
-    const getJenisMuatanName = (jenisId) => {
-        const jenis = jenisList.find(j => j.id_jenis_muatan === jenisId);
-        return jenis ? jenis.nama_jenis_muatan : '-';
-    };
-
+const JenisMuatanTable = ({ data = [], onEdit, onDelete }) => {
     return (
         <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                     <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">No.</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kategori</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Muatan</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Kategori</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Jenis Muatan</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {muatanItems.length > 0 ? (
-                        muatanItems.map((item, index) => (
-                            <tr key={item.id_kategori_muatan} className="hover:bg-gray-50">
+                    {data.length > 0 ? (
+                        data.map((item, index) => (
+                            <tr key={item.id_jenis_muatan} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index + 1}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nama_kategori_muatan}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {getJenisMuatanName(item.id_jenis_muatan)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                    <StatusBadge status={item.status_kategori_muatan} />
-                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nama_jenis_muatan}</td>
                                 <td className="px-6 py-4 flex justify-end">
                                     <ActionDropdown item={item} onEdit={onEdit} onDelete={onDelete} />
                                 </td>
@@ -86,8 +53,8 @@ const MuatanTable = ({ muatanItems = [], jenisList = [], onEdit, onDelete }) => 
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
-                                Tidak ada data kategori muatan yang tersedia.
+                            <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                                Tidak ada data jenis muatan yang tersedia.
                             </td>
                         </tr>
                     )}
@@ -97,4 +64,4 @@ const MuatanTable = ({ muatanItems = [], jenisList = [], onEdit, onDelete }) => 
     );
 };
 
-export default MuatanTable;
+export default JenisMuatanTable;

@@ -12,17 +12,14 @@ const Step1DataKapal = ({
 
     const handleChange = (e) => {
         let { name, value } = e.target;
-        // Validasi input angka
         if (name === 'no_urut' || name === 'no_spb' || name === 'jumlah_crew') {
             if (value !== '' && !/^[0-9]*$/.test(value)) {
                 return;
             }
         }
-        // Penanganan input kapal
         if (name === 'kapalId') {
             handleKapalChange(value);
         }
-        // Penanganan input SPB (nested object)
         else if (name === "no_spb_asal" || name === "no_spb") {
             setFormData(prev => ({
                 ...prev,
@@ -32,31 +29,26 @@ const Step1DataKapal = ({
                 }
             }));
         }
-        // Penanganan input lainnya
         else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
-
-    // Validasi form sebelum ke step berikutnya
     const handleNext = () => {
         const form = document.querySelector('form');
         if (!form.checkValidity()) {
-            form.reportValidity(); // Tampilkan pesan error browser
+            form.reportValidity(); 
             return;
         }
-        nextStep(); // Lanjut ke step 2 jika valid
+        nextStep();
     };
 
-    // Helper untuk membuat opsi select
     const createOptions = (items, placeholder) => [
-        { value: '', label: placeholder, disabled: true }, // Opsi placeholder
+        { value: '', label: placeholder, disabled: true }, 
         ...items.map(item => ({ value: item.id, label: item.nama }))
     ];
 
     return (
         <div className="space-y-6">
-            {/* --- Data Clearance --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Clearance</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -129,11 +121,11 @@ const Step1DataKapal = ({
                 <h3 className="text-lg font-semibold text-gray-800">Data Perjalanan</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div><Label htmlFor="kedudukanKapal">Kedudukan Kapal</Label><Select id="kedudukanKapal" name="id_kedudukan_kapal" value={formData.id_kedudukan_kapal || ''} onChange={handleChange} options={createOptions(kabupatenOptions, 'Pilih Kedudukan')} required /></div>
-                    <div><Label htmlFor="datangDari">Datang Dari (Kecamatan)</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
+                    <div><Label htmlFor="datangDari">Datang Dari</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
                     <div><Label htmlFor="tanggalDatang">Tanggal Datang</Label><InputField id="tanggalDatang" name="tanggal_datang" type="date" value={formData.tanggal_datang || ''} onChange={handleChange} required /></div>
 
                      <div>
-                        <Label htmlFor="sandarDi">Sandar Di (Pelabuhan)</Label>
+                        <Label htmlFor="sandarDi">Sandar Di</Label>
                         <Select
                             id="sandarDi"
                             name="id_sandar"
@@ -144,7 +136,7 @@ const Step1DataKapal = ({
                         />
                     </div>
                    <div>
-                        <Label htmlFor="tolakDari">Tolak Dari (Pelabuhan)</Label>
+                        <Label htmlFor="tolakDari">Tolak Dari</Label>
                         <Select
                             id="tolakDari"
                             name="id_tolak"
