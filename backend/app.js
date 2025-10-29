@@ -18,7 +18,9 @@ var {
   nahkoda, 
   perjalanan, 
   pelabuhan,
-  spb 
+  spb,
+  jenisMuatan,
+  pembayaran
 } = require('./model/association')
 var verifyToken = require(`./middleware/jwt`)
 
@@ -34,6 +36,7 @@ var kabupatenRouter = require('./routes/kabupaten')
 var kecamatanRouter = require('./routes/kecamatan')
 var jenisRouter = require('./routes/jenis')
 var kategoriMuatanRouter = require('./routes/kategoriMuatan')
+var jenisMuatanRouter = require('./routes/jenisMuatan')
 var kapalRouter = require('./routes/kapal')
 var perjalananRouter = require('./routes/perjalanan')
 var pelabuhanRouter = require('./routes/pelabuhan')
@@ -75,6 +78,7 @@ app.use('/kabupaten', kabupatenRouter);
 app.use('/kecamatan', kecamatanRouter);
 app.use('/jenis', jenisRouter);
 app.use('/kategori-muatan', kategoriMuatanRouter);
+app.use('/jenis-muatan', jenisMuatanRouter);
 app.use('/kapal', kapalRouter);
 app.use('/perjalanan', perjalananRouter);
 app.use('/pelabuhan', pelabuhanRouter);

@@ -14,6 +14,8 @@ const users = require("./userModel");
 const logUser = require("./logUserModel");
 const muatanKendaraan = require("./muatanKendaraanModel");
 const pelabuhan = require("./pelabuhanModel");
+const jenisMuatan = require("./jenisMuatanModel");
+const pembayaran = require("./pembayaranModel");
 
 jenis.hasMany(kapal, { foreignKey: "id_jenis", onDelete: "SET NULL", onUpdate: "CASCADE" })
 
@@ -75,9 +77,17 @@ agen.hasMany(perjalanan, { foreignKey: "id_agen", onDelete: "SET NULL", onUpdate
 
 perjalanan.belongsTo(agen, { foreignKey: "id_agen", onDelete: "SET NULL", onUpdate: "CASCADE" })
 
+perjalanan.hasMany(pembayaran, { as: "pembayaran", foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE" })
+
+pembayaran.belongsTo(perjalanan, { as: "pembayaran", foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE" })
+
 perjalanan.hasMany(muatan, { as: "muatans", foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE" })
 
 muatan.belongsTo(perjalanan, { foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE" })
+
+jenisMuatan.hasMany(kategoriMuatan, {foreignKey: "id_jenis_muatan", onDelete: "SET NULL", onUpdate: "CASCADE"})
+
+kategoriMuatan.belongsTo(jenisMuatan, {as: "jenis_muatan", foreignKey: "id_jenis_muatan", onDelete: "SET NULL", onUpdate: "CASCADE"})
 
 kategoriMuatan.hasMany(muatan, { foreignKey: "id_kategori_muatan", onDelete: "SET NULL", onUpdate: "CASCADE" })
 
@@ -88,4 +98,4 @@ perjalanan.hasMany(muatanKendaraan, { as: "muatan_kendaraan", foreignKey: "id_pe
 muatanKendaraan.belongsTo(perjalanan, { foreignKey: "id_perjalanan", onDelete: "CASCADE", onUpdate: "CASCADE" })
 
 
-module.exports = { agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, pelabuhan, spb, users, logUser }
+module.exports = { agen, kecamatan, kabupaten, negara, jenis, kapal, kategoriMuatan, muatan, nahkoda, perjalanan, pelabuhan, spb, users, logUser, pembayaran, jenisMuatan }

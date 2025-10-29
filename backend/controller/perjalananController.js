@@ -7,6 +7,7 @@ const { Op, Sequelize, literal, col, fn } = require("sequelize")
 const agen = require("../model/agenModel")
 let spbController = require("./spbController")
 let muatanController = require("./muatanController")
+let pembayaranController = require("./pembayaranController")
 const { db } = require("../config/db")
 const spb = require("../model/spbModel")
 const negara = require("../model/negaraModel")
@@ -17,6 +18,7 @@ const muatanKendaraan = require("../model/muatanKendaraanModel");
 const logUserController = require("./logUserController")
 const users = require("../model/userModel")
 const pelabuhan = require("../model/pelabuhanModel")
+const jenisMuatan = require("../model/jenisMuatanModel")
 
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page, wilker } = req.query;
@@ -78,6 +80,7 @@ const getPerjalananByFilter = async (req, res) => {
         }
 
         const datas = await perjalanan.findAll({
+            order: [['id_perjalanan', 'DESC']],
             where: {
                 ...wherePerjalanan,
                 ...(perjalananIds ? { id_perjalanan: { [Op.in]: perjalananIds } } : {}),
@@ -106,7 +109,10 @@ const getPerjalananByFilter = async (req, res) => {
                             model: kategoriMuatan,
                             as: "kategori_muatan",
                             attributes: ["nama_kategori_muatan", "status_kategori_muatan"],
-                            where: (nama_muatan || kategori) ? whereKategoriMuatan : undefined
+                            where: (nama_muatan || kategori) ? whereKategoriMuatan : undefined,
+                            include: [{
+                                model: jenisMuatan, as: "jenis_muatan", attributes: ['nama_jenis_muatan']
+                            }]
                         }
                     ]
                 },
@@ -175,6 +181,7 @@ const getPerjalanan = async (req, res) => {
 
         const datas = await perjalanan.findAll({
             subQuery: false,
+            order: [['id_perjalanan', 'DESC']],
             include: [
                 {
                     model: kapal, attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'], include: [
@@ -190,7 +197,9 @@ const getPerjalanan = async (req, res) => {
                         {
                             model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'], where: {
                                 status_kategori_muatan: { [Op.like]: `%${search}%` }
-                            }
+                            }, include: [{
+                                model: jenisMuatan, as: "jenis_muatan", attributes: ['nama_jenis_muatan']
+                            }]
                         }
                     ]
                 },
@@ -225,6 +234,7 @@ const getPerjalananById = async (req, res) => {
 
         let id = req.params.id
         let data = await perjalanan.findByPk(id, {
+            order: [['id_perjalanan', 'DESC']],
             include: [
                 {
                     model: kapal, attributes: ['nama_kapal', 'gt', 'nt', 'nomor_selar', 'tanda_selar', 'nomor_imo', 'call_sign'], include: [
@@ -237,8 +247,12 @@ const getPerjalananById = async (req, res) => {
                 { model: agen, attributes: ['nama_agen'] },
                 {
                     model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
-                        { model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'] }
-                    ]
+                        {
+                            model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'], include: [{
+                                model: jenisMuatan, as: "jenis_muatan", attributes: ['nama_jenis_muatan']
+                            }]
+                        }
+                    ],
                 },
                 {
                     model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
@@ -264,7 +278,7 @@ const getPerjalananById = async (req, res) => {
 const storePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
-        let { muatan, muatan_kendaraan } = req.body
+        let { muatan, muatan_kendaraan, pembayaran } = req.body
         let kapalData = await kapal.findByPk(req.body.id_kapal)
         let nahkodaData = await nahkoda.findByPk(req.body.id_nahkoda)
         let kabupatenData = await kabupaten.findByPk(req.body.id_kedudukan_kapal)
@@ -293,6 +307,14 @@ const storePerjalanan = async (req, res) => {
 
         let newPerjalanan = await perjalanan.create({ ...req.body, wilayah_kerja: userData.wilayah_kerja, id_spb: spb.id_spb, id_user: req.user.id }, { transaction: t })
 
+        let filteredPembayaran = pembayaran.map(m => {
+            return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
+        })
+
+        if (pembayaran.length > 0) {
+            await pembayaranController.storePembayaran(filteredPembayaran, t)
+        }
+
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: newPerjalanan.id_perjalanan }
         })
@@ -307,7 +329,9 @@ const storePerjalanan = async (req, res) => {
 
         console.log(filteredMuatanKendaraan)
 
-        await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, { transaction: t });
+        if (muatan_kendaraan.length > 0) {
+            await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, { transaction: t });
+        }
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -328,7 +352,7 @@ const storePerjalanan = async (req, res) => {
 const updatePerjalanan = async (req, res) => {
     const t = await db.transaction()
     try {
-        let { muatan, muatan_kendaraan } = req.body
+        let { muatan, muatan_kendaraan, pembayaran } = req.body
         let perjalananData = await perjalanan.findByPk(req.params.id, {
             include: {
                 model: spb,
@@ -364,6 +388,11 @@ const updatePerjalanan = async (req, res) => {
 
         if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
+        let filteredPembayaran = pembayaran.map(m => {
+            return { ...m, id_perjalanan: req.params.id }
+        })
+        await pembayaranController.updatePembayaran(filteredPembayaran, req.params.id, t)
+
         let filteredMuatan = muatan.map(m => {
             return { ...m, id_perjalanan: req.params.id }
         })
@@ -377,7 +406,6 @@ const updatePerjalanan = async (req, res) => {
             console.log(filteredMuatanKendaraan)
             await muatanKendaraan.bulkCreate(filteredMuatanKendaraan, { transaction: t });
         }
-
 
         let log = await logUserController.storeLogUser(
             req.user.username,
