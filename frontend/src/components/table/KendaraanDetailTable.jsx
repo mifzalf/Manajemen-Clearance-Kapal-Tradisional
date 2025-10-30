@@ -1,3 +1,5 @@
+import React from 'react';
+
 const KendaraanDetailTable = ({ data = [] }) => {
   return (
     <div className="overflow-x-auto">
@@ -5,7 +7,10 @@ const KendaraanDetailTable = ({ data = [] }) => {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Golongan</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+            {/* [DIUBAH] Kolom jumlah dipecah */}
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ton</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">M³</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -14,13 +19,20 @@ const KendaraanDetailTable = ({ data = [] }) => {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 Golongan {item.golongan_kendaraan}
               </td>
+              {/* [DIUBAH] Menampilkan data ton, m3, unit */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                {item.jumlah_kendaraan?.toLocaleString('id-ID')} Unit
+                {item.ton?.toLocaleString('id-ID') || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                {item.m3?.toLocaleString('id-ID') || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                {item.unit?.toLocaleString('id-ID') || '-'}
               </td>
             </tr>
           )) : (
             <tr>
-              <td colSpan="2" className="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data kendaraan.</td>
+              <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data kendaraan.</td>
             </tr>
           )}
         </tbody>

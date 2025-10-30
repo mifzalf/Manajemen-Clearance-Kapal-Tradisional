@@ -16,7 +16,7 @@ const DetailClearance = () => {
     const [data, setData] = useState(null);
     const [activeTab, setActiveTab] = useState('barangDatang');
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-    const printRef = useRef(); // Ref untuk komponen printable
+    const printRef = useRef();
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -49,25 +49,22 @@ const DetailClearance = () => {
 
     if (!data) return <div className="p-6 text-center">Memuat data...</div>;
 
-    // Filter data untuk tabel
+    // [DIUBAH] Logika agregasi dihapus. Kita filter langsung.
+    // Data dari backend sudah memiliki kolom ton, m3, unit.
     const barangDatang = data.muatans?.filter(d => d.jenis_perjalanan === "datang") || [];
     const barangBerangkat = data.muatans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
     const kendaraanDatang = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "datang") || [];
     const kendaraanBerangkat = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "berangkat") || [];
 
-    // Ekstrak data pembayaran
     const pembayaranRambu = data.pembayaran?.find(p => p.tipe_pembayaran === 'rambu') || {};
     const pembayaranLabuh = data.pembayaran?.find(p => p.tipe_pembayaran === 'labuh') || {};
 
-    // Helper untuk styling tab
     const tabClass = (tabName) => `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tabName ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
     
-    // Helper format tanggal
     const formatDate = (dateString) => {
         return dateString ? new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
     };
     
-    // Helper format mata uang
     const formatCurrency = (value) => {
         return value ? `Rp ${Number(value).toLocaleString('id-ID')}` : '-';
     };
@@ -94,7 +91,6 @@ const DetailClearance = () => {
                         </div>
                     </div>
                     
-                    {/* Informasi Umum */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -113,11 +109,9 @@ const DetailClearance = () => {
                         </div>
                     </div>
 
-                    {/* Informasi Perjalanan (DIROMBAK) */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Perjalanan</h3>
                         
-                        {/* Sub-bagian Kedatangan */}
                         <div className="space-y-4">
                             <h4 className="text-md font-semibold text-gray-700">Kedatangan</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -128,7 +122,6 @@ const DetailClearance = () => {
                             </div>
                         </div>
 
-                        {/* Sub-bagian Keberangkatan */}
                         <div className="border-t pt-4 space-y-4">
                             <h4 className="text-md font-semibold text-gray-700">Keberangkatan</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -142,7 +135,6 @@ const DetailClearance = () => {
                         </div>
                     </div>
 
-                    {/* Informasi Pembayaran (BARU) */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Pembayaran</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -153,7 +145,6 @@ const DetailClearance = () => {
                         </div>
                     </div>
 
-                    {/* Detail Muatan (Tabs) */}
                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
                         <div className="border-b border-gray-200">
                             <nav className="-mb-px flex gap-x-4 px-4 overflow-x-auto" aria-label="Tabs">
@@ -175,13 +166,10 @@ const DetailClearance = () => {
                 </div>
             </div>
             
-            {/* Komponen untuk Print */}
             <div className="print-only">
-                {/* Pastikan ref dilewatkan ke PrintableSPB jika PrintableSPB menggunakan forwardRef */}
                 <PrintableSPB data={data} ref={printRef} />
             </div>
 
-            {/* Modal Konfirmasi Hapus */}
             <ConfirmationModal
                 isOpen={isConfirmOpen}
                 onClose={() => setIsConfirmOpen(false)}

@@ -3,7 +3,6 @@ import InputField from '../form/InputField';
 import Select from '../form/Select';
 import Button from '../ui/Button';
 
-// Step1DataKapal Component
 const Step1DataKapal = ({
     formData, setFormData, nextStep, handleKapalChange,
     kapalOptions, nahkodaOptions, kabupatenOptions,
@@ -13,22 +12,18 @@ const Step1DataKapal = ({
     const handleChange = (e) => {
         let { name, value } = e.target;
         
-        // Validasi input angka
         if (name === 'no_urut' || name === 'no_spb' || name === 'jumlah_crew') {
             if (value !== '' && !/^[0-9]*$/.test(value)) {
                 return;
             }
         }
-        // Validasi input nilai pembayaran
         if ((name === 'rambu_nilai' || name === 'labuh_nilai') && value !== '' && !/^[0-9]*$/.test(value)) {
             return;
         }
 
-        // Penanganan input kapal
         if (name === 'kapalId') {
             handleKapalChange(value);
         }
-        // Penanganan input SPB (nested object)
         else if (name === "no_spb_asal" || name === "no_spb") {
             setFormData(prev => ({
                 ...prev,
@@ -38,7 +33,6 @@ const Step1DataKapal = ({
                 }
             }));
         }
-        // Penanganan input pembayaran (nested object)
         else if (name === 'rambu_ntpn' || name === 'rambu_nilai') {
             const field = name.split('_')[1]; // 'ntpn' or 'nilai'
             setFormData(prev => ({
@@ -53,7 +47,6 @@ const Step1DataKapal = ({
                 pembayaran_labuh: { ...prev.pembayaran_labuh, [field]: value }
             }));
         }
-        // Penanganan input lainnya
         else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -68,13 +61,11 @@ const Step1DataKapal = ({
         nextStep();
     };
 
-    // Helper untuk opsi WAJIB (placeholder di-disable)
     const createOptions = (items, placeholder) => [
         { value: '', label: placeholder, disabled: true }, 
         ...items.map(item => ({ value: item.id, label: item.nama }))
     ];
 
-    // [BARU] Helper untuk opsi OPSIONAL (placeholder bisa dipilih kembali)
     const createOptionalOptions = (items, placeholder) => [
         { value: '', label: placeholder, disabled: false }, // disabled: false
         ...items.map(item => ({ value: item.id, label: item.nama }))
@@ -83,7 +74,6 @@ const Step1DataKapal = ({
 
     return (
         <div className="space-y-6">
-            {/* --- Data Clearance --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Clearance</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -130,7 +120,6 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
-            {/* --- Data Kapal & Awak --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Kapal & Awak</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -153,16 +142,13 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
-            {/* --- Data Perjalanan --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Perjalanan</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    {/* Baris 1: Kedatangan */}
                     <div><Label htmlFor="kedudukanKapal">Kedudukan Kapal</Label><Select id="kedudukanKapal" name="id_kedudukan_kapal" value={formData.id_kedudukan_kapal || ''} onChange={handleChange} options={createOptions(kabupatenOptions, 'Pilih Kedudukan')} required /></div>
                     <div><Label htmlFor="datangDari">Datang Dari (Kecamatan)</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
                     <div><Label htmlFor="tanggalDatang">Tanggal Datang</Label><InputField id="tanggalDatang" name="tanggal_datang" type="date" value={formData.tanggal_datang || ''} onChange={handleChange} required /></div>
 
-                    {/* Baris 2: Sandar & Tolak */}
                      <div>
                         <Label htmlFor="sandarDi">Sandar Di (Pelabuhan)</Label>
                         <Select
@@ -186,14 +172,10 @@ const Step1DataKapal = ({
                         />
                     </div>
                      <div></div>
-
-
-                    {/* Baris 3: Keberangkatan */}
                     <div><Label htmlFor="tujuanAkhir">Tujuan Akhir (Kecamatan)</Label><Select id="tujuanAkhir" name="id_tujuan_akhir" value={formData.id_tujuan_akhir || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Tujuan')} required /></div>
                     <div><Label htmlFor="tanggalBerangkat">Tanggal Berangkat</Label><InputField id="tanggalBerangkat" name="tanggal_berangkat" type="date" value={formData.tanggal_berangkat || ''} onChange={handleChange} required /></div>
                     <div><Label htmlFor="pukulKapalBerangkat">Pukul Berangkat</Label><InputField id="pukulKapalBerangkat" name="pukul_kapal_berangkat" type="time" value={formData.pukul_kapal_berangkat || ''} onChange={handleChange} required /></div>
 
-                    {/* Baris 4: Info Tambahan */}
                      <div>
                         <Label htmlFor="tempatSinggah">Pelabuhan Singgah Lanjutan (Opsional)</Label>
                         <Select
@@ -201,14 +183,12 @@ const Step1DataKapal = ({
                             name="id_tempat_singgah"
                             value={formData.id_tempat_singgah || ''}
                             onChange={handleChange}
-                            // [DIUBAH] Menggunakan helper opsional
                             options={createOptionalOptions(kecamatanOptions, 'Pilih Pelabuhan Lanjutan (Opsional)')}
                         />
                     </div>
                     <div className="md:col-span-2"><Label htmlFor="agenKapalId">Agen Kapal</Label><Select id="agenKapalId" name="id_agen" value={formData.id_agen || ''} onChange={handleChange} options={createOptions(agenOptions, 'Pilih Agen')} required /></div>
 
 
-                    {/* Baris 5: Status Muatan */}
                     <div>
                         <Label>Status Muatan Berangkat</Label>
                         <div className="flex gap-4 h-11 items-center">
@@ -219,11 +199,9 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
-            {/* --- Data Pembayaran (Opsional) --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Pembayaran (Opsional)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {/* Pembayaran Rambu */}
                     <div>
                         <Label htmlFor="rambu_ntpn">NTPN Rambu</Label>
                         <InputField
@@ -249,7 +227,6 @@ const Step1DataKapal = ({
                         />
                     </div>
                     
-                    {/* Pembayaran Labuh */}
                     <div>
                         <Label htmlFor="labuh_ntpn">NTPN Labuh</Label>
                         <InputField
@@ -277,7 +254,6 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
-            {/* --- Tombol Navigasi --- */}
             <div className="flex justify-end">
                 <Button type="button" onClick={handleNext}>
                     Berikutnya

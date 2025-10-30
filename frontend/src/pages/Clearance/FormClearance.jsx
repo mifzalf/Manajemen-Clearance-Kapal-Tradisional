@@ -43,6 +43,28 @@ const FormClearance = () => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState(initialState);
 
+    // [BARU] Helper untuk mengubah data dari backend (array terpisah) ke frontend (objek gabungan)
+    const mapMuatanToFrontend = (muatanList = [], type = 'barang') => {
+        const grouped = {};
+        const keyField = type === 'barang' ? 'id_kategori_muatan' : 'golongan_kendaraan';
+
+        muatanList.forEach(m => {
+            const key = m[keyField];
+            if (!grouped[key]) {
+                grouped[key] = {
+                    type: type,
+                    jenis_perjalanan: m.jenis_perjalanan,
+                    ...(type === 'barang' ? { id_kategori_muatan: m.id_kategori_muatan, kategori_muatan: m.kategori_muatan } : { golongan_kendaraan: m.golongan_kendaraan }),
+                    ton: m.ton || null, // Ambil data langsung
+                    m3: m.m3 || null,   // Ambil data langsung
+                    unit: m.unit || null, // Ambil data langsung
+                };
+            }
+        });
+        return Object.values(grouped);
+    };
+
+
     useEffect(() => {
         const fetchAllData = async () => {
             try {
@@ -56,7 +78,7 @@ const FormClearance = () => {
                     axiosInstance.get('/kapal'),
                     axiosInstance.get('/kecamatan'),
                     axiosInstance.get('/nahkoda'),
-                    axiosInstance.get('/kategori-muatan'),
+                    axiosInstance.get('/kategori-muatan'), // Memuat kategori untuk dropdown
                     axiosInstance.get('/pelabuhan') 
                 ]);
 
@@ -65,6 +87,7 @@ const FormClearance = () => {
                 setKapalData(kapalRes.data.datas.map(d => ({ nama: d.nama_kapal, id: d.id_kapal })));
                 setKecamatanData(kecamatanRes.data.datas.map(d => ({ nama: d.nama_kecamatan, id: d.id_kecamatan })));
                 setNahkodaData(nahkodaRes.data.datas.map(d => ({ nama: d.nama_nahkoda, id: d.id_nahkoda })));
+                // Pastikan ini mengembalikan array untuk dropdown
                 setKategoriMuatanData(kategoriMuatanRes.data.datas.map(d => ({ nama: d.nama_kategori_muatan, id: d.id_kategori_muatan })));
                 setPelabuhanData(pelabuhanRes.data.datas.map(d => ({ nama: d.nama_pelabuhan, id: d.id_pelabuhan })));
 
@@ -72,18 +95,15 @@ const FormClearance = () => {
                     const clearanceRes = await axiosInstance.get(`/perjalanan/${id}`);
                     const clearanceData = clearanceRes.data.data;
 
-                    const barang = (clearanceData.muatans || []).map(m => ({
-                        ...m,
-                        type: 'barang'
-                    }));
+                    // [DIUBAH] Gunakan helper baru untuk memetakan data
+                    const barangDatang = mapMuatanToFrontend(clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'datang'), 'barang');
+                    const barangBerangkat = mapMuatanToFrontend(clearanceData.muatans?.filter(m => m.jenis_perjalanan === 'berangkat'), 'barang');
+                    const kendaraanDatang = mapMuatanToFrontend(clearanceData.muatan_kendaraan?.filter(k => k.jenis_perjalanan === 'datang'), 'kendaraan');
+                    const kendaraanBerangkat = mapMuatanToFrontend(clearanceData.muatan_kendaraan?.filter(k => k.jenis_perjalanan === 'berangkat'), 'kendaraan');
 
-                    const kendaraan = (clearanceData.muatan_kendaraan || []).map(k => ({
-                        ...k,
-                        type: 'kendaraan'
-                    }));
-
-                    const allMuatan = [...barang, ...kendaraan];
-
+                    const allDatang = [...barangDatang, ...kendaraanDatang];
+                    const allBerangkat = [...barangBerangkat, ...kendaraanBerangkat];
+                    
                     const pembayaran_rambu = clearanceData.pembayaran?.find(p => p.tipe_pembayaran === 'rambu') || { ntpn: '', nilai: '' };
                     const pembayaran_labuh = clearanceData.pembayaran?.find(p => p.tipe_pembayaran === 'labuh') || { ntpn: '', nilai: '' };
 
@@ -91,8 +111,8 @@ const FormClearance = () => {
                         ...initialState,
                         ...clearanceData,
                         spb: clearanceData.spb || initialState.spb,
-                        barangDatang: allMuatan.filter(m => m.jenis_perjalanan === 'datang'),
-                        barangBerangkat: allMuatan.filter(m => m.jenis_perjalanan === 'berangkat'),
+                        barangDatang: allDatang,
+                        barangBerangkat: allBerangkat,
                         pembayaran_rambu: { ntpn: pembayaran_rambu.ntpn, nilai: pembayaran_rambu.nilai },
                         pembayaran_labuh: { ntpn: pembayaran_labuh.ntpn, nilai: pembayaran_labuh.nilai }
                     };
@@ -134,56 +154,72 @@ const FormClearance = () => {
             ...cleanData 
         } = formData;
         
-        if (cleanData.id_tempat_singgah === '') {
-            cleanData.id_tempat_singgah = null;
-        }
-        if (cleanData.id_tolak === '' || cleanData.id_tolak === null) { 
-            cleanData.id_tolak = null;
-        }
-        if (cleanData.id_sandar === '' || cleanData.id_sandar === null) {
-            cleanData.id_sandar = null;
-        }
-        if (cleanData.penumpang_naik === '') {
-            cleanData.penumpang_naik = null;
-        }
-        if (cleanData.penumpang_turun === '') {
-            cleanData.penumpang_turun = null;
-        }
+        if (cleanData.id_tempat_singgah === '') cleanData.id_tempat_singgah = null;
+        if (cleanData.id_tolak === '' || cleanData.id_tolak === null) cleanData.id_tolak = null;
+        if (cleanData.id_sandar === '' || cleanData.id_sandar === null) cleanData.id_sandar = null;
+        if (cleanData.penumpang_naik === '') cleanData.penumpang_naik = null;
+        if (cleanData.penumpang_turun === '') cleanData.penumpang_turun = null;
         
-        let allMuatan = [];
+        let allMuatanForm = [];
         if (formData.status_muatan_berangkat === 'NIHIL') {
-            allMuatan = [...formData.barangDatang];
+            allMuatanForm = [...formData.barangDatang];
         } else {
-            allMuatan = [...formData.barangBerangkat, ...formData.barangDatang];
+            allMuatanForm = [...formData.barangBerangkat, ...formData.barangDatang];
         }
-        const muatanBarang = allMuatan
-            .filter(m => m.type === 'barang')
-            .map(({ type, ...barang }) => barang);
-            
-        const muatanKendaraan = allMuatan
-            .filter(m => m.type === 'kendaraan')
-            .map(({ type, ...kendaraan }) => kendaraan); 
 
+        // [LOGIKA DIUBAH TOTAL]
+        const muatanBarangBackend = [];
+        const muatanKendaraanBackend = [];
+
+        // Helper untuk mengubah nilai kosong/0 menjadi null
+        const parseNumeric = (val) => (val ? parseFloat(val) : null);
+
+        allMuatanForm.forEach(item => {
+            const ton = parseNumeric(item.ton);
+            const m3 = parseNumeric(item.m3);
+            const unit = parseNumeric(item.unit);
+
+            // Jika item adalah BARANG
+            if (item.type === 'barang') {
+                // Hanya kirim jika ada ID kategori
+                if (item.id_kategori_muatan) {
+                    muatanBarangBackend.push({
+                        jenis_perjalanan: item.jenis_perjalanan,
+                        id_kategori_muatan: item.id_kategori_muatan,
+                        ton: ton,
+                        m3: m3,
+                        unit: unit
+                    });
+                }
+            } 
+            // Jika item adalah KENDARAAN
+            else if (item.type === 'kendaraan') {
+                // Hanya kirim jika ada golongan
+                if (item.golongan_kendaraan) {
+                    muatanKendaraanBackend.push({
+                        jenis_perjalanan: item.jenis_perjalanan,
+                        golongan_kendaraan: item.golongan_kendaraan,
+                        ton: ton,
+                        m3: m3,
+                        unit: unit
+                    });
+                }
+            }
+        });
+            
+        // Proses Pembayaran
         const pembayaran = [];
         if (pembayaran_rambu.ntpn && pembayaran_rambu.nilai) {
-            pembayaran.push({
-                tipe_pembayaran: 'rambu',
-                ntpn: pembayaran_rambu.ntpn,
-                nilai: parseFloat(pembayaran_rambu.nilai)
-            });
+            pembayaran.push({ tipe_pembayaran: 'rambu', ntpn: pembayaran_rambu.ntpn, nilai: parseFloat(pembayaran_rambu.nilai) });
         }
         if (pembayaran_labuh.ntpn && pembayaran_labuh.nilai) {
-            pembayaran.push({
-                tipe_pembayaran: 'labuh',
-                ntpn: pembayaran_labuh.ntpn,
-                nilai: parseFloat(pembayaran_labuh.nilai)
-            });
+            pembayaran.push({ tipe_pembayaran: 'labuh', ntpn: pembayaran_labuh.ntpn, nilai: parseFloat(pembayaran_labuh.nilai) });
         }
 
         const newData = {
             ...cleanData,
-            muatan: muatanBarang,
-            muatan_kendaraan: muatanKendaraan,
+            muatan: muatanBarangBackend, // Data baru (format sudah benar)
+            muatan_kendaraan: muatanKendaraanBackend, // Data baru (format sudah benar)
             pembayaran: pembayaran
         };
 

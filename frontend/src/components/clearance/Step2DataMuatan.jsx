@@ -4,13 +4,6 @@ import InputField from '../form/InputField';
 import Button from '../ui/Button';
 
 const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => {
-  const satuanOptions = [
-    { value: '', label: 'Pilih Satuan'},
-    { value: 'Kg', label: 'Kg' },
-    { value: 'Ton', label: 'Ton' },
-    { value: 'Liter', label: 'Liter' },
-    { value: 'Unit', label: 'Unit' },
-  ];
 
   const golonganOptions = [
     { value: '', label: 'Pilih Golongan' },
@@ -21,29 +14,43 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
     { value: 'V', label: 'Golongan V' },
     { value: 'VI', label: 'Golongan VI' },
   ];
+
   const handleGlobalChange = (e) => {
     const { name, value } = e.target;
+    // Validasi input angka
+    if ((name === 'penumpang_naik' || name === 'penumpang_turun') && value !== '' && !/^[0-9]*$/.test(value)) {
+        return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
   const handleRowChange = (type, index, e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Validasi input angka untuk ton, m3, unit
+    if ((name === 'ton' || name === 'm3' || name === 'unit') && value !== '' && !/^[0-9]*\.?[0-9]*$/.test(value)) {
+        return; // Izinkan angka dan desimal (titik)
+    }
+
     const list = [...(formData[type] || [])];
     list[index] = { ...list[index], [name]: value };
     setFormData(prev => ({ ...prev, [type]: list }));
   };
+
   const removeRow = (type, index) => {
     const list = [...formData[type]];
     list.splice(index, 1);
     setFormData(prev => ({ ...prev, [type]: list }));
   };
+
   const addRow = (listType, itemType) => {
     const jenisPerjalanan = listType === 'barangDatang' ? 'datang' : 'berangkat';
     let newItem;
 
     if (itemType === 'kendaraan') {
-      newItem = { type: 'kendaraan', golongan_kendaraan: '', jumlah_kendaraan: '', jenis_perjalanan: jenisPerjalanan };
+      newItem = { type: 'kendaraan', golongan_kendaraan: '', ton: '', m3: '', unit: '', jenis_perjalanan: jenisPerjalanan };
     } else {
-      newItem = { type: 'barang', id_kategori_muatan: '', satuan_muatan: '', jumlah_muatan: '', jenis_perjalanan: jenisPerjalanan };
+      newItem = { type: 'barang', id_kategori_muatan: '', ton: '', m3: '', unit: '', jenis_perjalanan: jenisPerjalanan };
     }
 
     setFormData(prev => ({
@@ -51,58 +58,100 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
       [listType]: [...(prev[listType] || []), newItem]
     }));
   };
+
   const renderRow = (item, index, listType) => {
-    switch (item.type) {
-      case 'kendaraan':
-        return (
-          <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-end">
-            <div>
-              <Label>Kendaraan</Label>
-              <div className="h-11 flex items-center px-3 border rounded-lg bg-gray-100 text-gray-600">Unit Kendaraan</div>
-            </div>
-            <div>
-              <Label>Golongan</Label>
-              <Select name="golongan_kendaraan" value={item.golongan_kendaraan || ''} onChange={e => handleRowChange(listType, index, e)} options={golonganOptions} required />
-            </div>
-            <div>
-              <Label>Jumlah</Label>
-              <InputField name="jumlah_kendaraan" type="number" value={item.jumlah_kendaraan || ''} onChange={e => handleRowChange(listType, index, e)} required />
-            </div>
-            <button type="button" onClick={() => removeRow(listType, index)} className="bg-red-500 text-white px-3 py-2 rounded-md h-11">Hapus</button>
-          </div>
-        );
-      default:
-        return (
-          <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-end">
-            <div>
-              <Label>Nama Muatan</Label>
-              <Select name="id_kategori_muatan" value={item.id_kategori_muatan || ''} onChange={e => handleRowChange(listType, index, e)} options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} required />
-            </div>
-            <div>
-              <Label>Satuan</Label>
-              <Select name="satuan_muatan" value={item.satuan_muatan || ''} onChange={e => handleRowChange(listType, index, e)} options={satuanOptions} required />
-            </div>
-            <div>
-              <Label>Jumlah</Label>
-              <InputField name="jumlah_muatan" type="number" value={item.jumlah_muatan || ''} onChange={e => handleRowChange(listType, index, e)} required />
-            </div>
-            <button type="button" onClick={() => removeRow(listType, index)} className="bg-red-500 text-white px-3 py-2 rounded-md h-11">Hapus</button>
-          </div>
-        );
-    }
+    const isKendaraan = item.type === 'kendaraan';
+    
+    return (
+      <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4 items-end">
+        {/* Kolom 1: Kategori atau Golongan */}
+        <div>
+          <Label>{isKendaraan ? 'Golongan Kendaraan' : 'Nama Muatan'}</Label>
+          {isKendaraan ? (
+            <Select 
+              name="golongan_kendaraan" 
+              value={item.golongan_kendaraan || ''} 
+              onChange={e => handleRowChange(listType, index, e)} 
+              options={golonganOptions} 
+              required 
+            />
+          ) : (
+            <Select 
+              name="id_kategori_muatan" 
+              value={item.id_kategori_muatan || ''} 
+              onChange={e => handleRowChange(listType, index, e)} 
+              options={[{value: '', label: 'Pilih Muatan'}, ...muatanOptions.map(k => ({value: k.id, label: k.nama}))]} 
+              required 
+            />
+          )}
+        </div>
+
+        {/* Kolom 2: Ton */}
+        <div>
+          <Label>Ton (Opsional)</Label>
+          <InputField 
+            name="ton" 
+            type="text" 
+            inputMode="decimal"
+            value={item.ton || ''} 
+            onChange={e => handleRowChange(listType, index, e)} 
+            placeholder="0"
+          />
+        </div>
+
+        {/* Kolom 3: M3 */}
+        <div>
+          <Label>M³ (Opsional)</Label>
+          <InputField 
+            name="m3" 
+            type="text" 
+            inputMode="decimal"
+            value={item.m3 || ''} 
+            onChange={e => handleRowChange(listType, index, e)} 
+            placeholder="0"
+          />
+        </div>
+
+        {/* Kolom 4: Unit */}
+        <div>
+          <Label>Unit (Opsional)</Label>
+          <InputField 
+            name="unit" 
+            type="text" 
+            inputMode="decimal"
+            value={item.unit || ''} 
+            onChange={e => handleRowChange(listType, index, e)} 
+            placeholder="0"
+          />
+        </div>
+        
+        {/* Kolom 5 & 6: Tombol Hapus */}
+        <div className="md:col-span-2">
+            <button 
+                type="button" 
+                onClick={() => removeRow(listType, index)} 
+                className="bg-red-500 text-white px-3 py-2 rounded-md h-11 w-full md:w-auto"
+            >
+                Hapus
+            </button>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-6">
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold text-gray-800">Data Muatan (Datang)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
-            <Label htmlFor="penumpang_turun">Jumlah Penumpang Turun</Label>
+            <Label htmlFor="penumpang_turun">Jumlah Penumpang Turun (Opsional)</Label>
             <InputField 
               name="penumpang_turun" 
               id="penumpang_turun" 
-              type="number" 
+              type="text" 
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={formData.penumpang_turun || ''} 
               onChange={handleGlobalChange} 
               placeholder="Jumlah orang" 
@@ -120,16 +169,19 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
             </button>
         </div>
       </div>
+      
       {formData.status_muatan_berangkat === 'SESUAI MANIFEST' && (
         <div className="border-b pb-4">
           <h3 className="text-lg font-semibold text-gray-800">Data Muatan (Berangkat)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-              <Label htmlFor="penumpang_naik">Jumlah Penumpang Naik</Label>
+              <Label htmlFor="penumpang_naik">Jumlah Penumpang Naik (Opsional)</Label>
               <InputField 
                 name="penumpang_naik" 
                 id="penumpang_naik" 
-                type="number" 
+                type="text" 
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={formData.penumpang_naik || ''} 
                 onChange={handleGlobalChange} 
                 placeholder="Jumlah orang" 
@@ -148,6 +200,7 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           </div>
         </div>
       )}
+      
       <div className="flex justify-between pt-4 border-t mt-6">
         <Button type="button" variant="secondary" onClick={prevStep}>Sebelumnya</Button>
         <Button type="submit">Simpan Clearance</Button>
