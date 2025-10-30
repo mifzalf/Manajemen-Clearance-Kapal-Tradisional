@@ -17,7 +17,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
 
   const handleGlobalChange = (e) => {
     const { name, value } = e.target;
-    // Validasi input angka
     if ((name === 'penumpang_naik' || name === 'penumpang_turun') && value !== '' && !/^[0-9]*$/.test(value)) {
         return;
     }
@@ -27,9 +26,8 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
   const handleRowChange = (type, index, e) => {
     let { name, value } = e.target;
 
-    // Validasi input angka untuk ton, m3, unit
     if ((name === 'ton' || name === 'm3' || name === 'unit') && value !== '' && !/^[0-9]*\.?[0-9]*$/.test(value)) {
-        return; // Izinkan angka dan desimal (titik)
+        return;
     }
 
     const list = [...(formData[type] || [])];
@@ -64,7 +62,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
     
     return (
       <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4 items-end">
-        {/* Kolom 1: Kategori atau Golongan */}
         <div>
           <Label>{isKendaraan ? 'Golongan Kendaraan' : 'Nama Muatan'}</Label>
           {isKendaraan ? (
@@ -86,7 +83,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           )}
         </div>
 
-        {/* Kolom 2: Ton */}
         <div>
           <Label>Ton (Opsional)</Label>
           <InputField 
@@ -99,7 +95,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           />
         </div>
 
-        {/* Kolom 3: M3 */}
         <div>
           <Label>M³ (Opsional)</Label>
           <InputField 
@@ -112,7 +107,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           />
         </div>
 
-        {/* Kolom 4: Unit */}
         <div>
           <Label>Unit (Opsional)</Label>
           <InputField 
@@ -125,7 +119,6 @@ const Step2DataMuatan = ({ formData, setFormData, prevStep, muatanOptions }) => 
           />
         </div>
         
-        {/* Kolom 5 & 6: Tombol Hapus */}
         <div className="md:col-span-2">
             <button 
                 type="button" 

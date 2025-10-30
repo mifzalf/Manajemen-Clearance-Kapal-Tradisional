@@ -8,7 +8,6 @@ import SearchBar from '../../components/common/SearchBar';
 import FilterDropdown from '../../components/common/FilterDropdown';
 import InputField from '../../components/form/InputField';
 import Pagination from '../../components/ui/Pagination';
-// import PrintableClearanceList from '../../components/clearance/PrintableClearanceList'; // Dihapus
 import axiosInstance from '../../api/axiosInstance';
 import { useAuth } from '../../context/AuthContext';
 
@@ -69,7 +68,6 @@ function Clearance() {
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
         const goods = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
         
-        // [DIUBAH] Mengambil data wilker dari item.wilayah_kerja
         const wilayahKerja = [...new Set(masterData.map(item => item.wilayah_kerja).filter(Boolean))];
 
         return { ships, categories, goods, wilayahKerja };
@@ -91,7 +89,6 @@ function Clearance() {
             const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
             const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
             
-            // [DIUBAH] Memfilter data wilker dari item.wilayah_kerja
             const wilayahMatch = !filters.selectedWilayah || item.wilayah_kerja === filters.selectedWilayah;
 
             return searchMatch && shipMatch && categoryMatch && goodsMatch && startDateMatch && endDateMatch && wilayahMatch;
@@ -146,7 +143,6 @@ function Clearance() {
         return n.toString();
     }
 
-    // Fungsi Ekspor Clearance (Excel)
     const exportXLSX = () => {
         let data = filteredData.map(d => {
             const {
@@ -183,6 +179,10 @@ function Clearance() {
             const bulanBerangkat = tanggalBerangkat.getMonth() + 1;
             const tahunBerangkat = tanggalBerangkat.getFullYear();
 
+            const tglBerangkatFormatted = tanggalBerangkat.toLocaleDateString('id-ID', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
             return {
                 "REGISTER BULAN": bulanClearance,
                 "ANGKA BULAN": angkaBulan,
@@ -216,14 +216,37 @@ function Clearance() {
                 "Agen": safeAgen.nama_agen || '-',
                 "TANGGAL CLEARANCE": tanggalOnlyClearance,
                 "PUKUL AGEN CLEARANCE": pukul_agen_clearance || '-',
-                "TANGGAL BERANGKAT": tanggalBerangkat,
+                "TANGGAL BERANGKAT": tglBerangkatFormatted,
                 "PUKUL KAPAL BERANGKAT": pukul_kapal_berangkat || '-',
                 "MUATAN BERANGKAT": status_muatan_berangkat || '-'
             }
         })
 
+        if (data.length === 0) {
+            toast.error("Tidak ada data untuk diekspor.");
+            setIsExportOpen(false);
+            return;
+        }
+
         console.log(data)
         const worksheet = XLSX.utils.json_to_sheet(data);
+
+        const headers = Object.keys(data[0]);
+        const colWidths = headers.map(header => {
+            let maxLength = header.length;
+            
+            data.forEach(row => {
+                const cellValue = row[header];
+                const cellLength = cellValue ? String(cellValue).length : 0;
+                if (cellLength > maxLength) {
+                    maxLength = cellLength;
+                }
+            });
+            return { wch: maxLength + 2 }; 
+        });
+
+        worksheet['!cols'] = colWidths;
+
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Clearance');
         XLSX.writeFile(workbook, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -231,137 +254,272 @@ function Clearance() {
         setIsExportOpen(false);
     };
 
-    const exportXLSX_BongkarMuat = () => {
-        console.log("Fungsi exportXLSX_BongkarMuat dipanggil (fokus alignment).");
-        const cargoColumnsTemplate = {
-            'BONGKAR - KOMODITI': null, 'BONGKAR - JENIS': null, 'BONGKAR - TON': null,
-            'BONGKAR - LITER': null, 'BONGKAR - UNIT': null, 'BONGKAR - ORANG': null,
-            'MUAT - KOMODITI': null, 'MUAT - JENIS': null, 'MUAT - TON': null,
-            'MUAT - LITER': null, 'MUAT - UNIT': null, 'MUAT - ORANG': null,
-        };
-        const orderedKeys = [
-            'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
-            'BONGKAR - KOMODITI', 'BONGKAR - JENIS', 'BONGKAR - TON', 'BONGKAR - LITER', 'BONGKAR - UNIT', 'BONGKAR - ORANG',
-            'MUAT - KOMODITI', 'MUAT - JENIS', 'MUAT - TON', 'MUAT - LITER', 'MUAT - UNIT', 'MUAT - ORANG'
-        ];
-        const headerRow1 = [
-            '', '', '', '', '', '',
-            'BONGKAR', '', '', '', '', '',
-            'MUAT', '', '', '', '', ''
-        ];
-        const headerRow2 = [
-            'Nomor SPB', 'Nama Kapal', 'Tujuan', 'Tgl Berangkat', 'Pukul Berangkat', 'Agen',
-            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG',
-            'KOMODITI', 'JENIS', 'TON', 'LITER', 'UNIT', 'ORANG'
-        ];
-        const dataAsAoA = [];
-        const merges = [
-            { s: { r: 0, c: 6 }, e: { r: 0, c: 11 } },
-            { s: { r: 0, c: 12 }, e: { r: 0, c: 17 } }
-        ];
-        let currentRowIndex = 2;
-        filteredData.forEach(perjalanan => {
-            const tglBerangkat = new Date(perjalanan.tanggal_berangkat);
-            const baseData = { 
-                'Nomor SPB': perjalanan.spb?.no_spb || '-',
-                'Nama Kapal': perjalanan.kapal?.nama_kapal || '-',
-                'Tujuan': perjalanan.tujuan_akhir?.nama_kecamatan || '-',
-                'Tgl Berangkat': tglBerangkat.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-                'Pukul Berangkat': perjalanan.pukul_kapal_berangkat || '-',
-                'Agen': perjalanan.agen?.nama_agen || '-',
-            };
-            const allCargo = [];
-            perjalanan.muatans?.forEach(m => allCargo.push({ ...m, item_type: 'muatan' }));
-            perjalanan.muatan_kendaraan?.forEach(k => allCargo.push({ ...k, item_type: 'kendaraan' }));
-            const groupStartRow = currentRowIndex;
-            if (allCargo.length === 0) {
-                const rowObject = { ...baseData, ...cargoColumnsTemplate };
-                const rowData = orderedKeys.map(key => rowObject[key] || null);
-                dataAsAoA.push(rowData);
-                currentRowIndex++;
-            } else {
-                allCargo.forEach(item => {
-                    let cargoData = { ...cargoColumnsTemplate };
-                    const isBongkar = item.jenis_perjalanan === 'datang';
-                    const prefix = isBongkar ? 'BONGKAR' : 'MUAT';
-
-                    if (item.item_type === 'muatan') {
-                        cargoData[`${prefix} - KOMODITI`] = item.kategori_muatan?.nama_kategori_muatan || '-';
-                        cargoData[`${prefix} - JENIS`] = item.kategori_muatan?.status_kategori_muatan || '-';
-                        if (item.satuan_muatan === 'TON') cargoData[`${prefix} - TON`] = item.jumlah_muatan;
-                        else if (item.satuan_muatan === 'LITER') cargoData[`${prefix} - LITER`] = item.jumlah_muatan;
-                        else if (item.satuan_muatan === 'UNIT') cargoData[`${prefix} - UNIT`] = item.jumlah_muatan;
-                        else if (item.satuan_muatan === 'ORANG') cargoData[`${prefix} - ORANG`] = item.jumlah_muatan;
-                    } else if (item.item_type === 'kendaraan') {
-                        cargoData[`${prefix} - KOMODITI`] = item.golongan_kendaraan || '-';
-                        cargoData[`${prefix} - JENIS`] = 'Kendaraan';
-                        cargoData[`${prefix} - UNIT`] = item.jumlah_kendaraan;
-                    }
-
-                    const rowObject = { ...baseData, ...cargoData };
-                    const rowData = orderedKeys.map(key => rowObject[key] || null);
-                    dataAsAoA.push(rowData);
-                    currentRowIndex++;
-                });
-            }
-
-            const groupEndRow = currentRowIndex - 1;
-            if (groupStartRow < groupEndRow) {
-                for (let col = 0; col <= 5; col++) {
-                    merges.push({ 
-                        s: { r: groupStartRow, c: col },
-                        e: { r: groupEndRow, c: col }
-                    });
-                }
-            }
-        });
-        if (dataAsAoA.length === 0) {
+const exportXLSX_BongkarMuat = () => {
+        if (filteredData.length === 0) {
             toast.error("Tidak ada data untuk diekspor.");
             setIsExportOpen(false);
             return;
         }
 
-        const finalAoA = [headerRow1, headerRow2, ...dataAsAoA];
-        const colWidths = [];
-        for (let i = 0; i < headerRow2.length; i++) {
-            colWidths[i] = 0;
-        }
-        finalAoA.forEach(row => {
-            row.forEach((cellContent, colIndex) => {
-                const length = cellContent ? String(cellContent).length : 0;
-                if (colWidths[colIndex] < length) {
-                    colWidths[colIndex] = length;
-                }
-            });
-        });
-        const wsCols = colWidths.map(width => ({ wch: width + 2 })); 
-        const worksheet = XLSX.utils.aoa_to_sheet(finalAoA);
-        worksheet['!merges'] = merges; 
-        worksheet['!cols'] = wsCols;
-        const numRows = finalAoA.length;
-        const numCols = headerRow2.length;
+        const formatDateTime = (dateStr, timeStr) => {
+            if (!dateStr) return null;
+            try {
+                const d = new Date(dateStr);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                const datePart = `${day}/${month}/${year}`;
+                const timePart = timeStr ? timeStr.substring(0, 5) : '';
+                return `${datePart} ${timePart}`.trim();
+            } catch (e) {
+                return null;
+            }
+        };
 
-        for (let r = 0; r < numRows; r++) {
+        const getPayment = (pembayaranArray, tipe) => {
+            const payment = pembayaranArray?.find(p => p.tipe_pembayaran === tipe) || {};
+            return {
+                ntpn: payment.ntpn || null,
+                nilai: payment.nilai ? Number(payment.nilai) : null
+            };
+        };
+
+        const aggregateCargo = (trip) => {
+            const allCargo = [];
+            trip.muatans?.forEach(m => allCargo.push({ ...m, type: 'barang' }));
+            trip.muatan_kendaraan?.forEach(k => allCargo.push({ ...k, type: 'kendaraan' }));
+            if (trip.penumpang_naik) {
+                allCargo.push({ type: 'penumpang', jenis_perjalanan: 'berangkat', jumlah_orang: Number(trip.penumpang_naik) });
+            }
+            if (trip.penumpang_turun) {
+                allCargo.push({ type: 'penumpang', jenis_perjalanan: 'datang', jumlah_orang: Number(trip.penumpang_turun) });
+            }
+            return allCargo;
+        };
+
+        const getCargoName = (cargoItem) => {
+            if (cargoItem.type === 'barang') return cargoItem.kategori_muatan?.nama_kategori_muatan || '-';
+            if (cargoItem.type === 'kendaraan') return `Kendaraan Gol. ${cargoItem.golongan_kendaraan}`;
+            if (cargoItem.type === 'penumpang') return 'Penumpang';
+            return '-';
+        };
+        
+        const getCargoJenis = (cargoItem) => {
+            if (cargoItem.type === 'barang') return cargoItem.kategori_muatan?.jenis_muatan?.nama_jenis_muatan || 'Barang';
+            if (cargoItem.type === 'kendaraan') return 'Unitized';
+            if (cargoItem.type === 'penumpang') return 'Orang';
+            return '-';
+        };
+
+        const headerMain = [
+            "NO", "NOMOR SPB ASAL", 
+            "KAPAL", null, null, null, null,
+            "TIBA", null,
+            "SANDAR",
+            "BERANGKAT", null,
+            "TOLAK",
+            "BONGKAR", null, null, null, null, null,
+            "MUAT", null, null, null, null, null,
+            "NOMOR SPB",
+            "LABUH", null,
+            "RAMBU", null,
+            "MUATAN",
+            "PERUSAHAAN"
+        ];
+        const headerDetail = [
+            "NO", "NOMOR SPB ASAL",
+            "NAMA KAPAL", "JENIS KAPAL", "GT", "CALL SIGN", "BENDERA",
+            "DARI", "TANGGAL",
+            "SANDAR",
+            "KE", "TANGGAL",
+            "TOLAK",
+            "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG",
+            "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG",
+            "NOMOR SPB",
+            "NTPN", "NILAI",
+            "NTPN", "NILAI",
+            "MUATAN",
+            "PERUSAHAAN"
+        ];
+
+        const dataRows = [];
+        const merges = [];
+        let runningRowIndex = 2;
+        
+        filteredData.forEach((trip, index) => {
+            const groupStartRow = runningRowIndex;
+            
+            const labuh = getPayment(trip.pembayaran, 'labuh');
+            const rambu = getPayment(trip.pembayaran, 'rambu');
+
+            let formattedSPB = '-';
+            if (trip.spb?.no_spb && trip.tanggal_clearance) {
+                const tglClearance = new Date(trip.tanggal_clearance);
+                const bulan = tglClearance.getMonth() + 1;
+                const tahun = tglClearance.getFullYear();
+                formattedSPB = `N.7 K.M.17 ${trip.spb.no_spb} ${bulan} ${tahun}`;
+            }
+
+            const baseData = [
+                index + 1,
+                trip.spb?.no_spb_asal || '-',
+                trip.kapal?.nama_kapal || '-',
+                trip.kapal?.jeni?.nama_jenis || '-',
+                trip.kapal?.gt ? Number(trip.kapal.gt) : null,
+                trip.kapal?.call_sign || '-',
+                trip.kapal?.bendera?.kode_negara || '-',
+                trip.datang_dari?.nama_kecamatan || '-',
+                formatDateTime(trip.tanggal_datang, null),
+                trip.sandar?.nama_pelabuhan || '-',
+                trip.tujuan_akhir?.nama_kecamatan || '-',
+                formatDateTime(trip.tanggal_berangkat, trip.pukul_kapal_berangkat),
+                trip.tolak?.nama_pelabuhan || '-',
+            ];
+
+            const endData = [
+                formattedSPB,
+                labuh.ntpn,
+                labuh.nilai,
+                rambu.ntpn,
+                rambu.nilai,
+                trip.status_muatan_berangkat || '-',
+                trip.agen?.nama_agen || '-'
+            ];
+            
+            const allCargo = aggregateCargo(trip);
+            const emptyCargoRow = Array(12).fill(null);
+
+            if (allCargo.length === 0) {
+                dataRows.push([...baseData, ...emptyCargoRow, ...endData]);
+                runningRowIndex++;
+            } else {
+                allCargo.forEach(cargo => {
+                    const cargoRow = Array(12).fill(null);
+                    if (cargo.jenis_perjalanan === 'datang') {
+                        cargoRow[0] = getCargoName(cargo);
+                        cargoRow[1] = getCargoJenis(cargo);
+                        cargoRow[2] = cargo.type === 'penumpang' ? null : (cargo.ton ? Number(cargo.ton) : null);
+                        cargoRow[3] = cargo.type === 'penumpang' ? null : (cargo.m3 ? Number(cargo.m3) : null);
+                        cargoRow[4] = cargo.type === 'penumpang' ? null : (cargo.unit ? Number(cargo.unit) : null);
+                        cargoRow[5] = cargo.type === 'penumpang' ? cargo.jumlah_orang : null;
+                    } else {
+                        cargoRow[6] = getCargoName(cargo);
+                        cargoRow[7] = getCargoJenis(cargo);
+                        cargoRow[8] = cargo.type === 'penumpang' ? null : (cargo.ton ? Number(cargo.ton) : null);
+                        cargoRow[9] = cargo.type === 'penumpang' ? null : (cargo.m3 ? Number(cargo.m3) : null);
+                        cargoRow[10] = cargo.type === 'penumpang' ? null : (cargo.unit ? Number(cargo.unit) : null);
+                        cargoRow[11] = cargo.type === 'penumpang' ? cargo.jumlah_orang : null;
+                    }
+                    dataRows.push([...baseData, ...cargoRow, ...endData]);
+                    runningRowIndex++;
+                });
+            }
+
+            const groupEndRow = runningRowIndex - 1;
+            if (groupStartRow < groupEndRow) {
+                for (let c = 0; c <= 12; c++) {
+                    merges.push({ s: { r: groupStartRow, c: c }, e: { r: groupEndRow, c: c } });
+                }
+                for (let c = 25; c <= 31; c++) {
+                    merges.push({ s: { r: groupStartRow, c: c }, e: { r: groupEndRow, c: c } });
+                }
+            }
+        });
+
+        const finalAoA = [headerMain, headerDetail, ...dataRows];
+        const worksheet = XLSX.utils.aoa_to_sheet(finalAoA);
+
+        merges.push(
+            { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
+            { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } },
+            { s: { r: 0, c: 9 }, e: { r: 1, c: 9 } },
+            { s: { r: 0, c: 12 }, e: { r: 1, c: 12 } },
+            { s: { r: 0, c: 25 }, e: { r: 1, c: 25 } },
+            { s: { r: 0, c: 30 }, e: { r: 1, c: 30 } },
+            { s: { r: 0, c: 31 }, e: { r: 1, c: 31 } },
+            { s: { r: 0, c: 2 }, e: { r: 0, c: 6 } },
+            { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } },
+            { s: { r: 0, c: 10 }, e: { r: 0, c: 11 } },
+            { s: { r: 0, c: 13 }, e: { r: 0, c: 18 } },
+            { s: { r: 0, c: 19 }, e: { r: 0, c: 24 } },
+            { s: { r: 0, c: 26 }, e: { r: 0, c: 27 } },
+            { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } }
+        );
+        worksheet['!merges'] = merges;
+        
+        const thinBorderStyle = { style: "thin", color: { auto: 1 } };
+        const border = {
+            top: thinBorderStyle,
+            bottom: thinBorderStyle,
+            left: thinBorderStyle,
+            right: thinBorderStyle
+        };
+        
+        const numCols = 32;
+        for (let r = 0; r < finalAoA.length; r++) {
             for (let c = 0; c < numCols; c++) {
                 const cellAddress = XLSX.utils.encode_cell({ r, c });
+                if (!worksheet[cellAddress]) {
+                    worksheet[cellAddress] = { t: 's', v: '' };
+                }
+                
                 const cell = worksheet[cellAddress];
                 
-                if (!cell) continue;
-                
                 if (!cell.s) cell.s = {};
+                cell.s.border = border;
                 
-                if (r < 2) {
-                    cell.s.alignment = { vertical: 'center', horizontal: 'center' };
-                } else {
-                    cell.s.alignment = { vertical: 'center', horizontal: 'right' };
+                cell.s.alignment = { vertical: 'center', horizontal: 'left' }; 
+
+                if (r < 2) { 
+                    cell.s.alignment.horizontal = 'center';
+                    cell.s.font = { bold: true }; 
                 }
             }
         }
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Bongkar Muat');
-        XLSX.writeFile(workbook, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        
+        const colWidths = [
+            { wch: 4 }, { wch: 18 },
+            { wch: 20 }, { wch: 15 }, { wch: 8 }, { wch: 10 }, { wch: 8 },
+            { wch: 15 }, { wch: 18 },
+            { wch: 20 },
+            { wch: 15 }, { wch: 18 },
+            { wch: 20 },
+            { wch: 18 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+            { wch: 18 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+            { wch: 20 },
+            { wch: 18 }, { wch: 12 },
+            { wch: 18 }, { wch: 12 },
+            { wch: 15 }, { wch: 25 }
+        ];
+        worksheet['!cols'] = colWidths;
 
-        toast.success("Ekspor Bongkar Muat berhasil!");
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Lengkap');
+        
+        const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' }); 
+
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+
+        const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+
+        toast.success("Ekspor Laporan Lengkap berhasil!");
         setIsExportOpen(false);
     };
 
@@ -394,19 +552,19 @@ function Clearance() {
                                     Ekspor
                                 </button>
                                 {isExportOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border z-20">
+                                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border z-20"> 
                                         <ul className="p-1">
                                             <li onClick={exportXLSX} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                                Ekspor Clearance (XLSX)
+                                                Ekspor Laporan Register (XLSX)
                                             </li>
                                             <li onClick={exportXLSX_BongkarMuat} className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                                Ekspor Bongkar Muat (XLSX)
+                                                Ekspor Laporan Bongkar Muat (XLSX)
                                             </li>
                                         </ul>
                                     </div>
                                 )}
                             </div>
-                            <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-7V00 transition-colors whitespace-nowrap">
+                            <Link to="/clearance/add" className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap">
                                 + Tambah Data
                             </Link>
                         </div>

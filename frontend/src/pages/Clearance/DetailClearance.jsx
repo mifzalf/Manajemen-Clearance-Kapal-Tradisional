@@ -49,8 +49,6 @@ const DetailClearance = () => {
 
     if (!data) return <div className="p-6 text-center">Memuat data...</div>;
 
-    // [DIUBAH] Logika agregasi dihapus. Kita filter langsung.
-    // Data dari backend sudah memiliki kolom ton, m3, unit.
     const barangDatang = data.muatans?.filter(d => d.jenis_perjalanan === "datang") || [];
     const barangBerangkat = data.muatans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
     const kendaraanDatang = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "datang") || [];

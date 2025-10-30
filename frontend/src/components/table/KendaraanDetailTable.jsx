@@ -7,7 +7,6 @@ const KendaraanDetailTable = ({ data = [] }) => {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Golongan</th>
-            {/* [DIUBAH] Kolom jumlah dipecah */}
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ton</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">M³</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
@@ -19,7 +18,6 @@ const KendaraanDetailTable = ({ data = [] }) => {
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 Golongan {item.golongan_kendaraan}
               </td>
-              {/* [DIUBAH] Menampilkan data ton, m3, unit */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                 {item.ton?.toLocaleString('id-ID') || '-'}
               </td>

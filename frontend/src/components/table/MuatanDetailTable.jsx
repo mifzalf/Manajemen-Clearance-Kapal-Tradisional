@@ -8,7 +8,6 @@ const MuatanDetailTable = ({ data = [] }) => {
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kategori Muatan</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Muatan</th>
-            {/* [DIUBAH] Kolom satuan dipecah */}
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ton</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">M³</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
@@ -23,7 +22,6 @@ const MuatanDetailTable = ({ data = [] }) => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {item.kategori_muatan?.jenis_muatan?.nama_jenis_muatan || '-'}
               </td>
-              {/* [DIUBAH] Menampilkan data ton, m3, unit */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                 {item.ton?.toLocaleString('id-ID') || '-'}
               </td>
