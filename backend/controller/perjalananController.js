@@ -27,11 +27,12 @@ const getPerjalananByFilter = async (req, res) => {
     try {
         const dataUser = await users.findByPk(req.user.id);
         let dataWilker = dataUser.wilayah_kerja;
-        if (wilker.toLowerCase() != dataWilker.toLowerCase() && dataWilker.toLowerCase() != "pusat")
+        if (wilker && wilker.toLowerCase() != dataWilker.toLowerCase() && dataWilker.toLowerCase() != "pusat")
             return res.status(500).json({ msg: "Tidak ada akses" });
 
         let wherePerjalanan = {};
         let whereKapal = {};
+        let whereMuatanKendaraan = {}
         let whereKategoriMuatan = {};
         let pagination = {};
 
@@ -40,6 +41,14 @@ const getPerjalananByFilter = async (req, res) => {
 
         if (nama_kapal) {
             whereKapal.nama_kapal = { [Op.like]: `%${nama_kapal}%` };
+        }
+
+        if (golongan_kendaraan) {
+            whereMuatanKendaraan.golongan_kendaraan = golongan_kendaraan;
+        }
+
+        if (wilker) {
+            wherePerjalanan.wilayah_kerja = { [Op.like]: `%${wilker}%` }
         }
 
         if (kategori) {
@@ -118,7 +127,11 @@ const getPerjalananByFilter = async (req, res) => {
                     ]
                 },
                 {
-                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"]
+                    model: muatanKendaraan, 
+                    as: "muatan_kendaraan", 
+                    required: true, 
+                    where: whereMuatanKendaraan,
+                    attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"]
                 },
                 { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
