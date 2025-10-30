@@ -23,7 +23,7 @@ const getKapalOptions = async (req, res) => {
 const getKapal = async (req, res) => {
     try {
         const datas = await kapal.findAll({
-            order: [['id_perjalanan', 'DESC']],
+            order: [['id_kapal', 'DESC']],
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {

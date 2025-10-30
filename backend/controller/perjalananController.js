@@ -22,7 +22,7 @@ const jenisMuatan = require("../model/jenisMuatanModel")
 const pembayaran = require("../model/pembayaranModel")
 
 const getPerjalananByFilter = async (req, res) => {
-    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page, wilker } = req.query;
+    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, golongan_kendaraan, limit, page, wilker } = req.query;
 
     try {
         const dataUser = await users.findByPk(req.user.id);
@@ -104,7 +104,7 @@ const getPerjalananByFilter = async (req, res) => {
                     model: muatan,
                     as: "muatans",
                     separate: true,
-                    attributes: ["jenis_perjalanan", "satuan_muatan", "jumlah_muatan"],
+                    attributes: ["jenis_perjalanan", "ton", "unit", "m3"],
                     include: [
                         {
                             model: kategoriMuatan,
@@ -118,7 +118,7 @@ const getPerjalananByFilter = async (req, res) => {
                     ]
                 },
                 {
-                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan']
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"]
                 },
                 { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
@@ -195,7 +195,7 @@ const getPerjalanan = async (req, res) => {
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
                 {
-                    model: muatan, as: "muatans", separate: true, attributes: ['jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                    model: muatan, as: "muatans", separate: true, attributes: ['jenis_perjalanan', "ton", "unit", "m3"], include: [
                         {
                             model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'], where: {
                                 status_kategori_muatan: { [Op.like]: `%${search}%` }
@@ -206,7 +206,7 @@ const getPerjalanan = async (req, res) => {
                     ]
                 },
                 {
-                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"],
                     where: {
                         golongan_kendaraan: { [Op.like]: `%${search}%` }
                     }
@@ -249,7 +249,7 @@ const getPerjalananById = async (req, res) => {
                 { model: nahkoda, attributes: ['nama_nahkoda'] },
                 { model: agen, attributes: ['nama_agen'] },
                 {
-                    model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', 'satuan_muatan', 'jumlah_muatan'], include: [
+                    model: muatan, as: "muatans", attributes: ['id_kategori_muatan', 'jenis_perjalanan', "ton", "unit", "m3"], include: [
                         {
                             model: kategoriMuatan, as: "kategori_muatan", attributes: ['nama_kategori_muatan', 'status_kategori_muatan'], include: [{
                                 model: jenisMuatan, as: "jenis_muatan", attributes: ['nama_jenis_muatan']
@@ -258,7 +258,7 @@ const getPerjalananById = async (req, res) => {
                     ],
                 },
                 {
-                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
+                    model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"],
                 },
                 { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },

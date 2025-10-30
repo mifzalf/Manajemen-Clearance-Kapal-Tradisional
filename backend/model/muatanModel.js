@@ -28,8 +28,9 @@ const muatan = db.define("muatan", {
         onUpdate: "CASCADE"
     },
     jenis_perjalanan: DataTypes.ENUM("berangkat", "datang"),
-    satuan_muatan: DataTypes.STRING,
-    jumlah_muatan: DataTypes.INTEGER
+    unit: DataTypes.INTEGER,
+    ton: DataTypes.INTEGER,
+    m3: DataTypes.INTEGER,
 }, 
 {
     freezeTableName: true

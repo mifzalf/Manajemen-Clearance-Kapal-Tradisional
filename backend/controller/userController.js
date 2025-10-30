@@ -27,7 +27,7 @@ const login = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const datas = await users.findAll({
-            order: [['id_perjalanan', 'DESC']],
+            order: [['id_user', 'DESC']],
             attributes: {
                 exclude: ['password']
             }

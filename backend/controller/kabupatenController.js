@@ -5,7 +5,7 @@ const logUserController = require("./logUserController")
 const getKabupaten = async (req, res) => {
     try {
         const datas = await kabupaten.findAll({
-            order: [['id_perjalanan', 'DESC']],
+            order: [['id_kabupaten', 'DESC']],
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {

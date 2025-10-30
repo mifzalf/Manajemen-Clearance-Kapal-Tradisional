@@ -4,7 +4,7 @@ const muatan = require("../model/muatanModel")
 const getMuatan = async (req, res) => {
     try {
         const datas = await muatan.findAll({
-            order: [['id_perjalanan', 'DESC']],
+            order: [['id_muatan', 'DESC']],
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
