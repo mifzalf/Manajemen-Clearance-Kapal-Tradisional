@@ -3,7 +3,9 @@ const logUserController = require("./logUserController")
 
 const getJenis = async (req, res) => {
     try {
-        const datas = await jenis.findAll()
+        const datas = await jenis.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)

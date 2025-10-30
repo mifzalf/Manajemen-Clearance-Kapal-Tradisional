@@ -3,7 +3,9 @@ const logUserController = require("./logUserController")
 
 const getAgen = async (req, res) => {
     try {
-        const datas = await agen.findAll()
+        const datas = await agen.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)

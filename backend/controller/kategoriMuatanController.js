@@ -29,7 +29,9 @@ const getKategoriMuatanOptions = async (req, res) => {
 
 const getKategoriMuatan = async (req, res) => {
     try {
-        const datas = await kategoriMuatan.findAll()
+        const datas = await kategoriMuatan.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)

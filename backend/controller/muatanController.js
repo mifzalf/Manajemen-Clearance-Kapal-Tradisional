@@ -3,7 +3,9 @@ const muatan = require("../model/muatanModel")
 
 const getMuatan = async (req, res) => {
     try {
-        const datas = await muatan.findAll()
+        const datas = await muatan.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
@@ -42,7 +44,7 @@ const updateMuatan = async (data, id_perjalanan, t) => {
     try {
         console.log(id_perjalanan)
         await muatan.destroy({ where: { id_perjalanan } })
-        if(data.length > 0) await muatan.bulkCreate(data, { transaction: t })
+        if (data.length > 0) await muatan.bulkCreate(data, { transaction: t })
     } catch (error) {
         console.log(error)
         throw new Error("terjadi kesalahan pada fungsi")

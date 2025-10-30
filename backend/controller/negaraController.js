@@ -3,8 +3,10 @@ const logUserController = require("./logUserController")
 
 const getNegara = async (req, res) => {
     try {
-        const datas = await negara.findAll()
-        return res.status(200).json({msg: "Berhasil mengambil data", datas})
+        const datas = await negara.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -15,10 +17,10 @@ const getNegaraById = async (req, res) => {
     try {
         let id = req.params.id
         let data = await negara.findByPk(id)
-        
-        if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
-            
-        return res.status(200).json({msg: "Berhasil mengambil data", data})
+
+        if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -27,7 +29,7 @@ const getNegaraById = async (req, res) => {
 
 const storeNegara = async (req, res) => {
     try {
-        await negara.create({...req.body})
+        await negara.create({ ...req.body })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -36,7 +38,7 @@ const storeNegara = async (req, res) => {
             `Menambah data negara ${req.body.nama_negara}`
         )
 
-        return res.status(200).json({msg: "Berhasil menambahkan data"})
+        return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -49,9 +51,9 @@ const updateNegara = async (req, res) => {
             where: { id_negara: req.params.id },
             attributes: ['nama_negara']
         })
-        let result = await negara.update({...req.body}, {where: {id_negara: req.params.id}})
+        let result = await negara.update({ ...req.body }, { where: { id_negara: req.params.id } })
 
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -61,7 +63,7 @@ const updateNegara = async (req, res) => {
                 negaraData.nama_negara : negaraData.nama_negara + "->" + req.body.nama_negara}`
         )
 
-        return res.status(200).json({msg: "Berhasil memperbarui data"})
+        return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -82,9 +84,9 @@ const deleteNegara = async (req, res) => {
 
         if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
 
-        let result = await negara.destroy({where: {id_negara: req.params.id}})
-        
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        let result = await negara.destroy({ where: { id_negara: req.params.id } })
+
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -93,11 +95,11 @@ const deleteNegara = async (req, res) => {
             `Menghapus data negara ${negaraData.nama_negara}`
         )
 
-        return res.status(200).json({msg: "Berhasil menghapus data"})
+        return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
-module.exports = {getNegara, getNegaraById, storeNegara, updateNegara, deleteNegara}
+module.exports = { getNegara, getNegaraById, storeNegara, updateNegara, deleteNegara }

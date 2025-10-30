@@ -4,8 +4,10 @@ const logUserController = require("./logUserController")
 
 const getKabupaten = async (req, res) => {
     try {
-        const datas = await kabupaten.findAll()
-        return res.status(200).json({msg: "Berhasil mengambil data", datas})
+        const datas = await kabupaten.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -16,10 +18,10 @@ const getKabupatenById = async (req, res) => {
     try {
         let id = req.params.id
         let data = await kabupaten.findByPk(id)
-        
-        if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
-            
-        return res.status(200).json({msg: "Berhasil mengambil data", data})
+
+        if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -29,9 +31,9 @@ const getKabupatenById = async (req, res) => {
 const storeKabupaten = async (req, res) => {
     try {
         let data = await provinsi.findByPk(req.body.id_provinsi)
-        if(!data) return res.status(500).json({msg: "data provinsi tidak ditemukan"})
-            
-        await kabupaten.create({...req.body})
+        if (!data) return res.status(500).json({ msg: "data provinsi tidak ditemukan" })
+
+        await kabupaten.create({ ...req.body })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -40,7 +42,7 @@ const storeKabupaten = async (req, res) => {
             `Menambah data kabupaten ${req.body.nama_kabupaten}`
         )
 
-        return res.status(200).json({msg: "Berhasil menambahkan data"})
+        return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -53,9 +55,9 @@ const updateKabupaten = async (req, res) => {
             where: { id_kabupaten: req.params.id },
             attributes: ['nama_kabupaten']
         })
-        let result = await kabupaten.update({...req.body}, {where: {id_kabupaten: req.params.id}})
+        let result = await kabupaten.update({ ...req.body }, { where: { id_kabupaten: req.params.id } })
 
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -65,7 +67,7 @@ const updateKabupaten = async (req, res) => {
                 kabupatenData.nama_kabupaten : kabupatenData.nama_kabupaten + "->" + req.body.nama_kabupaten}`
         )
 
-        return res.status(200).json({msg: "Berhasil memperbarui data"})
+        return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -86,9 +88,9 @@ const deleteKabupaten = async (req, res) => {
 
         if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
 
-        let result = await kabupaten.destroy({where: {id_kabupaten: req.params.id}})
-        
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        let result = await kabupaten.destroy({ where: { id_kabupaten: req.params.id } })
+
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -97,11 +99,11 @@ const deleteKabupaten = async (req, res) => {
             `Menghapus data kabupaten ${kabupatenData.nama_kabupaten}`
         )
 
-        return res.status(200).json({msg: "Berhasil menghapus data"})
+        return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
-module.exports = {getKabupaten, getKabupatenById, storeKabupaten, updateKabupaten, deleteKabupaten}
+module.exports = { getKabupaten, getKabupatenById, storeKabupaten, updateKabupaten, deleteKabupaten }

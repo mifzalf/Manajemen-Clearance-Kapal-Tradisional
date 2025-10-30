@@ -3,8 +3,10 @@ const logUserController = require("./logUserController")
 
 const getNahkoda = async (req, res) => {
     try {
-        const datas = await nahkoda.findAll()
-        return res.status(200).json({msg: "Berhasil mengambil data", datas})
+        const datas = await nahkoda.findAll({
+            order: [['id_perjalanan', 'DESC']],
+        })
+        return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -15,10 +17,10 @@ const getNahkodaById = async (req, res) => {
     try {
         let id = req.params.id
         let data = await nahkoda.findByPk(id)
-        
-        if(data == null) return res.status(500).json({msg: "data tidak ditemukan"})
-            
-        return res.status(200).json({msg: "Berhasil mengambil data", data})
+
+        if (data == null) return res.status(500).json({ msg: "data tidak ditemukan" })
+
+        return res.status(200).json({ msg: "Berhasil mengambil data", data })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -27,7 +29,7 @@ const getNahkodaById = async (req, res) => {
 
 const storeNahkoda = async (req, res) => {
     try {
-        await nahkoda.create({...req.body})
+        await nahkoda.create({ ...req.body })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -36,7 +38,7 @@ const storeNahkoda = async (req, res) => {
             `Menambah data nahkoda ${req.body.nama_nahkoda}`
         )
 
-        return res.status(200).json({msg: "Berhasil menambahkan data"})
+        return res.status(200).json({ msg: "Berhasil menambahkan data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -49,9 +51,9 @@ const updateNahkoda = async (req, res) => {
             where: { id_nahkoda: req.params.id },
             attributes: ['nama_nahkoda']
         })
-        let result = await nahkoda.update({...req.body}, {where: {id_nahkoda: req.params.id}})
+        let result = await nahkoda.update({ ...req.body }, { where: { id_nahkoda: req.params.id } })
 
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -61,7 +63,7 @@ const updateNahkoda = async (req, res) => {
                 nahkodaData.nama_nahkoda : nahkodaData.nama_nahkoda + "->" + req.body.nama_nahkoda}`
         )
 
-        return res.status(200).json({msg: "Berhasil memperbarui data"})
+        return res.status(200).json({ msg: "Berhasil memperbarui data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
@@ -81,9 +83,9 @@ const deleteNahkoda = async (req, res) => {
 
         if (dateDifference > 10) return res.status(500).json({ msg: "data tidak bisa dihapus" })
         console.log(dateDifference)
-        let result = await nahkoda.destroy({where: {id_nahkoda: req.params.id}})
-        
-        if (result == 0) return res.status(500).json({msg: "data tidak ditemukan"})
+        let result = await nahkoda.destroy({ where: { id_nahkoda: req.params.id } })
+
+        if (result == 0) return res.status(500).json({ msg: "data tidak ditemukan" })
 
         let log = await logUserController.storeLogUser(
             req.user.username,
@@ -92,11 +94,11 @@ const deleteNahkoda = async (req, res) => {
             `Menghapus data nahkoda ${nahkodaData.nama_nahkoda}`
         )
 
-        return res.status(200).json({msg: "Berhasil menghapus data"})
+        return res.status(200).json({ msg: "Berhasil menghapus data" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ msg: "terjadi kesalahan pada fungsi" })
     }
 }
 
-module.exports = {getNahkoda, getNahkodaById, storeNahkoda, updateNahkoda, deleteNahkoda}
+module.exports = { getNahkoda, getNahkodaById, storeNahkoda, updateNahkoda, deleteNahkoda }

@@ -19,6 +19,7 @@ const logUserController = require("./logUserController")
 const users = require("../model/userModel")
 const pelabuhan = require("../model/pelabuhanModel")
 const jenisMuatan = require("../model/jenisMuatanModel")
+const pembayaran = require("../model/pembayaranModel")
 
 const getPerjalananByFilter = async (req, res) => {
     let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, limit, page, wilker } = req.query;
@@ -119,6 +120,7 @@ const getPerjalananByFilter = async (req, res) => {
                 {
                     model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan']
                 },
+                { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
                 { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
@@ -209,6 +211,7 @@ const getPerjalanan = async (req, res) => {
                         golongan_kendaraan: { [Op.like]: `%${search}%` }
                     }
                 },
+                { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
                 { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
@@ -257,6 +260,7 @@ const getPerjalananById = async (req, res) => {
                 {
                     model: muatanKendaraan, as: "muatan_kendaraan", separate: true, attributes: ['jenis_perjalanan', 'golongan_kendaraan', 'jumlah_kendaraan'],
                 },
+                { model: pembayaran, as: "pembayaran", attributes: ['ntpn', 'nilai', 'tipe_pembayaran'] },
                 { model: pelabuhan, as: "tolak", attributes: ['nama_pelabuhan'] },
                 { model: pelabuhan, as: "sandar", attributes: ['nama_pelabuhan'] },
                 { model: kabupaten, as: "kedudukan_kapal", attributes: ['nama_kabupaten'] },
