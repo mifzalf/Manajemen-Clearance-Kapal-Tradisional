@@ -65,15 +65,35 @@ function Clearance() {
         fetchInitialData();
     }, []);
 
+    // [DIUBAH] filterOptions sekarang menggabungkan barang dan kendaraan
     const filterOptions = useMemo(() => {
         const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
-        const goods = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)).filter(Boolean))].map(g => ({ value: g, label: g }));
+        
+        // 1. Dapatkan semua nama barang (muatan)
+        const goodsOptions = [...new Set(masterData.flatMap(item => 
+            (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)
+        ).filter(Boolean))].map(g => ({ value: `good_${g}`, label: g })); // good_Sembako
+
+        // 2. Tambahkan opsi statis untuk Golongan Kendaraan (sesuai permintaan "opsi dari semua golongan 1- 6")
+        const vehicleOptions = [
+            { value: 'vehicle_I', label: 'Golongan I' },
+            { value: 'vehicle_II', label: 'Golongan II' },
+            { value: 'vehicle_III', label: 'Golongan III' },
+            { value: 'vehicle_IV', label: 'Golongan IV' },
+            { value: 'vehicle_V', label: 'Golongan V' },
+            { value: 'vehicle_VI', label: 'Golongan VI' },
+        ];
+
+        // 3. Gabungkan keduanya
+        const goods = [...goodsOptions, ...vehicleOptions];
+        
         const wilayahKerja = [...new Set(masterData.map(item => item.wilayah_kerja).filter(Boolean))];
 
         return { ships, categories, goods, wilayahKerja };
     }, [masterData]);
 
+    // [DIUBAH] filteredData sekarang memfilter berdasarkan prefix 'good_' atau 'vehicle_'
     const filteredData = useMemo(() => {
         return masterData.filter(item => {
             const searchTerm = filters.searchTerm.toLowerCase();
@@ -86,7 +106,23 @@ function Clearance() {
 
             const shipMatch = !filters.selectedShip || item.kapal?.nama_kapal === filters.selectedShip;
             const categoryMatch = !filters.selectedCategory || item.muatans?.some(m => m.kategori_muatan?.status_kategori_muatan === filters.selectedCategory);
-            const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === sg.value));
+            
+            // Logika filter muatan/kendaraan yang baru
+            const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => {
+                // sg.value akan berisi "good_Sembako" atau "vehicle_I"
+                const [type, value] = sg.value.split('_'); 
+                
+                if (type === 'good') {
+                    // Cari di barang
+                    return item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === value);
+                }
+                if (type === 'vehicle') {
+                    // Cari di kendaraan
+                    return item.muatan_kendaraan?.some(k => k.golongan_kendaraan === value);
+                }
+                return false;
+            });
+
             const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
             const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
             
@@ -421,20 +457,20 @@ function Clearance() {
             worksheet.addRows([headerMain, headerDetail]);
 
             const merges = [
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
-                { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } }, 
-                { s: { r: 0, c: 9 }, e: { r: 1, c: 9 } }, 
-                { s: { r: 0, c: 12 }, e: { r: 1, c: 12 } }, 
-                { s: { r: 0, c: 25 }, e: { r: 1, c: 25 } }, 
-                { s: { r: 0, c: 30 }, e: { r: 1, c: 30 } }, 
-                { s: { r: 0, c: 31 }, e: { r: 1, c: 31 } }, 
-                { s: { r: 0, c: 2 }, e: { r: 0, c: 6 } }, 
-                { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }, 
-                { s: { r: 0, c: 10 }, e: { r: 0, c: 11 } }, 
-                { s: { r: 0, c: 13 }, e: { r: 0, c: 18 } }, 
-                { s: { r: 0, c: 19 }, e: { r: 0, c: 24 } }, 
-                { s: { r: 0, c: 26 }, e: { r: 0, c: 27 } }, 
-                { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } }
+                { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, // NO
+                { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } }, // SPB ASAL
+                { s: { r: 0, c: 9 }, e: { r: 1, c: 9 } }, // SANDAR
+                { s: { r: 0, c: 12 }, e: { r: 1, c: 12 } }, // TOLAK
+                { s: { r: 0, c: 25 }, e: { r: 1, c: 25 } }, // NOMOR SPB
+                { s: { r: 0, c: 30 }, e: { r: 1, c: 30 } }, // MUATAN
+                { s: { r: 0, c: 31 }, e: { r: 1, c: 31 } }, // PERUSAHAAN
+                { s: { r: 0, c: 2 }, e: { r: 0, c: 6 } }, // KAPAL (C-G)
+                { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }, // TIBA (H-I)
+                { s: { r: 0, c: 10 }, e: { r: 0, c: 11 } }, // BERANGKAT (K-L)
+                { s: { r: 0, c: 13 }, e: { r: 0, c: 18 } }, // BONGKAR (N-S)
+                { s: { r: 0, c: 19 }, e: { r: 0, c: 24 } }, // MUAT (T-Y)
+                { s: { r: 0, c: 26 }, e: { r: 0, c: 27 } }, // LABUH (AA-AB)
+                { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } }  // RAMBU (AC-AD)
             ];
 
             let runningRowIndex = 3;
@@ -681,7 +717,7 @@ function Clearance() {
                                     options={filterOptions.goods}
                                     className="basic-multi-select"
                                     classNamePrefix="select"
-                                    placeholder="Pilih satu atau lebih barang..."
+                                    placeholder="Pilih satu atau lebih barang/kendaraan..."
                                     value={filters.selectedGoods}
                                     onChange={(selectedOptions) => handleFilterChange('selectedGoods', selectedOptions || [])}
                                     styles={customStyles}
