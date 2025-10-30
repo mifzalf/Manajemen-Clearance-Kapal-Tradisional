@@ -12,12 +12,18 @@ const Step1DataKapal = ({
 
     const handleChange = (e) => {
         let { name, value } = e.target;
+        
         // Validasi input angka
         if (name === 'no_urut' || name === 'no_spb' || name === 'jumlah_crew') {
             if (value !== '' && !/^[0-9]*$/.test(value)) {
                 return;
             }
         }
+        // Validasi input nilai pembayaran
+        if ((name === 'rambu_nilai' || name === 'labuh_nilai') && value !== '' && !/^[0-9]*$/.test(value)) {
+            return;
+        }
+
         // Penanganan input kapal
         if (name === 'kapalId') {
             handleKapalChange(value);
@@ -32,27 +38,48 @@ const Step1DataKapal = ({
                 }
             }));
         }
+        // Penanganan input pembayaran (nested object)
+        else if (name === 'rambu_ntpn' || name === 'rambu_nilai') {
+            const field = name.split('_')[1]; // 'ntpn' or 'nilai'
+            setFormData(prev => ({
+                ...prev,
+                pembayaran_rambu: { ...prev.pembayaran_rambu, [field]: value }
+            }));
+        }
+        else if (name === 'labuh_ntpn' || name === 'labuh_nilai') {
+            const field = name.split('_')[1]; // 'ntpn' or 'nilai'
+            setFormData(prev => ({
+                ...prev,
+                pembayaran_labuh: { ...prev.pembayaran_labuh, [field]: value }
+            }));
+        }
         // Penanganan input lainnya
         else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    // Validasi form sebelum ke step berikutnya
     const handleNext = () => {
         const form = document.querySelector('form');
         if (!form.checkValidity()) {
-            form.reportValidity(); // Tampilkan pesan error browser
+            form.reportValidity(); 
             return;
         }
-        nextStep(); // Lanjut ke step 2 jika valid
+        nextStep();
     };
 
-    // Helper untuk membuat opsi select
+    // Helper untuk opsi WAJIB (placeholder di-disable)
     const createOptions = (items, placeholder) => [
-        { value: '', label: placeholder, disabled: true }, // Opsi placeholder
+        { value: '', label: placeholder, disabled: true }, 
         ...items.map(item => ({ value: item.id, label: item.nama }))
     ];
+
+    // [BARU] Helper untuk opsi OPSIONAL (placeholder bisa dipilih kembali)
+    const createOptionalOptions = (items, placeholder) => [
+        { value: '', label: placeholder, disabled: false }, // disabled: false
+        ...items.map(item => ({ value: item.id, label: item.nama }))
+    ];
+
 
     return (
         <div className="space-y-6">
@@ -103,6 +130,7 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
+            {/* --- Data Kapal & Awak --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Kapal & Awak</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -125,13 +153,16 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
+            {/* --- Data Perjalanan --- */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Data Perjalanan</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    {/* Baris 1: Kedatangan */}
                     <div><Label htmlFor="kedudukanKapal">Kedudukan Kapal</Label><Select id="kedudukanKapal" name="id_kedudukan_kapal" value={formData.id_kedudukan_kapal || ''} onChange={handleChange} options={createOptions(kabupatenOptions, 'Pilih Kedudukan')} required /></div>
                     <div><Label htmlFor="datangDari">Datang Dari (Kecamatan)</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
                     <div><Label htmlFor="tanggalDatang">Tanggal Datang</Label><InputField id="tanggalDatang" name="tanggal_datang" type="date" value={formData.tanggal_datang || ''} onChange={handleChange} required /></div>
 
+                    {/* Baris 2: Sandar & Tolak */}
                      <div>
                         <Label htmlFor="sandarDi">Sandar Di (Pelabuhan)</Label>
                         <Select
@@ -154,24 +185,30 @@ const Step1DataKapal = ({
                             required
                         />
                     </div>
-                     <div>
-                     </div>
+                     <div></div>
 
 
+                    {/* Baris 3: Keberangkatan */}
                     <div><Label htmlFor="tujuanAkhir">Tujuan Akhir (Kecamatan)</Label><Select id="tujuanAkhir" name="id_tujuan_akhir" value={formData.id_tujuan_akhir || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Tujuan')} required /></div>
                     <div><Label htmlFor="tanggalBerangkat">Tanggal Berangkat</Label><InputField id="tanggalBerangkat" name="tanggal_berangkat" type="date" value={formData.tanggal_berangkat || ''} onChange={handleChange} required /></div>
                     <div><Label htmlFor="pukulKapalBerangkat">Pukul Berangkat</Label><InputField id="pukulKapalBerangkat" name="pukul_kapal_berangkat" type="time" value={formData.pukul_kapal_berangkat || ''} onChange={handleChange} required /></div>
-                    <div>
+
+                    {/* Baris 4: Info Tambahan */}
+                     <div>
                         <Label htmlFor="tempatSinggah">Pelabuhan Singgah Lanjutan (Opsional)</Label>
                         <Select
                             id="tempatSinggah"
                             name="id_tempat_singgah"
                             value={formData.id_tempat_singgah || ''}
                             onChange={handleChange}
-                            options={createOptions(kecamatanOptions, 'Pilih Pelabuhan Lanjutan')}
+                            // [DIUBAH] Menggunakan helper opsional
+                            options={createOptionalOptions(kecamatanOptions, 'Pilih Pelabuhan Lanjutan (Opsional)')}
                         />
                     </div>
                     <div className="md:col-span-2"><Label htmlFor="agenKapalId">Agen Kapal</Label><Select id="agenKapalId" name="id_agen" value={formData.id_agen || ''} onChange={handleChange} options={createOptions(agenOptions, 'Pilih Agen')} required /></div>
+
+
+                    {/* Baris 5: Status Muatan */}
                     <div>
                         <Label>Status Muatan Berangkat</Label>
                         <div className="flex gap-4 h-11 items-center">
@@ -182,6 +219,65 @@ const Step1DataKapal = ({
                 </div>
             </div>
 
+            {/* --- Data Pembayaran (Opsional) --- */}
+            <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Data Pembayaran (Opsional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {/* Pembayaran Rambu */}
+                    <div>
+                        <Label htmlFor="rambu_ntpn">NTPN Rambu</Label>
+                        <InputField
+                            id="rambu_ntpn"
+                            name="rambu_ntpn"
+                            value={formData.pembayaran_rambu?.ntpn || ''}
+                            onChange={handleChange}
+                            type="text"
+                            placeholder="Masukkan NTPN Rambu"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="rambu_nilai">Nilai Rambu (Rp)</Label>
+                        <InputField
+                            id="rambu_nilai"
+                            name="rambu_nilai"
+                            value={formData.pembayaran_rambu?.nilai || ''}
+                            onChange={handleChange}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            title="Input harus berupa angka"
+                            placeholder="Contoh: 125000"
+                        />
+                    </div>
+                    
+                    {/* Pembayaran Labuh */}
+                    <div>
+                        <Label htmlFor="labuh_ntpn">NTPN Labuh</Label>
+                        <InputField
+                            id="labuh_ntpn"
+                            name="labuh_ntpn"
+                            value={formData.pembayaran_labuh?.ntpn || ''}
+                            onChange={handleChange}
+                            type="text"
+                            placeholder="Masukkan NTPN Labuh"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="labuh_nilai">Nilai Labuh (Rp)</Label>
+                        <InputField
+                            id="labuh_nilai"
+                            name="labuh_nilai"
+                            value={formData.pembayaran_labuh?.nilai || ''}
+                            onChange={handleChange}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            title="Input harus berupa angka"
+                            placeholder="Contoh: 250000"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* --- Tombol Navigasi --- */}
             <div className="flex justify-end">
                 <Button type="button" onClick={handleNext}>
                     Berikutnya

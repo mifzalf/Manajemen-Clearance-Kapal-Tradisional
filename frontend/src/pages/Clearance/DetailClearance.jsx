@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Helmet } from 'react-helmet-async';
@@ -16,6 +16,7 @@ const DetailClearance = () => {
     const [data, setData] = useState(null);
     const [activeTab, setActiveTab] = useState('barangDatang');
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const printRef = useRef(); // Ref untuk komponen printable
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -48,13 +49,28 @@ const DetailClearance = () => {
 
     if (!data) return <div className="p-6 text-center">Memuat data...</div>;
 
+    // Filter data untuk tabel
     const barangDatang = data.muatans?.filter(d => d.jenis_perjalanan === "datang") || [];
     const barangBerangkat = data.muatans?.filter(d => d.jenis_perjalanan === "berangkat") || [];
-    
     const kendaraanDatang = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "datang") || [];
     const kendaraanBerangkat = data.muatan_kendaraan?.filter(d => d.jenis_perjalanan === "berangkat") || [];
 
+    // Ekstrak data pembayaran
+    const pembayaranRambu = data.pembayaran?.find(p => p.tipe_pembayaran === 'rambu') || {};
+    const pembayaranLabuh = data.pembayaran?.find(p => p.tipe_pembayaran === 'labuh') || {};
+
+    // Helper untuk styling tab
     const tabClass = (tabName) => `whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tabName ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
+    
+    // Helper format tanggal
+    const formatDate = (dateString) => {
+        return dateString ? new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+    };
+    
+    // Helper format mata uang
+    const formatCurrency = (value) => {
+        return value ? `Rp ${Number(value).toLocaleString('id-ID')}` : '-';
+    };
 
     return (
         <>
@@ -77,12 +93,14 @@ const DetailClearance = () => {
                             </div>
                         </div>
                     </div>
+                    
+                    {/* Informasi Umum */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <DetailItem label="Jenis PPK" value={data.ppk || '-'} />
                             <DetailItem label="No SPB Asal" value={data.spb?.no_spb_asal || '-'} />
-                            <DetailItem label="Tanggal Clearance" value={data.tanggal_clearance ? new Date(data.tanggal_clearance).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'} />
+                            <DetailItem label="Tanggal Clearance" value={formatDate(data.tanggal_clearance)} />
                             <DetailItem label="Pukul Clearance" value={data.pukul_agen_clearance || '-'} />
                         </div>
                         <div className="space-y-4 border-t pt-4">
@@ -94,18 +112,48 @@ const DetailClearance = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Informasi Perjalanan (DIROMBAK) */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
                         <h3 className="text-xl font-bold text-gray-800">Informasi Perjalanan</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <DetailItem label="Kedudukan Kapal" value={data.kedudukan_kapal?.nama_kabupaten || '-'} />
-                            <DetailItem label="Datang Dari" value={data.datang_dari?.nama_kecamatan || '-'} />
-                            <DetailItem label="Tanggal Datang" value={data.tanggal_datang ? new Date(data.tanggal_datang).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'} />
-                            <DetailItem label="Pukul Kapal Berangkat" value={data.pukul_kapal_berangkat || '-'} />
-                            <DetailItem label="Tujuan Akhir" value={data.tujuan_akhir?.nama_kecamatan || '-'} />
-                            <DetailItem label="Pelabuhan Singgah Lanjutan" value={data.tempat_singgah?.nama_kecamatan || '-'} />
-                            <DetailItem label="Status Muatan Berangkat" value={data.status_muatan_berangkat || '-'} />
+                        
+                        {/* Sub-bagian Kedatangan */}
+                        <div className="space-y-4">
+                            <h4 className="text-md font-semibold text-gray-700">Kedatangan</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <DetailItem label="Datang Dari" value={data.datang_dari?.nama_kecamatan || '-'} />
+                                <DetailItem label="Sandar Di" value={data.sandar?.nama_pelabuhan || '-'} />
+                                <DetailItem label="Tanggal Datang" value={formatDate(data.tanggal_datang)} />
+                                <DetailItem label="Kedudukan Kapal (Saat Tiba)" value={data.kedudukan_kapal?.nama_kabupaten || '-'} />
+                            </div>
+                        </div>
+
+                        {/* Sub-bagian Keberangkatan */}
+                        <div className="border-t pt-4 space-y-4">
+                            <h4 className="text-md font-semibold text-gray-700">Keberangkatan</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <DetailItem label="Tolak Dari" value={data.tolak?.nama_pelabuhan || '-'} />
+                                <DetailItem label="Tujuan Akhir" value={data.tujuan_akhir?.nama_kecamatan || '-'} />
+                                <DetailItem label="Tanggal Berangkat" value={formatDate(data.tanggal_berangkat)} />
+                                <DetailItem label="Pukul Berangkat" value={data.pukul_kapal_berangkat || '-'} />
+                                <DetailItem label="Pelabuhan Singgah" value={data.tempat_singgah?.nama_kecamatan || '-'} />
+                                <DetailItem label="Status Muatan Berangkat" value={data.status_muatan_berangkat || '-'} />
+                            </div>
                         </div>
                     </div>
+
+                    {/* Informasi Pembayaran (BARU) */}
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-6">
+                        <h3 className="text-xl font-bold text-gray-800">Informasi Pembayaran</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <DetailItem label="NTPN Rambu" value={pembayaranRambu.ntpn || '-'} />
+                            <DetailItem label="Nilai Rambu" value={formatCurrency(pembayaranRambu.nilai)} />
+                            <DetailItem label="NTPN Labuh" value={pembayaranLabuh.ntpn || '-'} />
+                            <DetailItem label="Nilai Labuh" value={formatCurrency(pembayaranLabuh.nilai)} />
+                        </div>
+                    </div>
+
+                    {/* Detail Muatan (Tabs) */}
                     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
                         <div className="border-b border-gray-200">
                             <nav className="-mb-px flex gap-x-4 px-4 overflow-x-auto" aria-label="Tabs">
@@ -127,10 +175,13 @@ const DetailClearance = () => {
                 </div>
             </div>
             
+            {/* Komponen untuk Print */}
             <div className="print-only">
-                <PrintableSPB data={data} />
+                {/* Pastikan ref dilewatkan ke PrintableSPB jika PrintableSPB menggunakan forwardRef */}
+                <PrintableSPB data={data} ref={printRef} />
             </div>
 
+            {/* Modal Konfirmasi Hapus */}
             <ConfirmationModal
                 isOpen={isConfirmOpen}
                 onClose={() => setIsConfirmOpen(false)}

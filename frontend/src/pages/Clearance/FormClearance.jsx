@@ -21,7 +21,9 @@ const initialState = {
     barangDatang: [],
     barangBerangkat: [],
     penumpang_naik: '',
-    penumpang_turun: '', 
+    penumpang_turun: '',
+    pembayaran_rambu: { ntpn: '', nilai: '' },
+    pembayaran_labuh: { ntpn: '', nilai: '' }
 };
 
 const FormClearance = () => {
@@ -64,7 +66,7 @@ const FormClearance = () => {
                 setKecamatanData(kecamatanRes.data.datas.map(d => ({ nama: d.nama_kecamatan, id: d.id_kecamatan })));
                 setNahkodaData(nahkodaRes.data.datas.map(d => ({ nama: d.nama_nahkoda, id: d.id_nahkoda })));
                 setKategoriMuatanData(kategoriMuatanRes.data.datas.map(d => ({ nama: d.nama_kategori_muatan, id: d.id_kategori_muatan })));
-                setPelabuhanData(pelabuhanRes.data.datas.map(d => ({ nama: d.nama_pelabuhan, id: d.id_pelabuhan }))); // [DITAMBAHKAN]
+                setPelabuhanData(pelabuhanRes.data.datas.map(d => ({ nama: d.nama_pelabuhan, id: d.id_pelabuhan })));
 
                 if (isEditMode) {
                     const clearanceRes = await axiosInstance.get(`/perjalanan/${id}`);
@@ -82,12 +84,17 @@ const FormClearance = () => {
 
                     const allMuatan = [...barang, ...kendaraan];
 
+                    const pembayaran_rambu = clearanceData.pembayaran?.find(p => p.tipe_pembayaran === 'rambu') || { ntpn: '', nilai: '' };
+                    const pembayaran_labuh = clearanceData.pembayaran?.find(p => p.tipe_pembayaran === 'labuh') || { ntpn: '', nilai: '' };
+
                     const dataToEdit = {
                         ...initialState,
                         ...clearanceData,
                         spb: clearanceData.spb || initialState.spb,
                         barangDatang: allMuatan.filter(m => m.jenis_perjalanan === 'datang'),
                         barangBerangkat: allMuatan.filter(m => m.jenis_perjalanan === 'berangkat'),
+                        pembayaran_rambu: { ntpn: pembayaran_rambu.ntpn, nilai: pembayaran_rambu.nilai },
+                        pembayaran_labuh: { ntpn: pembayaran_labuh.ntpn, nilai: pembayaran_labuh.nilai }
                     };
                     setFormData(dataToEdit);
                 }
@@ -121,7 +128,11 @@ const FormClearance = () => {
             return;
         }
 
-        let { barangBerangkat, barangDatang, ...cleanData } = formData;
+        let { 
+            barangBerangkat, barangDatang, 
+            pembayaran_rambu, pembayaran_labuh, 
+            ...cleanData 
+        } = formData;
         
         if (cleanData.id_tempat_singgah === '') {
             cleanData.id_tempat_singgah = null;
@@ -153,10 +164,27 @@ const FormClearance = () => {
             .filter(m => m.type === 'kendaraan')
             .map(({ type, ...kendaraan }) => kendaraan); 
 
+        const pembayaran = [];
+        if (pembayaran_rambu.ntpn && pembayaran_rambu.nilai) {
+            pembayaran.push({
+                tipe_pembayaran: 'rambu',
+                ntpn: pembayaran_rambu.ntpn,
+                nilai: parseFloat(pembayaran_rambu.nilai)
+            });
+        }
+        if (pembayaran_labuh.ntpn && pembayaran_labuh.nilai) {
+            pembayaran.push({
+                tipe_pembayaran: 'labuh',
+                ntpn: pembayaran_labuh.ntpn,
+                nilai: parseFloat(pembayaran_labuh.nilai)
+            });
+        }
+
         const newData = {
             ...cleanData,
             muatan: muatanBarang,
-            muatan_kendaraan: muatanKendaraan
+            muatan_kendaraan: muatanKendaraan,
+            pembayaran: pembayaran
         };
 
         console.log("Data yang dikirim ke backend:", newData); 
@@ -215,7 +243,7 @@ const FormClearance = () => {
                             handleKapalChange={handleKapalChange} kapalOptions={kapalData}
                             nahkodaOptions={nahkodaData} kabupatenOptions={kabupatenData}
                             kecamatanOptions={kecamatanData} agenOptions={agenData}
-                            pelabuhanOptions={pelabuhanData} // [DITAMBAHKAN]
+                            pelabuhanOptions={pelabuhanData}
                             jenisPpkOptions={[{ id: '27', nama: '27' }, { id: '29', nama: '29' }]}
                         />
                     )}
