@@ -1,6 +1,8 @@
 const path = require("path")
 const fs = require("fs")
 const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
+const salt = 10
 const perjalanan = require("../model/perjalananModel")
 const users = require("../model/userModel")
 const logUserController = require("./logUserController")
@@ -9,8 +11,11 @@ const login = async (req, res) => {
     try {
         let { username, password } = req.body
         console.log(req.body)
-        const data = await users.findOne({ where: { username, password } })
-        if (!data) return res.status(401).json({ msg: "Username / password tidak sesuai" })
+        const data = await users.findOne({ where: { username } })
+        if (!data) return res.status(401).json({ msg: "Username tidak ditemukan" })
+
+        const match = await bcrypt.compare(password, data.password)
+        if (!match) return res.status(401).json({ msg: "Username / password tidak sesuai" })
 
         const token = jwt.sign({
             id: data.id_user,
@@ -65,6 +70,8 @@ const storeUser = async (req, res) => {
         if (req.file) {
             req.body.foto = `images/profil/${req.file.filename}`
         }
+
+        req.body.password = await bcrypt.hash(req.body.password, salt)
         await users.create({ ...req.body })
 
         let log = await logUserController.storeLogUser(
@@ -124,14 +131,16 @@ const changePassword = async (req, res, next) => {
 
         let data = await users.findOne({
             where: {
-                id_user: req.user.id,
-                password: currentPassword
+                id_user: req.user.id
             }
         })
 
-        if (!data) return res.status(500).json({ msg: "Password saat ini tidak sesuai" })
+        const match = await bcrypt.compare(currentPassword, data.password)
+        if(!match) return res.status(500).json({ msg: "Password saat ini tidak sesuai" })
 
-        await users.update({ password: newPassword }, { where: { id_user: req.user.id } })
+        let hashedPassword = await bcrypt.hash(newPassword, salt)
+
+        await users.update({ password: hashedPassword }, { where: { id_user: req.user.id } })
 
         return res.status(200).json({ msg: "berhasil mengubah password" })
     } catch (error) {
