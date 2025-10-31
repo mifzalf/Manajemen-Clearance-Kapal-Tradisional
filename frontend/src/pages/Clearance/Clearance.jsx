@@ -65,17 +65,14 @@ function Clearance() {
         fetchInitialData();
     }, []);
 
-    // [DIUBAH] filterOptions sekarang menggabungkan barang dan kendaraan
     const filterOptions = useMemo(() => {
         const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
         const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
         
-        // 1. Dapatkan semua nama barang (muatan)
         const goodsOptions = [...new Set(masterData.flatMap(item => 
             (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)
-        ).filter(Boolean))].map(g => ({ value: `good_${g}`, label: g })); // good_Sembako
+        ).filter(Boolean))].map(g => ({ value: `good_${g}`, label: g }));
 
-        // 2. Tambahkan opsi statis untuk Golongan Kendaraan (sesuai permintaan "opsi dari semua golongan 1- 6")
         const vehicleOptions = [
             { value: 'vehicle_I', label: 'Golongan I' },
             { value: 'vehicle_II', label: 'Golongan II' },
@@ -85,7 +82,6 @@ function Clearance() {
             { value: 'vehicle_VI', label: 'Golongan VI' },
         ];
 
-        // 3. Gabungkan keduanya
         const goods = [...goodsOptions, ...vehicleOptions];
         
         const wilayahKerja = [...new Set(masterData.map(item => item.wilayah_kerja).filter(Boolean))];
@@ -93,7 +89,6 @@ function Clearance() {
         return { ships, categories, goods, wilayahKerja };
     }, [masterData]);
 
-    // [DIUBAH] filteredData sekarang memfilter berdasarkan prefix 'good_' atau 'vehicle_'
     const filteredData = useMemo(() => {
         return masterData.filter(item => {
             const searchTerm = filters.searchTerm.toLowerCase();
@@ -107,17 +102,13 @@ function Clearance() {
             const shipMatch = !filters.selectedShip || item.kapal?.nama_kapal === filters.selectedShip;
             const categoryMatch = !filters.selectedCategory || item.muatans?.some(m => m.kategori_muatan?.status_kategori_muatan === filters.selectedCategory);
             
-            // Logika filter muatan/kendaraan yang baru
             const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => {
-                // sg.value akan berisi "good_Sembako" atau "vehicle_I"
                 const [type, value] = sg.value.split('_'); 
                 
                 if (type === 'good') {
-                    // Cari di barang
                     return item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === value);
                 }
                 if (type === 'vehicle') {
-                    // Cari di kendaraan
                     return item.muatan_kendaraan?.some(k => k.golongan_kendaraan === value);
                 }
                 return false;

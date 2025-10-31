@@ -1,24 +1,27 @@
-import { Link } from "react-router-dom";
-import GridShape from "../common/GridShape";
-
 export default function AuthLayout({ children }) {
   return (
-    <div className="relative z-10 bg-white p-6 sm:p-0">
-      <div className="relative flex min-h-screen w-full flex-col justify-center lg:flex-row">
-        {children}
-        <div className="hidden w-full items-center bg-gray-800 lg:w-1/2 lg:grid">
-          <div className="relative z-10 flex items-center justify-center">
-            <GridShape />
-            <div className="flex max-w-xs flex-col items-center">
-              <Link to="/" className="mb-4 block">
-                <h1 className="text-3xl font-bold text-white">KSOP-K ARSIP</h1>
-              </Link>
-              <p className="text-center text-gray-400">
-                Sistem Arsip Surat Masuk dan Surat Keluar
-              </p>
-            </div>
-          </div>
+    <div className="relative flex min-h-screen flex-1">   
+      {children}
+      <div className="relative hidden flex-1 flex-col justify-center lg:flex">
+        
+        <div 
+          className="absolute inset-0 bg-cover bg-center" 
+          style={{ 
+            backgroundImage: "url('/images/background1.jpg')" 
+          }}
+        >
+          <div className="absolute inset-0 bg-indigo-900 opacity-60"></div>
         </div>
+        
+        <div className="relative mx-auto max-w-md text-center text-white">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            KSOP-K Si-Cekatan
+          </h1>
+          <p className="mt-4 text-lg text-indigo-100">
+            Sistem Clearance kapal Tradisional
+          </p>
+        </div>
+
       </div>
     </div>
   );
