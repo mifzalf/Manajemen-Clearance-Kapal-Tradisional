@@ -1,19 +1,17 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
-// [DIUBAH] Hapus prop 'direction', karena sekarang otomatis
 const Select = ({ options, value, onChange, name, id, required }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const selectRef = useRef(null); // Ref untuk tombol
-  const menuRef = useRef(null);   // Ref untuk <div> wrapper menu
-  const ulRef = useRef(null);     // Ref untuk <ul> yang di-scroll
+  const selectRef = useRef(null);
+  const menuRef = useRef(null);
+  const ulRef = useRef(null); 
 
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
-  // [BARU] State untuk menyimpan arah dropdown (up/down)
   const [direction, setDirection] = useState('down'); 
 
   const selectedLabel = options.find(opt => opt.value === value)?.label || 
-                       (options[0]?.value === '' ? options[0]?.label : 'Pilih Opsi');
+  (options[0]?.value === '' ? options[0]?.label : 'Pilih Opsi');
 
   const updateMenuPosition = useCallback(() => {
     if (!selectRef.current) {
@@ -22,13 +20,8 @@ const Select = ({ options, value, onChange, name, id, required }) => {
     }
     const rect = selectRef.current.getBoundingClientRect();
 
-    // [BARU] Logika deteksi arah
-    // Cek jarak dari tombol ke bawah layar
     const spaceBelow = window.innerHeight - rect.bottom;
-    // Tentukan tinggi menu (maks 240px (max-h-60) + padding)
     const menuHeight = Math.min(250, options.length * 40); 
-    
-    // Jika tidak cukup ruang di bawah, buka ke atas
     if (spaceBelow < menuHeight && rect.top > menuHeight) {
       setDirection('up');
     } else {
@@ -41,11 +34,11 @@ const Select = ({ options, value, onChange, name, id, required }) => {
       left: rect.left,
       width: rect.width,
     });
-  }, [options.length]); // Tambahkan dependensi
+  }, [options.length]);
 
   const toggleDropdown = () => {
     if (!isOpen) {
-      updateMenuPosition(); // Atur posisi & arah awal saat membuka
+      updateMenuPosition();
     }
     setIsOpen(!isOpen);
   };
@@ -100,7 +93,6 @@ const Select = ({ options, value, onChange, name, id, required }) => {
       ref={menuRef}
       style={{
         position: 'fixed',
-        // [DIUBAH] Gunakan state 'direction' untuk mengatur posisi
         top: direction === 'down' ? `${menuPosition.bottom + 4}px` : 'auto', 
         bottom: direction === 'up' ? `${window.innerHeight - menuPosition.top + 4}px` : 'auto', 
         left: `${menuPosition.left}px`,
