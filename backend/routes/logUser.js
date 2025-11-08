@@ -6,6 +6,11 @@ const {
     storeLogUser,
     getLogUserByFilter
 } = require("../controller/logUserController")
+const { semiAdminAuth } = require('../middleware/authorization')
+const verifyToken = require('../middleware/jwt')
+
+router.use(verifyToken)
+router.use(semiAdminAuth)
 
 router.get("/", getLogUser)
 router.get("/get-filter", getLogUserByFilter)

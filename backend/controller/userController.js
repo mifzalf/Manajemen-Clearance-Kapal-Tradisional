@@ -78,7 +78,7 @@ const storeUser = async (req, res) => {
             req.user.username,
             "CREATE",
             "user",
-            `Menambah data user ${req.body.username}`
+            `Menambah data ${req.body.role} ${req.body.username}`
         )
 
         return res.status(200).json({ msg: "Berhasil menambahkan data" })
@@ -90,6 +90,7 @@ const storeUser = async (req, res) => {
 
 const updateUser = async (req, res, next) => {
     try {
+        let user = await users.findByPk(req.user.id)
         let userData = await users.findOne({
             where: { id_user: req.params.id },
             attributes: ['username']
@@ -105,6 +106,12 @@ const updateUser = async (req, res, next) => {
                 fs.unlinkSync(oldFile)
             }
             req.body.foto = `images/profil/${req.file.filename}`
+        }
+        if(user.role != "superuser" && req.body.password){
+            delete req.body.password
+            console.log()
+        }else {
+            req.body.password = await bcrypt.hash(req.body.password, salt)
         }
         let result = await users.update({ ...req.body }, { where: { id_user: req.params.id } })
 
