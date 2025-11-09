@@ -107,10 +107,10 @@ const updateUser = async (req, res, next) => {
             }
             req.body.foto = `images/profil/${req.file.filename}`
         }
-        if(user.role != "superuser" && req.body.password){
+        if (user.role != "superuser" && req.body.password) {
             delete req.body.password
             console.log()
-        }else {
+        } else if (req.body.password) {
             req.body.password = await bcrypt.hash(req.body.password, salt)
         }
         let result = await users.update({ ...req.body }, { where: { id_user: req.params.id } })
@@ -143,7 +143,7 @@ const changePassword = async (req, res, next) => {
         })
 
         const match = await bcrypt.compare(currentPassword, data.password)
-        if(!match) return res.status(500).json({ msg: "Password saat ini tidak sesuai" })
+        if (!match) return res.status(500).json({ msg: "Password saat ini tidak sesuai" })
 
         let hashedPassword = await bcrypt.hash(newPassword, salt)
 
