@@ -86,7 +86,7 @@ export default function UserDropdown() {
 
   const photoSrc = user.foto 
     ? `${API_URL}/${user.foto}` 
-    : "/images/user/owner.jpeg";
+    : "/images/user/default.jpeg";
 
   return (
     <div ref={dropdownRef} className="relative">
