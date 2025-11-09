@@ -118,7 +118,7 @@ const AppSidebar = () => {
           />
           {isSidebarWide && (
             <span className="text-xl font-bold text-gray-800">
-              KSOP-K
+              Si-Cekatan
             </span>
           )}
         </Link>

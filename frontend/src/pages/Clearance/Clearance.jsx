@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Select from 'react-select';
 import ExcelJS from 'exceljs';
@@ -21,9 +21,16 @@ const customStyles = {
 const rowsPerPageOptions = ['5', '10', '20', '50', 'Semua'];
 
 function Clearance() {
-    const [masterData, setMasterData] = useState([]);
+    const [pageData, setPageData] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user, loading: authLoading } = useAuth();
+
+    const [dropdownOptions, setDropdownOptions] = useState({
+        ships: [],
+        categories: [],
+        goods: [],
+        wilayahKerja: []
+    });
 
     const [filters, setFilters] = useState({
         searchTerm: '',
@@ -36,7 +43,10 @@ function Clearance() {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState('5');
+    const [totalData, setTotalData] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     const [isExportOpen, setIsExportOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const exportRef = useRef(null);
@@ -48,113 +58,118 @@ function Clearance() {
         return user.wilayah_kerja.toLowerCase() === 'pusat';
     }, [user]);
 
-
     useEffect(() => {
-        const fetchInitialData = async () => {
-            setLoading(true);
+        const fetchDropdownOptions = async () => {
             try {
-                const response = await axiosInstance.get('/perjalanan');
-                setMasterData(response.data.datas);
+                const response = await axiosInstance.get('/perjalanan/filter-options');
+                if (response.data) {
+                    const { ships, categories, goods, wilayahKerja } = response.data;
+
+                    const goodsOptions = (goods || []).map(g => ({ value: `good_${g}`, label: g }));
+                    const vehicleOptions = [
+                        { value: 'vehicle_I', label: 'Golongan I' },
+                        { value: 'vehicle_II', label: 'Golongan II' },
+                        { value: 'vehicle_III', label: 'Golongan III' },
+                        { value: 'vehicle_IV', label: 'Golongan IV' },
+                        { value: 'vehicle_V', label: 'Golongan V' },
+                        { value: 'vehicle_VI', label: 'Golongan VI' },
+                    ];
+
+                    setDropdownOptions({
+                        ships: ships || [],
+                        categories: categories || [],
+                        goods: [...goodsOptions, ...vehicleOptions],
+                        wilayahKerja: wilayahKerja || []
+                    });
+                }
             } catch (error) {
-                console.error("Gagal mengambil data awal:", error);
-                toast.error("Gagal mengambil data awal.");
-            } finally {
-                setLoading(false);
+                console.error("Gagal mengambil opsi filter:", error);
             }
         };
-        fetchInitialData();
-    }, []);
+        if (!authLoading) {
+            fetchDropdownOptions();
+        }
+    }, [authLoading]);
 
-    const filterOptions = useMemo(() => {
-        const ships = [...new Set(masterData.map(item => item.kapal?.nama_kapal).filter(Boolean))];
-        const categories = [...new Set(masterData.flatMap(item => (item.muatans || []).map(muatan => muatan.kategori_muatan?.status_kategori_muatan)).filter(Boolean))];
+    const fetchData = useCallback(async () => {
+        if (!authLoading) setLoading(true);
+
+        const queryLimit = (rowsPerPage === 'Semua' ? 0 : parseInt(rowsPerPage, 10));
+        const queryPage = currentPage;
         
-        const goodsOptions = [...new Set(masterData.flatMap(item => 
-            (item.muatans || []).map(muatan => muatan.kategori_muatan?.nama_kategori_muatan)
-        ).filter(Boolean))].map(g => ({ value: `good_${g}`, label: g }));
+        try {
+            const params = {
+                page: queryPage,
+                limit: queryLimit,
+                searchTerm: filters.searchTerm,
+                nama_kapal: filters.selectedShip,
+                tanggal_awal: filters.startDate,
+                tanggal_akhir: filters.endDate,
+                kategori: filters.selectedCategory,
+                wilker: filters.selectedWilayah,
+            };
 
-        const vehicleOptions = [
-            { value: 'vehicle_I', label: 'Golongan I' },
-            { value: 'vehicle_II', label: 'Golongan II' },
-            { value: 'vehicle_III', label: 'Golongan III' },
-            { value: 'vehicle_IV', label: 'Golongan IV' },
-            { value: 'vehicle_V', label: 'Golongan V' },
-            { value: 'vehicle_VI', label: 'Golongan VI' },
-        ];
-
-        const goods = [...goodsOptions, ...vehicleOptions];
-        
-        const wilayahKerja = [...new Set(masterData.map(item => item.wilayah_kerja).filter(Boolean))];
-
-        return { ships, categories, goods, wilayahKerja };
-    }, [masterData]);
-
-    const filteredData = useMemo(() => {
-        return masterData.filter(item => {
-            const searchTerm = filters.searchTerm.toLowerCase();
-
-            const searchMatch = !searchTerm ||
-                (item.kapal?.nama_kapal && item.kapal.nama_kapal.toLowerCase().includes(searchTerm)) ||
-                (item.agen?.nama_agen && item.agen.nama_agen.toLowerCase().includes(searchTerm)) ||
-                (item.tujuan_akhir?.nama_kecamatan && item.tujuan_akhir.nama_kecamatan.toLowerCase().includes(searchTerm)) ||
-                (item.spb?.no_spb && item.spb.no_spb.toLowerCase().includes(searchTerm));
-
-            const shipMatch = !filters.selectedShip || item.kapal?.nama_kapal === filters.selectedShip;
-            const categoryMatch = !filters.selectedCategory || item.muatans?.some(m => m.kategori_muatan?.status_kategori_muatan === filters.selectedCategory);
-            
-            const goodsMatch = filters.selectedGoods.length === 0 || filters.selectedGoods.every(sg => {
-                const [type, value] = sg.value.split('_'); 
+            const goods = filters.selectedGoods
+                .filter(g => g.value.startsWith('good_'))
+                .map(g => g.value.split('_')[1]);
                 
-                if (type === 'good') {
-                    return item.muatans?.some(m => m.kategori_muatan?.nama_kategori_muatan === value);
+            const vehicles = filters.selectedGoods
+                .filter(g => g.value.startsWith('vehicle_'))
+                .map(g => g.value.split('_')[1]);
+
+            if (goods.length > 0) params.nama_muatan = goods;
+            if (vehicles.length > 0) params.golongan_kendaraan = vehicles;
+
+            const response = await axiosInstance.get('/perjalanan/filter', { 
+                params,
+                paramsSerializer: (params) => {
+                    const searchParams = new URLSearchParams();
+                    for (const key in params) {
+                        const value = params[key];
+                        if (Array.isArray(value)) {
+                            value.forEach(v => searchParams.append(`${key}[]`, v));
+                        } else if (value !== null && value !== undefined && value !== '') {
+                            searchParams.append(key, value);
+                        }
+                    }
+                    return searchParams.toString();
                 }
-                if (type === 'vehicle') {
-                    return item.muatan_kendaraan?.some(k => k.golongan_kendaraan === value);
-                }
-                return false;
             });
 
-            const startDateMatch = !filters.startDate || new Date(item.tanggal_berangkat) >= new Date(filters.startDate);
-            const endDateMatch = !filters.endDate || new Date(item.tanggal_berangkat) <= new Date(filters.endDate + 'T23:59:59');
-            
-            const wilayahMatch = !filters.selectedWilayah || item.wilayah_kerja === filters.selectedWilayah;
+            setPageData(response.data.datas);
+            setTotalData(response.data.totalData);
 
-            return searchMatch && shipMatch && categoryMatch && goodsMatch && startDateMatch && endDateMatch && wilayahMatch;
-        });
-    }, [filters, masterData]);
+            if (queryLimit > 0) {
+                setTotalPages(Math.ceil(response.data.totalData / queryLimit));
+            } else {
+                setTotalPages(1);
+            }
 
+        } catch (error) {
+            console.error("Gagal mengambil data:", error);
+            toast.error("Gagal mengambil data.");
+        } finally {
+            if (!authLoading) setLoading(false);
+        }
+    }, [currentPage, rowsPerPage, filters, authLoading]);
 
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
     const handleFilterChange = (name, value) => {
         setFilters((prev) => ({ ...prev, [name]: value }));
-        setCurrentPage(1);
+        setCurrentPage(1); 
     };
 
     const handleRowsPerPageChange = (value) => {
-        if (value === 'Semua') {
-            setRowsPerPage(filteredData.length > 0 ? filteredData.length : 1);
-        } else {
-            setRowsPerPage(parseInt(value, 10));
-        }
-        setCurrentPage(1);
+        setRowsPerPage(value);
+        setCurrentPage(1); 
     };
-
-    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-    const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
+    
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const refreshData = async () => {
-        setLoading(true);
-        try {
-            const response = await axiosInstance.get('/perjalanan');
-            setMasterData(response.data.datas);
-        } catch (error) {
-            console.error("Gagal mengambil data:", error);
-        } finally {
-            setLoading(false);
-        }
+        fetchData();
     };
 
     function angkaKeHuruf(n) {
@@ -184,14 +199,13 @@ function Clearance() {
         const loadingToast = toast.loading("Membuat file Excel... Ini mungkin butuh beberapa detik.");
 
         try {
-            let data = filteredData.map(d => {
+            let data = pageData.map(d => {
                 const {
                     tanggal_clearance, ppk, spb, no_urut, kapal, nahkoda, jumlah_crew,
                     kedudukan_kapal, tanggal_datang, datang_dari, tanggal_berangkat,
                     tempat_singgah, tujuan_akhir, agen, pukul_agen_clearance,
                     pukul_kapal_berangkat, status_muatan_berangkat
                 } = d;
-
                 const safeKapal = kapal || {};
                 const safeJeni = safeKapal.jeni || {};
                 const safeBendera = safeKapal.bendera || {};
@@ -261,7 +275,6 @@ function Clearance() {
                     "MUATAN BERANGKAT": status_muatan_berangkat || '-'
                 };
             });
-
             if (data.length === 0) {
                 toast.error("Tidak ada data untuk diekspor.");
                 setIsExporting(false);
@@ -271,19 +284,14 @@ function Clearance() {
 
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Data Clearance');
-
             const dataKeys = Object.keys(data[0]);
-
             worksheet.columns = dataKeys.map(key => ({ 
                 header: key.toUpperCase(),
                 key: key                   
             }));
-
             worksheet.addRows(data);
-
             const colWidths = dataKeys.map((key, index) => {
                 let maxLength = worksheet.columns[index].header.length;
-                
                 data.forEach(row => {
                     const cellValue = row[key];
                     const cellLength = cellValue ? String(cellValue).length : 0;
@@ -293,39 +301,22 @@ function Clearance() {
                 });
                 return maxLength + 2; 
             });
-            
             worksheet.columns.forEach((col, i) => {
                 col.width = colWidths[i];
             });
-
-            const borderStyle = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-            const alignmentStyle = {
-                vertical: 'middle', 
-                horizontal: 'center'
-            };
-            const headerFill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD9D9D9' }
-            };
-
+            const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+            const alignmentStyle = { vertical: 'middle', horizontal: 'center' };
+            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
             worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
                 row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                     cell.border = borderStyle;
                     cell.alignment = alignmentStyle;
-
                     if (rowNumber === 1) {
                         cell.font = { bold: true };
                         cell.fill = headerFill;
                     }
                 });
             });
-
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
             saveAs(blob, `laporan_clearance_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -349,8 +340,7 @@ function Clearance() {
         }
 
         console.log("Fungsi Ekspor Laporan (ExcelJS) dipanggil.");
-
-        if (filteredData.length === 0) {
+        if (pageData.length === 0) {
             toast.error("Tidak ada data untuk diekspor.");
             setIsExportOpen(false);
             return;
@@ -363,7 +353,6 @@ function Clearance() {
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Laporan Lengkap');
-
             const formatDateTime = (dateStr, timeStr) => {
                 if (!dateStr) return '-';
                 try {
@@ -378,7 +367,6 @@ function Clearance() {
                     return '-';
                 }
             };
-
             const getPayment = (pembayaranArray, tipe) => {
                 const payment = pembayaranArray?.find(p => p.tipe_pembayaran === tipe) || {};
                 return {
@@ -386,7 +374,6 @@ function Clearance() {
                     nilai: payment.nilai ? Number(payment.nilai) : null
                 };
             };
-
             const aggregateCargo = (trip) => {
                 const allCargo = [];
                 trip.muatans?.forEach(m => allCargo.push({ ...m, type: 'barang' }));
@@ -399,79 +386,28 @@ function Clearance() {
                 }
                 return allCargo;
             };
-
             const getCargoName = (cargoItem) => {
                 if (cargoItem.type === 'barang') return cargoItem.kategori_muatan?.nama_kategori_muatan || '-';
                 if (cargoItem.type === 'kendaraan') return `Kendaraan Gol. ${cargoItem.golongan_kendaraan}`;
                 if (cargoItem.type === 'penumpang') return 'Penumpang';
                 return '-';
             };
-            
             const getCargoJenis = (cargoItem) => {
                 if (cargoItem.type === 'barang') return cargoItem.kategori_muatan?.jenis_muatan?.nama_jenis_muatan || 'Barang';
                 if (cargoItem.type === 'kendaraan') return 'Unitized';
                 if (cargoItem.type === 'penumpang') return 'Orang';
                 return '-';
             };
-
-            const headerMain = [
-                "NO", "NOMOR SPB ASAL", 
-                "KAPAL", null, null, null, null,
-                "TIBA", null,
-                "SANDAR",
-                "BERANGKAT", null,
-                "TOLAK",
-                "BONGKAR", null, null, null, null, null,
-                "MUAT", null, null, null, null, null,
-                "NOMOR SPB",
-                "LABUH", null,
-                "RAMBU", null,
-                "MUATAN",
-                "PERUSAHAAN"
-            ];
-            const headerDetail = [
-                "NO", "NOMOR SPB ASAL",
-                "NAMA KAPAL", "JENIS KAPAL", "GT", "CALL SIGN", "BENDERA",
-                "DARI", "TANGGAL",
-                "SANDAR",
-                "KE", "TANGGAL",
-                "TOLAK",
-                "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG",
-                "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG",
-                "NOMOR SPB",
-                "NTPN", "NILAI",
-                "NTPN", "NILAI",
-                "MUATAN",
-                "PERUSAHAAN"
-            ];
-
+            const headerMain = [ "NO", "NOMOR SPB ASAL", "KAPAL", null, null, null, null, "TIBA", null, "SANDAR", "BERANGKAT", null, "TOLAK", "BONGKAR", null, null, null, null, null, "MUAT", null, null, null, null, null, "NOMOR SPB", "LABUH", null, "RAMBU", null, "MUATAN", "PERUSAHAAN" ];
+            const headerDetail = [ "NO", "NOMOR SPB ASAL", "NAMA KAPAL", "JENIS KAPAL", "GT", "CALL SIGN", "BENDERA", "DARI", "TANGGAL", "SANDAR", "KE", "TANGGAL", "TOLAK", "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG", "KOMODITI", "JENIS", "TON", "M3", "UNIT", "ORANG", "NOMOR SPB", "NTPN", "NILAI", "NTPN", "NILAI", "MUATAN", "PERUSAHAAN" ];
             worksheet.addRows([headerMain, headerDetail]);
-
-            const merges = [
-                { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, // NO
-                { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } }, // SPB ASAL
-                { s: { r: 0, c: 9 }, e: { r: 1, c: 9 } }, // SANDAR
-                { s: { r: 0, c: 12 }, e: { r: 1, c: 12 } }, // TOLAK
-                { s: { r: 0, c: 25 }, e: { r: 1, c: 25 } }, // NOMOR SPB
-                { s: { r: 0, c: 30 }, e: { r: 1, c: 30 } }, // MUATAN
-                { s: { r: 0, c: 31 }, e: { r: 1, c: 31 } }, // PERUSAHAAN
-                { s: { r: 0, c: 2 }, e: { r: 0, c: 6 } }, // KAPAL (C-G)
-                { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }, // TIBA (H-I)
-                { s: { r: 0, c: 10 }, e: { r: 0, c: 11 } }, // BERANGKAT (K-L)
-                { s: { r: 0, c: 13 }, e: { r: 0, c: 18 } }, // BONGKAR (N-S)
-                { s: { r: 0, c: 19 }, e: { r: 0, c: 24 } }, // MUAT (T-Y)
-                { s: { r: 0, c: 26 }, e: { r: 0, c: 27 } }, // LABUH (AA-AB)
-                { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } }  // RAMBU (AC-AD)
-            ];
-
+            const merges = [ { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } }, { s: { r: 0, c: 9 }, e: { r: 1, c: 9 } }, { s: { r: 0, c: 12 }, e: { r: 1, c: 12 } }, { s: { r: 0, c: 25 }, e: { r: 1, c: 25 } }, { s: { r: 0, c: 30 }, e: { r: 1, c: 30 } }, { s: { r: 0, c: 31 }, e: { r: 1, c: 31 } }, { s: { r: 0, c: 2 }, e: { r: 0, c: 6 } }, { s: { r: 0, c: 7 }, e: { r: 0, c: 8 } }, { s: { r: 0, c: 10 }, e: { r: 0, c: 11 } }, { s: { r: 0, c: 13 }, e: { r: 0, c: 18 } }, { s: { r: 0, c: 19 }, e: { r: 0, c: 24 } }, { s: { r: 0, c: 26 }, e: { r: 0, c: 27 } }, { s: { r: 0, c: 28 }, e: { r: 0, c: 29 } } ];
             let runningRowIndex = 3;
-            
-            filteredData.forEach((trip, index) => {
+
+            pageData.forEach((trip, index) => {
                 const groupStartRow = runningRowIndex;
-                
                 const labuh = getPayment(trip.pembayaran, 'labuh');
                 const rambu = getPayment(trip.pembayaran, 'rambu');
-                
                 let formattedSPB = '-';
                 if (trip.spb?.no_spb && trip.tanggal_clearance) {
                     const tglClearance = new Date(trip.tanggal_clearance);
@@ -479,36 +415,10 @@ function Clearance() {
                     const tahun = tglClearance.getFullYear();
                     formattedSPB = `N.7 K.M.17 ${trip.spb.no_spb} ${bulan} ${tahun}`;
                 }
-
-                const baseData = [
-                    index + 1,
-                    trip.spb?.no_spb_asal || '-',
-                    trip.kapal?.nama_kapal || '-',
-                    trip.kapal?.jeni?.nama_jenis || '-',
-                    trip.kapal?.gt ? Number(trip.kapal.gt) : null,
-                    trip.kapal?.call_sign || '-',
-                    trip.kapal?.bendera?.kode_negara || '-',
-                    trip.datang_dari?.nama_kecamatan || '-',
-                    formatDateTime(trip.tanggal_datang, null),
-                    trip.sandar?.nama_pelabuhan || '-',
-                    trip.tujuan_akhir?.nama_kecamatan || '-',
-                    formatDateTime(trip.tanggal_berangkat, trip.pukul_kapal_berangkat),
-                    trip.tolak?.nama_pelabuhan || '-',
-                ];
-                
-                const endData = [
-                    formattedSPB,
-                    labuh.ntpn,
-                    labuh.nilai,
-                    rambu.ntpn,
-                    rambu.nilai,
-                    trip.status_muatan_berangkat || '-',
-                    trip.agen?.nama_agen || '-'
-                ];
-                
+                const baseData = [ index + 1, trip.spb?.no_spb_asal || '-', trip.kapal?.nama_kapal || '-', trip.kapal?.jeni?.nama_jenis || '-', trip.kapal?.gt ? Number(trip.kapal.gt) : null, trip.kapal?.call_sign || '-', trip.kapal?.bendera?.kode_negara || '-', trip.datang_dari?.nama_kecamatan || '-', formatDateTime(trip.tanggal_datang, null), trip.sandar?.nama_pelabuhan || '-', trip.tujuan_akhir?.nama_kecamatan || '-', formatDateTime(trip.tanggal_berangkat, trip.pukul_kapal_berangkat), trip.tolak?.nama_pelabuhan || '-', ];
+                const endData = [ formattedSPB, labuh.ntpn, labuh.nilai, rambu.ntpn, rambu.nilai, trip.status_muatan_berangkat || '-', trip.agen?.nama_agen || '-' ];
                 const allCargo = aggregateCargo(trip);
                 const emptyCargoRow = Array(12).fill(null);
-
                 if (allCargo.length === 0) {
                     worksheet.addRow([...baseData, ...emptyCargoRow, ...endData]);
                     runningRowIndex++;
@@ -534,7 +444,6 @@ function Clearance() {
                         runningRowIndex++;
                     });
                 }
-
                 const groupEndRow = runningRowIndex - 1;
                 if (groupStartRow < groupEndRow) {
                     for (let c = 1; c <= 13; c++) {
@@ -549,50 +458,20 @@ function Clearance() {
             merges.forEach(merge => {
                 worksheet.mergeCells(merge.s.r + 1, merge.s.c + 1, merge.e.r + 1, merge.e.c + 1);
             });
-
-            const borderStyle = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-            const alignmentStyle = {
-                vertical: 'middle', 
-                horizontal: 'center'
-            };
-            const headerFill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FFD9D9D9' }
-            };
-            
+            const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+            const alignmentStyle = { vertical: 'middle', horizontal: 'center' };
+            const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
             worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
                 row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                     cell.border = borderStyle;
                     cell.alignment = alignmentStyle;
-
                     if (rowNumber <= 2) {
                         cell.font = { bold: true };
                         cell.fill = headerFill;
                     }
                 });
             });
-            
-            worksheet.columns = [
-                { width: 4 }, { width: 18 },
-                { width: 20 }, { width: 20 }, { width: 8 }, { width: 10 }, { width: 12 },
-                { width: 15 }, { width: 18 }, 
-                { width: 20 },
-                { width: 15 }, { width: 18 },
-                { width: 20 },
-                { width: 18 }, { width: 10 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 8 },
-                { width: 18 }, { width: 10 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 8 },
-                { width: 25 },
-                { width: 18 }, { width: 12 },
-                { width: 18 }, { width: 12 },
-                { width: 15 }, { width: 25 } 
-            ];
-
+            worksheet.columns = [ { width: 4 }, { width: 18 }, { width: 20 }, { width: 20 }, { width: 8 }, { width: 10 }, { width: 12 }, { width: 15 }, { width: 18 }, { width: 20 }, { width: 15 }, { width: 18 }, { width: 20 }, { width: 18 }, { width: 10 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 18 }, { width: 10 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 8 }, { width: 25 }, { width: 18 }, { width: 12 }, { width: 18 }, { width: 12 }, { width: 15 }, { width: 25 } ];
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
             saveAs(blob, `laporan_bongkar_muat_${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -619,7 +498,7 @@ function Clearance() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return <p className="text-center text-gray-500 py-10">Memuat data...</p>
     }
 
@@ -675,7 +554,7 @@ function Clearance() {
                                 {isUserPusat && (
                                     <div className="w-full md:w-60">
                                         <FilterDropdown
-                                            options={filterOptions.wilayahKerja}
+                                            options={dropdownOptions.wilayahKerja}
                                             selectedValue={filters.selectedWilayah}
                                             setSelectedValue={(value) => handleFilterChange('selectedWilayah', value)}
                                             placeholder="Semua Wilayah Kerja"
@@ -684,13 +563,13 @@ function Clearance() {
                                 )}
                             </div>
                             <FilterDropdown
-                                options={filterOptions.ships}
+                                options={dropdownOptions.ships}
                                 selectedValue={filters.selectedShip}
                                 setSelectedValue={(value) => handleFilterChange('selectedShip', value)}
                                 placeholder="Semua Kapal"
                             />
                             <FilterDropdown
-                                options={filterOptions.categories}
+                                options={dropdownOptions.categories}
                                 selectedValue={filters.selectedCategory}
                                 setSelectedValue={(value) => handleFilterChange('selectedCategory', value)}
                                 placeholder="Kategori Barang"
@@ -705,7 +584,7 @@ function Clearance() {
                                 <Select
                                     isMulti
                                     name="selectedGoods"
-                                    options={filterOptions.goods}
+                                    options={dropdownOptions.goods}
                                     className="basic-multi-select"
                                     classNamePrefix="select"
                                     placeholder="Pilih satu atau lebih barang/kendaraan..."
@@ -715,22 +594,33 @@ function Clearance() {
                                 />
                             </div>
                         </div>
-                        <ClearanceTable clearanceItems={currentRows} onSuccess={refreshData} />
+                        
+                        {loading ? (
+                            <p className="text-center text-gray-500 p-10">Memuat data...</p>
+                        ) : (
+                            <ClearanceTable 
+                                clearanceItems={pageData} 
+                                onSuccess={refreshData} 
+                            />
+                        )}
+
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4">
                             <div className="flex items-center gap-2 text-sm">
                                 <span>Tampilkan</span>
                                 <FilterDropdown
                                     direction="up"
-                                    selectedValue={rowsPerPage === filteredData.length && filteredData.length > 0 ? 'Semua' : String(rowsPerPage)}
+                                    selectedValue={String(rowsPerPage)}
                                     setSelectedValue={handleRowsPerPageChange}
                                     options={rowsPerPageOptions}
                                 />
                                 <span>baris</span>
                             </div>
+                            
                             <span className="text-sm text-gray-700">
-                                Total {filteredData.length} data
+                                Total {totalData} data
                             </span>
-                            {totalPages > 1 && (
+
+                            {totalPages > 1 && !loading && (
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}

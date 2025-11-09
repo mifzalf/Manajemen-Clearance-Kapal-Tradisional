@@ -22,7 +22,18 @@ const jenisMuatan = require("../model/jenisMuatanModel")
 const pembayaran = require("../model/pembayaranModel")
 
 const getPerjalananByFilter = async (req, res) => {
-    let { nama_kapal, kategori, tanggal_awal, tanggal_akhir, nama_muatan, golongan_kendaraan, limit, page, wilker } = req.query;
+    let { 
+        nama_kapal, 
+        kategori, 
+        tanggal_awal, 
+        tanggal_akhir, 
+        nama_muatan,
+        golongan_kendaraan, 
+        limit, 
+        page, 
+        wilker,
+        searchTerm 
+    } = req.query;
 
     try {
         const dataUser = await users.findByPk(req.user.id);
@@ -36,15 +47,22 @@ const getPerjalananByFilter = async (req, res) => {
         let whereKategoriMuatan = {};
         let pagination = {};
 
-        if (limit) pagination.limit = Number(limit);
-        if (page) pagination.offset = (limit * page) - limit;
+        const pageNumber = Number(page) || 1;
+        const limitNumber = Number(limit);
+        if (limitNumber > 0) {
+            pagination.limit = limitNumber;
+            pagination.offset = (limitNumber * pageNumber) - limitNumber;
+        }
 
         if (nama_kapal) {
             whereKapal.nama_kapal = { [Op.like]: `%${nama_kapal}%` };
         }
 
-        if (golongan_kendaraan) {
-            whereMuatanKendaraan.golongan_kendaraan = golongan_kendaraan;
+        const namaMuatanArray = Array.isArray(nama_muatan) ? nama_muatan : (nama_muatan ? [nama_muatan] : []);
+        const golonganKendaraanArray = Array.isArray(golongan_kendaraan) ? golongan_kendaraan : (golongan_kendaraan ? [golongan_kendaraan] : []);
+
+        if (golonganKendaraanArray.length > 0) {
+            whereMuatanKendaraan.golongan_kendaraan = { [Op.in]: golonganKendaraanArray };
         }
 
         if (wilker) {
@@ -55,8 +73,8 @@ const getPerjalananByFilter = async (req, res) => {
             whereKategoriMuatan.status_kategori_muatan = { [Op.like]: `%${kategori}%` };
         }
 
-        if (nama_muatan) {
-            whereKategoriMuatan.nama_kategori_muatan = { [Op.like]: `%${nama_muatan}%` };
+        if (namaMuatanArray.length > 0) {
+            whereKategoriMuatan.nama_kategori_muatan = { [Op.in]: namaMuatanArray };
         }
 
         if (tanggal_awal && tanggal_akhir) {
@@ -69,31 +87,19 @@ const getPerjalananByFilter = async (req, res) => {
             wherePerjalanan.tanggal_berangkat = { [Op.lte]: new Date(tanggal_akhir) };
         }
 
-        let perjalananIds = null;
-        if (nama_muatan || kategori) {
-            perjalananIds = await muatan.findAll({
-                attributes: ["id_perjalanan"],
-                include: [
-                    {
-                        model: kategoriMuatan,
-                        as: "kategori_muatan",
-                        required: true,
-                        where: whereKategoriMuatan
-                    }
-                ],
-                raw: true
-            }).then(rows => rows.map(r => r.id_perjalanan));
-
-            if (perjalananIds.length === 0) {
-                return res.status(200).json({ msg: "Tidak ada data", datas: [] });
-            }
+        if (searchTerm) {
+            wherePerjalanan[Op.or] = [
+                { '$kapal.nama_kapal$': { [Op.like]: `%${searchTerm}%` } },
+                { '$agen.nama_agen$': { [Op.like]: `%${searchTerm}%` } },
+                { '$tujuan_akhir.nama_kecamatan$': { [Op.like]: `%${searchTerm}%` } },
+                { '$spb.no_spb$': { [Op.like]: `%${searchTerm}%` } }
+            ];
         }
 
-        const datas = await perjalanan.findAll({
+        const { count, rows: datas } = await perjalanan.findAndCountAll({
             order: [['id_perjalanan', 'DESC']],
             where: {
                 ...wherePerjalanan,
-                ...(perjalananIds ? { id_perjalanan: { [Op.in]: perjalananIds } } : {}),
             },
             include: [
                 {
@@ -119,7 +125,8 @@ const getPerjalananByFilter = async (req, res) => {
                             model: kategoriMuatan,
                             as: "kategori_muatan",
                             attributes: ["nama_kategori_muatan", "status_kategori_muatan"],
-                            where: (nama_muatan || kategori) ? whereKategoriMuatan : undefined,
+                            where: whereKategoriMuatan,
+                            required: (namaMuatanArray.length > 0 || kategori) ? true : false,
                             include: [{
                                 model: jenisMuatan, as: "jenis_muatan", attributes: ['nama_jenis_muatan']
                             }]
@@ -129,7 +136,8 @@ const getPerjalananByFilter = async (req, res) => {
                 {
                     model: muatanKendaraan, 
                     as: "muatan_kendaraan", 
-                    required: true, 
+                    separate: true,
+                    required: (golonganKendaraanArray.length > 0) ? true : false, 
                     where: whereMuatanKendaraan,
                     attributes: ['jenis_perjalanan', 'golongan_kendaraan', "ton", "unit", "m3"]
                 },
@@ -141,10 +149,18 @@ const getPerjalananByFilter = async (req, res) => {
                 { model: kecamatan, as: "tempat_singgah", attributes: ['nama_kecamatan'] },
                 { model: kecamatan, as: "tujuan_akhir", attributes: ['nama_kecamatan'] },
             ],
-            ...pagination
+            ...pagination,
+            distinct: true, 
+            subQuery: false
         });
+        
+        const totalData = Array.isArray(count) ? count.length : count;
 
-        return res.status(200).json({ msg: "Berhasil mengambil data", datas });
+        return res.status(200).json({ 
+            msg: "Berhasil mengambil data", 
+            datas: datas,
+            totalData: totalData
+        });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ msg: "Terjadi kesalahan pada server" });
@@ -601,6 +617,28 @@ const getTotalPerKategori = async (req, res) => {
     }
 }
 
+const getPerjalananFilterOptions = async (req, res) => {
+    try {
+        const ships = await kapal.findAll({ attributes: ['nama_kapal'], group: ['nama_kapal'] });
+        const categories = await kategoriMuatan.findAll({ attributes: ['status_kategori_muatan'], group: ['status_kategori_muatan'] });
+        const goods = await kategoriMuatan.findAll({ attributes: ['nama_kategori_muatan'], group: ['nama_kategori_muatan'] });
+        
+        const wilayahKerjaData = await perjalanan.findAll({ attributes: ['wilayah_kerja'], group: ['wilayah_kerja'] });
+        const wilayahKerja = wilayahKerjaData.map(w => w.wilayah_kerja).filter(Boolean);
+
+        return res.status(200).json({
+            ships: ships.map(s => s.nama_kapal).filter(Boolean),
+            categories: categories.map(c => c.status_kategori_muatan).filter(Boolean),
+            goods: goods.map(g => g.nama_kategori_muatan).filter(Boolean),
+            wilayahKerja: wilayahKerja
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ msg: "Gagal mengambil opsi filter" });
+    }
+};
+
 module.exports = {
     getPerjalananByFilter,
     getPerjalanan,
@@ -611,5 +649,6 @@ module.exports = {
     getTotalPerjalananThisMonth,
     getTotalPerjalananPerMonth,
     getTotalPerKategori,
-    getTotalPerjalananNow
+    getTotalPerjalananNow,
+    getPerjalananFilterOptions
 }

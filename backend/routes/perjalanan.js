@@ -10,17 +10,23 @@ const {
     getTotalPerjalananPerMonth,
     getTotalPerKategori,
     getTotalPerjalananThisMonth,
-    getTotalPerjalananNow
+    getTotalPerjalananNow,
+    getPerjalananFilterOptions // <-- TAMBAHKAN INI
 } = require("../controller/perjalananController")
 
-router.get("/get-filter", getPerjalananByFilter)
+
+router.get("/filter", getPerjalananByFilter)
+router.get("/filter-options", getPerjalananFilterOptions)
+
 router.get("/total", getTotalPerjalananThisMonth)
 router.get("/total-today", getTotalPerjalananNow)
 router.get("/total-kategori", getTotalPerKategori)
 router.get("/total-month", getTotalPerjalananPerMonth)
+
 router.get("/", getPerjalanan)
-router.get("/:id", getPerjalananById)
 router.post("/store", storePerjalanan)
+
+router.get("/:id", getPerjalananById) 
 router.patch("/update/:id", updatePerjalanan)
 router.delete("/delete/:id", deletePerjalanan)
 

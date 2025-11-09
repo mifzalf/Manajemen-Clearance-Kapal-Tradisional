@@ -1,15 +1,14 @@
 import React from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { usePagination, DOTS } from '../../hooks/usePagination'; // <-- Import hook
+import { usePagination, DOTS } from '../../hooks/usePagination';
 
 const Pagination = ({ currentPage, totalPages, paginate }) => {
   const paginationRange = usePagination({
     currentPage,
     totalPages,
-    siblingCount: 1 // Jumlah angka di sebelah halaman aktif
+    siblingCount: 1
   });
 
-  // Jika hanya ada 1 halaman atau kurang, jangan tampilkan paginasi
   if (currentPage === 0 || paginationRange.length < 2) {
     return null;
   }
@@ -37,12 +36,9 @@ const Pagination = ({ currentPage, totalPages, paginate }) => {
         </li>
         
         {paginationRange.map((pageNumber, index) => {
-          // Jika item adalah elipsis, tampilkan elemen elipsis
           if (pageNumber === DOTS) {
             return <li key={DOTS + index} className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300">...</li>;
           }
-
-          // Jika item adalah nomor halaman, tampilkan tombol
           return (
             <li key={pageNumber}>
               <button

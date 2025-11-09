@@ -34,14 +34,14 @@ const Step1DataKapal = ({
             }));
         }
         else if (name === 'rambu_ntpn' || name === 'rambu_nilai') {
-            const field = name.split('_')[1]; // 'ntpn' or 'nilai'
+            const field = name.split('_')[1];
             setFormData(prev => ({
                 ...prev,
                 pembayaran_rambu: { ...prev.pembayaran_rambu, [field]: value }
             }));
         }
         else if (name === 'labuh_ntpn' || name === 'labuh_nilai') {
-            const field = name.split('_')[1]; // 'ntpn' or 'nilai'
+            const field = name.split('_')[1];
             setFormData(prev => ({
                 ...prev,
                 pembayaran_labuh: { ...prev.pembayaran_labuh, [field]: value }
@@ -67,7 +67,7 @@ const Step1DataKapal = ({
     ];
 
     const createOptionalOptions = (items, placeholder) => [
-        { value: '', label: placeholder, disabled: false }, // disabled: false
+        { value: '', label: placeholder, disabled: false },
         ...items.map(item => ({ value: item.id, label: item.nama }))
     ];
 
@@ -146,11 +146,11 @@ const Step1DataKapal = ({
                 <h3 className="text-lg font-semibold text-gray-800">Data Perjalanan</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div><Label htmlFor="kedudukanKapal">Kedudukan Kapal</Label><Select id="kedudukanKapal" name="id_kedudukan_kapal" value={formData.id_kedudukan_kapal || ''} onChange={handleChange} options={createOptions(kabupatenOptions, 'Pilih Kedudukan')} required /></div>
-                    <div><Label htmlFor="datangDari">Datang Dari (Kecamatan)</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
+                    <div><Label htmlFor="datangDari">Datang Dari</Label><Select id="datangDari" name="id_datang_dari" value={formData.id_datang_dari || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Asal')} required /></div>
                     <div><Label htmlFor="tanggalDatang">Tanggal Datang</Label><InputField id="tanggalDatang" name="tanggal_datang" type="date" value={formData.tanggal_datang || ''} onChange={handleChange} required /></div>
 
                      <div>
-                        <Label htmlFor="sandarDi">Sandar Di (Pelabuhan)</Label>
+                        <Label htmlFor="sandarDi">Sandar Di</Label>
                         <Select
                             id="sandarDi"
                             name="id_sandar"
@@ -161,7 +161,7 @@ const Step1DataKapal = ({
                         />
                     </div>
                    <div>
-                        <Label htmlFor="tolakDari">Tolak Dari (Pelabuhan)</Label>
+                        <Label htmlFor="tolakDari">Tolak Dari</Label>
                         <Select
                             id="tolakDari"
                             name="id_tolak"
@@ -172,7 +172,7 @@ const Step1DataKapal = ({
                         />
                     </div>
                      <div></div>
-                    <div><Label htmlFor="tujuanAkhir">Tujuan Akhir (Kecamatan)</Label><Select id="tujuanAkhir" name="id_tujuan_akhir" value={formData.id_tujuan_akhir || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Tujuan')} required /></div>
+                    <div><Label htmlFor="tujuanAkhir">Tujuan Akhir</Label><Select id="tujuanAkhir" name="id_tujuan_akhir" value={formData.id_tujuan_akhir || ''} onChange={handleChange} options={createOptions(kecamatanOptions, 'Pilih Tujuan')} required /></div>
                     <div><Label htmlFor="tanggalBerangkat">Tanggal Berangkat</Label><InputField id="tanggalBerangkat" name="tanggal_berangkat" type="date" value={formData.tanggal_berangkat || ''} onChange={handleChange} required /></div>
                     <div><Label htmlFor="pukulKapalBerangkat">Pukul Berangkat</Label><InputField id="pukulKapalBerangkat" name="pukul_kapal_berangkat" type="time" value={formData.pukul_kapal_berangkat || ''} onChange={handleChange} required /></div>
 
