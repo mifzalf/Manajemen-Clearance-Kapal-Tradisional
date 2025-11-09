@@ -15,7 +15,7 @@ const users = db.define("users", {
     jabatan: DataTypes.STRING,
     wilayah_kerja: DataTypes.STRING,
     foto: DataTypes.STRING,
-    role: DataTypes.ENUM("user", "superuser"),
+    role: DataTypes.ENUM("user", "koordinator", "superuser"),
 })
 
 module.exports = users
