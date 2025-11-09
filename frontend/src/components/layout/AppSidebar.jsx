@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'; // <-- DIPERBAIKI DI SINI
 import { Link, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../context/SidebarContext';
 import { useAuth } from '../../context/AuthContext';
@@ -22,12 +22,14 @@ const AppSidebar = () => {
   const [openSubmenus, setOpenSubmenus] = useState([]);
   const [subMenuHeight, setSubMenuHeight] = useState({});
 
-  const navItems = [
-    { name: 'Dashboard', path: '/', icon: <GridIcon /> },
-    { name: 'Clearance', path: '/clearance', icon: <FileIcon /> },
+  const navItems = useMemo(() => [
+    { id: 'dash', name: 'Dashboard', path: '/', icon: <GridIcon /> },
+    { id: 'clearance', name: 'Clearance', path: '/clearance', icon: <FileIcon /> },
     {
+      id: 'master',
       name: 'Data Master',
       icon: <BoxCubeIcon />,
+      roles: ['user', 'koordinator', 'superuser'],
       subItems: [
         { name: 'Kapal', path: '/master/kapal' },
         { name: 'Nahkoda', path: '/master/nahkoda' },
@@ -37,9 +39,21 @@ const AppSidebar = () => {
         { name: 'Pelabuhan', path: '/master/pelabuhan' },
       ],
     },
-    { name: 'Log Aktivitas', path: '/log-aktivitas', icon: <ListIcon /> },
-    { name: 'Manajemen User', path: '/manajemen-user', icon: <UserCircleIcon /> },
-  ];
+    { 
+      id: 'log',
+      name: 'Log Aktivitas', 
+      path: '/log-aktivitas', 
+      icon: <ListIcon />, 
+      roles: ['koordinator', 'superuser'] 
+    },
+    { 
+      id: 'mgmt',
+      name: 'Manajemen User', 
+      path: '/manajemen-user', 
+      icon: <UserCircleIcon />, 
+      roles: ['superuser'] 
+    },
+  ], []); 
 
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
 
@@ -49,40 +63,42 @@ const AppSidebar = () => {
 
   useEffect(() => {
     const activeSubmenus = [];
-    navItems.forEach((item, index) => {
+    navItems.forEach((item) => {
       if (isSubMenuActive(item.subItems)) {
-        activeSubmenus.push(index);
+        activeSubmenus.push(item.id); 
       }
     });
     setOpenSubmenus(activeSubmenus);
-  }, [location.pathname, isSubMenuActive]);
+  }, [location.pathname, isSubMenuActive, navItems]);
 
   useEffect(() => {
-    openSubmenus.forEach(index => {
-      const key = `${index}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight(prev => ({ ...prev, [key]: subMenuRefs.current[key].scrollHeight }));
+    openSubmenus.forEach(id => {
+      if (subMenuRefs.current[id]) {
+        setSubMenuHeight(prev => ({ ...prev, [id]: subMenuRefs.current[id].scrollHeight }));
       }
     });
   }, [openSubmenus]);
 
-  const handleSubmenuToggle = (index) => {
+  const handleSubmenuToggle = (id) => {
     setOpenSubmenus(prevOpen => 
-      prevOpen.includes(index)
-        ? prevOpen.filter(item => item !== index)
-        : [...prevOpen, index]
+      prevOpen.includes(id)
+        ? prevOpen.filter(item => item !== id)
+        : [...prevOpen, id]
     );
   };
   
   const isSidebarWide = isExpanded || isHovered || isMobileOpen;
 
-  // Filter menu khusus superuser
-  const filteredNavItems = navItems.filter(item => {
-    if (["Log Aktivitas", "Manajemen User"].includes(item.name)) {
-      return user && user.role === "superuser";
+  const filteredNavItems = useMemo(() => {
+    if (!user || !user.role) {
+      return navItems.filter(item => !item.roles);
     }
-    return true;
-  });
+    const userRole = user.role.toLowerCase();
+    return navItems.filter(item => {
+      if (!item.roles) return true;
+      return item.roles.includes(userRole);
+    });
+  }, [user, navItems]); 
 
   return (
     <aside
@@ -117,15 +133,15 @@ const AppSidebar = () => {
           </h2>
           
           <ul className="flex flex-col gap-1.5">
-            {filteredNavItems.map((item, index) => {
+            {filteredNavItems.map((item) => {
               const isParentActive = isSubMenuActive(item.subItems);
-              const isOpen = openSubmenus.includes(index);
+              const isOpen = openSubmenus.includes(item.id);
               return (
-                <li key={item.name}>
+                <li key={item.id}> 
                   {item.subItems ? (
                     <>
                       <button
-                        onClick={() => handleSubmenuToggle(index)}
+                        onClick={() => handleSubmenuToggle(item.id)}
                         className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
                           ${isParentActive ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}
                           ${!isExpanded && !isHovered ? 'lg:justify-center' : ''}
@@ -143,9 +159,9 @@ const AppSidebar = () => {
                       </button>
                       {isSidebarWide && (
                         <div
-                          ref={el => (subMenuRefs.current[index] = el)}
+                          ref={el => (subMenuRefs.current[item.id] = el)}
                           className="overflow-hidden transition-all duration-300"
-                          style={{ height: isOpen ? `${subMenuHeight[index] || 0}px` : '0px' }}
+                          style={{ height: isOpen ? `${subMenuHeight[item.id] || 0}px` : '0px' }}
                         >
                           <ul className="mt-2 ml-9 space-y-1">
                             {item.subItems.map(subItem => (

@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import UserTable from '../components/table/UserTable';
 import UserFormModal from '../components/modal/UserFormModal';
-import ConfirmationModal from '../components/modal/ConfirmationModal'; // (Meskipun tidak dipakai, bisa disimpan untuk penggunaan lain)
 import axiosInstance from '../api/axiosInstance';
+import { useAuth } from '../context/AuthContext';
 
 function ManajemenUser() {
     const [userData, setUserData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-
-    // --- State untuk ConfirmationModal tidak lagi diperlukan ---
-    // const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-    // const [itemToDelete, setItemToDelete] = useState(null);
+    const { user } = useAuth();
 
     useEffect(() => {
         fetchUsers();
@@ -47,7 +44,6 @@ function ManajemenUser() {
         setEditingItem(null);
     };
 
-    // --- FUNGSI DELETE DIUBAH MENGGUNAKAN TOAST ---
     const handleDelete = (item) => {
         toast((t) => (
             <div className="flex flex-col gap-3">
@@ -59,7 +55,7 @@ function ManajemenUser() {
                             try {
                                 await axiosInstance.delete(`/users/delete/${item.id_user}`);
                                 toast.success(`Pengguna "${item.nama_lengkap}" berhasil dihapus.`);
-                                fetchUsers(); // Refresh data tabel
+                                fetchUsers();
                             } catch (error) {
                                 toast.error("Gagal menghapus data.");
                                 console.error("Delete User Error:", error);
@@ -95,14 +91,18 @@ function ManajemenUser() {
                 {loading ? (
                     <p className="text-center text-gray-500">Memuat data...</p>
                 ) : (
-                    // Kirim 'handleDelete' sebagai prop 'onDelete'
                     <UserTable userItems={userData} onEdit={handleEdit} onDelete={handleDelete} />
                 )}
             </div>
 
-            {isModalOpen && <UserFormModal onClose={handleCloseModal} currentItem={editingItem} onSuccess={fetchUsers} />}
-            
-            {/* --- Komponen ConfirmationModal tidak lagi dipanggil di sini --- */}
+            {isModalOpen && (
+                <UserFormModal 
+                    onClose={handleCloseModal} 
+                    currentItem={editingItem} 
+                    onSuccess={fetchUsers} 
+                    currentUserRole={user?.role || ''} // <-- 3. DITAMBAHKAN (Kirim role ke modal)
+                />
+            )}
         </>
     );
 }

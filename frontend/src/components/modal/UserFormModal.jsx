@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
@@ -9,6 +9,7 @@ import axiosInstance from '../../api/axiosInstance';
 const roleOptions = [
     { value: '', label: 'Pilih Role', disabled: true },
     { value: 'superuser', label: 'Superuser' },
+    { value: 'koordinator', label: 'Koordinator' },
     { value: 'user', label: 'User' },
 ];
 
@@ -18,9 +19,11 @@ const wilkerOptions = [
     { value: 'Dungkek', label: 'Dungkek' },
 ];
 
-const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
+const UserFormModal = ({ onClose, currentItem, onSuccess, currentUserRole }) => {
     const [formData, setFormData] = useState({});
     const isEditMode = Boolean(currentItem);
+    
+    const isSuperuser = currentUserRole === 'superuser';
 
     useEffect(() => {
         const initial = { nama_lengkap: '', username: '', password: '', jabatan: '', wilayah_kerja: '', role: '' };
@@ -31,6 +34,7 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
                 jabatan: currentItem.jabatan || '',
                 wilayah_kerja: currentItem.wilayah_kerja || '', 
                 role: currentItem.role || '',
+                password: '', 
             });
         } else {
             setFormData(initial);
@@ -43,13 +47,20 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        const dataToSend = { ...formData };
+        
+        if (isEditMode && (!isSuperuser || dataToSend.password === '')) {
+            delete dataToSend.password;
+        }
+
         try {
             const method = isEditMode ? 'patch' : 'post';
             const url = isEditMode
                 ? `/users/update/${currentItem.id_user}`
                 : '/users/store';
             
-            await axiosInstance({ method, url, data: formData }); 
+            await axiosInstance({ method, url, data: dataToSend }); 
 
             toast.success(`Data pengguna berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}!`);
             onSuccess();
@@ -71,8 +82,21 @@ const UserFormModal = ({ onClose, currentItem, onSuccess }) => {
                             <div><Label htmlFor="nama_lengkap">Nama Lengkap</Label><InputField name="nama_lengkap" id="nama_lengkap" value={formData.nama_lengkap || ''} onChange={handleChange} required /></div>
                             <div><Label htmlFor="username">Username</Label><InputField name="username" id="username" value={formData.username || ''} onChange={handleChange} required /></div>
                             
-                            {!isEditMode && (
-                                <div><Label htmlFor="password">Password</Label><InputField type="password" name="password" id="password" onChange={handleChange} required /></div>
+                            {(!isEditMode || (isEditMode && isSuperuser)) && (
+                                <div>
+                                    <Label htmlFor="password">
+                                        Password 
+                                        {isEditMode && ' (Opsional)'} 
+                                    </Label>
+                                    <InputField 
+                                        type="password" 
+                                        name="password" 
+                                        id="password" 
+                                        onChange={handleChange} 
+                                        required={!isEditMode} 
+                                        placeholder={isEditMode ? 'Kosongkan jika tidak ingin diubah' : ''}
+                                    />
+                                </div>
                             )}
 
                             <div><Label htmlFor="jabatan">Jabatan</Label><InputField name="jabatan" id="jabatan" value={formData.jabatan || ''} onChange={handleChange} required /></div>
