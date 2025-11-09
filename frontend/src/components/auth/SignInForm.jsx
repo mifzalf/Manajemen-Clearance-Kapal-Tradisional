@@ -18,6 +18,8 @@ export default function SignInForm() {
     });
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    
+    const [error, setError] = useState(null);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,6 +28,8 @@ export default function SignInForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
+        
         try {
             const response = await axiosInstance.post('/users/login', {
                 username: formData.username,
@@ -38,12 +42,13 @@ export default function SignInForm() {
                 toast.success('Login berhasil! Mengarahkan ke dashboard...');
                 navigate('/');
             } else {
-                toast.error("Gagal login: Token tidak diterima.");
+                const msg = "Gagal login: Token tidak diterima.";
+                setError(msg);
             }
 
         } catch (error) {
             const errorMessage = error.response?.data?.msg || "Terjadi kesalahan. Coba lagi.";
-            toast.error(errorMessage);
+            setError(errorMessage);
             console.error("Login Error:", error);
         } finally {
             setLoading(false);
@@ -64,6 +69,12 @@ export default function SignInForm() {
                     </div>
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-6">
+                            {error && (
+                                <div className="p-3 text-sm text-center text-red-800 bg-red-100 border border-red-300 rounded-lg">
+                                    {error}
+                                </div>
+                            )}
+
                             <div>
                                 <Label htmlFor="username">Username</Label>
                                 <InputField 

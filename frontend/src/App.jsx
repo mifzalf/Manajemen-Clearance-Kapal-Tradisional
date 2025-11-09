@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import axiosInstance from './api/axiosInstance';
-import { useAuth } from './context/AuthContext'; // Impor ini TETAP DIPERLUKAN
+import { useAuth } from './context/AuthContext';
 
-// Layout
 import AppLayout from "./components/layout/AppLayout";
 
-// Halaman Utama
 import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/AuthPages/SignIn";
 import Clearance from "./pages/Clearance/Clearance";
@@ -15,7 +13,6 @@ import DetailClearance from "./pages/Clearance/DetailClearance";
 import UserProfiles from "./pages/profile/UserProfiles";
 import Settings from "./pages/profile/Settings";
 
-// Halaman Master Data
 import Kapal from "./pages/master/Kapal";
 import Nahkoda from "./pages/master/Nahkoda";
 import Agen from "./pages/master/Agen";
@@ -23,22 +20,18 @@ import KategoriMuatan from "./pages/master/KategoriMuatan";
 import Daerah from "./pages/master/Daerah";
 import Pelabuhan from "./pages/master/Pelabuhan";
 
-// Halaman Superuser & Koordinator
 import LogAktivitas from "./pages/LogAktivitas"; 
 import ManajemenUser from "./pages/ManajemenUser";
 import Forbidden from './pages/Forbidden';
 import ProtectedRouteRole from './components/auth/ProtectedRouteRole';
 
-// [DIKEMBALIKAN] Menggunakan logika localStorage yang sederhana untuk cek login
 const ProtectedRoute = () => {
-    const token = localStorage.getItem('token'); // Cek token langsung
+    const token = localStorage.getItem('token');
     
     if (!token) {
-        // Jika tidak ada token, paksa kembali ke signin
         return <Navigate to="/signin" replace />;
     }
     
-    // Jika ada token, izinkan akses
     return <Outlet />;
 };
 
@@ -73,11 +66,9 @@ function App() {
             <Routes>
                 <Route path="/signin" element={<SignIn />} />
 
-                {/* Rute yang dilindungi (Harus Login) */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<AppLayout />}>
                         
-                        {/* 1. Rute untuk SEMUA role (User, Koordinator, Superuser) */}
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/clearance" element={<Clearance />} />
                         <Route path="/clearance/add" element={<FormClearance />} />
@@ -87,7 +78,6 @@ function App() {
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/forbidden" element={<Forbidden />} />
 
-                        {/* 2. Rute untuk Data Master (User, Koordinator, Superuser) */}
                         <Route element={<ProtectedRouteRole allowedRoles={['user', 'koordinator', 'superuser']} />}>
                             <Route path="/master/kapal" element={<Kapal />} />
                             <Route path="/master/nahkoda" element={<Nahkoda />} />
@@ -97,12 +87,10 @@ function App() {
                             <Route path="/master/pelabuhan" element={<Pelabuhan />} />
                         </Route>
                         
-                        {/* 3. Rute untuk Log Aktivitas (Koordinator & Superuser) */}
                         <Route element={<ProtectedRouteRole allowedRoles={['koordinator', 'superuser']} />}>
                             <Route path="/log-aktivitas" element={<LogAktivitas />} />
                         </Route>
 
-                        {/* 4. Rute HANYA untuk Superuser */}
                         <Route element={<ProtectedRouteRole allowedRoles={['superuser']} />}>
                             <Route path="/manajemen-user" element={<ManajemenUser />} />
                         </Route>
