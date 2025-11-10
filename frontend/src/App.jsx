@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import axiosInstance from './api/axiosInstance';
-import { useAuth } from './context/AuthContext';
-
 import AppLayout from "./components/layout/AppLayout";
 
 import Dashboard from "./pages/Dashboard";
@@ -27,17 +25,14 @@ import ProtectedRouteRole from './components/auth/ProtectedRouteRole';
 
 const ProtectedRoute = () => {
     const token = localStorage.getItem('token');
-    
     if (!token) {
         return <Navigate to="/signin" replace />;
     }
-    
     return <Outlet />;
 };
 
 
 function App() {
-
     React.useEffect(() => {
         const handleStorageChange = () => {
             if (!localStorage.getItem('token')) {
