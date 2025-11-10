@@ -1,5 +1,3 @@
-import React from 'react';
-
 const MuatanDetailTable = ({ data = [] }) => {
   return (
     <div className="overflow-x-auto">

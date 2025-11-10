@@ -3,10 +3,9 @@ import toast from 'react-hot-toast';
 import Label from '../form/Label';
 import InputField from '../form/InputField';
 import Button from '../ui/Button';
-import axiosInstance from '../../api/axiosInstance'; // <-- 1. Ganti import axios dengan instance Anda
+import axiosInstance from '../../api/axiosInstance';
 
 const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
-  // const API_URL = import.meta.env.VITE_API_URL; // <-- 2. Baris ini tidak lagi diperlukan
   const [formData, setFormData] = useState({ nama_agen: '' });
   const isEditMode = Boolean(currentItem);
 
@@ -20,14 +19,11 @@ const AgenFormModal = ({ onClose, currentItem, onSuccess }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- 3. Logika handleSubmit disederhanakan ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const response = isEditMode
-        // Gunakan axiosInstance, path relatif, dan hapus header manual
         ? await axiosInstance.patch(`/agen/update/${currentItem.id_agen}`, formData)
-        // Lakukan hal yang sama untuk method post
         : await axiosInstance.post('/agen/store', formData);
 
       if (response.status === 200) {

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function UserMetaCard({ user }) {
   if (!user) return null;
 

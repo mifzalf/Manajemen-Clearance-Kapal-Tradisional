@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaShip, FaCheckCircle } from 'react-icons/fa';
 
 const MetricCards = ({totalKapal, totalPerjalanan, kapalNow, perjalananNow}) => {

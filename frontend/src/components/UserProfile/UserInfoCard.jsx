@@ -1,5 +1,3 @@
-import React from 'react';
-
 const DetailItem = ({ label, value }) => (
   <div>
     <p className="text-sm text-gray-500">{label}</p>

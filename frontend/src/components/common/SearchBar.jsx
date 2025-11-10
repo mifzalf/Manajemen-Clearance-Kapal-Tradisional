@@ -1,5 +1,3 @@
-import React from 'react';
-
 const SearchBar = ({ searchTerm, setSearchTerm, placeholder }) => {
   return (
     <div className="relative">

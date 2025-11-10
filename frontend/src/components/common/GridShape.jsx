@@ -1,5 +1,3 @@
-import React from 'react';
-
 const GridShape = () => {
   return (
     <div className="absolute -z-10 h-full w-full">

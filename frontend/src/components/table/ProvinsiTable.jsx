@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
 import { MoreDotIcon } from '../../icons';
@@ -9,13 +9,12 @@ const ActionDropdown = ({ item, onEdit, onDelete }) => {
 
   const handleEditClick = () => {
     onEdit(item);
-    setIsOpen(false); // Dropdown tertutup saat edit
+    setIsOpen(false);
   };
 
-  // --- TAMBAHKAN FUNGSI INI ---
   const handleDeleteClick = () => {
     onDelete(item);
-    setIsOpen(false); // Dropdown tertutup saat delete
+    setIsOpen(false);
   };
   
   return (

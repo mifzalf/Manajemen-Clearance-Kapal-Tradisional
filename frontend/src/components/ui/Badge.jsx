@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Badge = ({ color, children }) => {
   const colorClasses = {
     success: 'bg-green-100 text-green-700',

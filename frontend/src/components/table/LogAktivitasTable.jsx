@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ActionBadge = ({ action }) => {
   let styleClass = '';
   switch (String(action).toUpperCase()) {

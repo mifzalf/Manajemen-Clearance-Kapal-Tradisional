@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
+import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import InputField from "../form/InputField";
 import Button from "../ui/Button";

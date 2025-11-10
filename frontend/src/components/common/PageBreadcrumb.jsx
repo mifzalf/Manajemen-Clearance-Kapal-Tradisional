@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function PageBreadcrumb({ pageTitle }) {
   return (
     <div className="mb-6">
