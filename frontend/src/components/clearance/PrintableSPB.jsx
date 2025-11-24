@@ -162,7 +162,7 @@ const PrintableSPB = React.forwardRef(({ data }, ref) => {
         style={{
           position: "absolute",
           top: "128mm",
-          left: "127mm",
+          left: "135mm",
           fontWeight: "bold",
           fontSize: "12pt",
         }}
