@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import debounce from 'lodash.debounce';
 import UserTable from '../components/table/UserTable';
 import UserFormModal from '../components/modal/UserFormModal';
+import SearchBar from '../components/common/SearchBar';
 import axiosInstance from '../api/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,14 +14,17 @@ function ManajemenUser() {
     const [editingItem, setEditingItem] = useState(null);
     const { user } = useAuth();
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async (searchQuery = '') => {
         setLoading(true);
         try {
-            let response = await axiosInstance.get('/users');
+            let params = {};
+            if (searchQuery) {
+                params.search = searchQuery;
+            }
+
+            let response = await axiosInstance.get('/users', { params });
             setUserData(response.data.datas || []);
         } catch (error) {
             toast.error("Gagal memuat data pengguna.");
@@ -27,7 +32,21 @@ function ManajemenUser() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    const debouncedFetch = useCallback(
+        debounce((query) => {
+            fetchUsers(query);
+        }, 500),
+        [fetchUsers]
+    );
+
+    useEffect(() => {
+        debouncedFetch(searchTerm);
+        return () => {
+            debouncedFetch.cancel();
+        };
+    }, [searchTerm, debouncedFetch]);
 
     const handleOpenModal = () => {
         setEditingItem(null);
@@ -44,6 +63,10 @@ function ManajemenUser() {
         setEditingItem(null);
     };
 
+    const handleSuccess = () => {
+        fetchUsers(searchTerm);
+    };
+
     const handleDelete = (item) => {
         toast((t) => (
             <div className="flex flex-col gap-3">
@@ -55,7 +78,7 @@ function ManajemenUser() {
                             try {
                                 await axiosInstance.delete(`/users/delete/${item.id_user}`);
                                 toast.success(`Pengguna "${item.nama_lengkap}" berhasil dihapus.`);
-                                fetchUsers();
+                                fetchUsers(searchTerm); 
                             } catch (error) {
                                 toast.error("Gagal menghapus data.");
                                 console.error("Delete User Error:", error);
@@ -88,19 +111,33 @@ function ManajemenUser() {
                     </div>
                 </div>
 
-                {loading ? (
-                    <p className="text-center text-gray-500">Memuat data...</p>
-                ) : (
-                    <UserTable userItems={userData} onEdit={handleEdit} onDelete={handleDelete} />
-                )}
+                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="p-4 border-b border-gray-200">
+                        <div className="w-full md:w-1/3">
+                            <SearchBar 
+                                searchTerm={searchTerm} 
+                                setSearchTerm={setSearchTerm} 
+                                placeholder="Cari pengguna, role, atau wilayah..." 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="p-0">
+                        {loading ? (
+                            <p className="text-center text-gray-500 py-10">Memuat data...</p>
+                        ) : (
+                            <UserTable userItems={userData} onEdit={handleEdit} onDelete={handleDelete} />
+                        )}
+                    </div>
+                </div>
             </div>
 
             {isModalOpen && (
                 <UserFormModal 
                     onClose={handleCloseModal} 
                     currentItem={editingItem} 
-                    onSuccess={fetchUsers} 
-                    currentUserRole={user?.role || ''} // <-- 3. DITAMBAHKAN (Kirim role ke modal)
+                    onSuccess={handleSuccess} 
+                    currentUserRole={user?.role || ''}
                 />
             )}
         </>

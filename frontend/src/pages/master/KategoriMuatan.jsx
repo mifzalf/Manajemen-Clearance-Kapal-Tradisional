@@ -1,52 +1,101 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import debounce from 'lodash.debounce';
 import MuatanTable from '../../components/table/MuatanTable';
 import JenisMuatanTable from '../../components/table/JenisMuatanTable';
 import MuatanFormModal from '../../components/modal/MuatanFormModal';
+import SearchBar from '../../components/common/SearchBar';
 import axiosInstance from '../../api/axiosInstance';
 
 function KategoriMuatan() {
     const [kategoriMuatanData, setKategoriMuatanData] = useState([]);
     const [jenisMuatanData, setJenisMuatanData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Default false agar tidak blank saat mounting awal sebelum effect jalan
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [activeTab, setActiveTab] = useState('kategori');
+    
+    // State untuk pencarian
+    const [searchTerm, setSearchTerm] = useState('');
 
     const tabs = [
         { id: 'kategori', label: 'Kategori Muatan' },
         { id: 'jenisMuatan', label: 'Jenis Muatan' },
     ];
 
-    useEffect(() => {
-        fetchAllData();
-    }, []);
+    // --- Logic Pencarian (Debounce) ---
+    const debouncedFetch = useCallback(
+        debounce((query, tab) => {
+            if (tab === 'kategori') {
+                fetchKategoriMuatan(query);
+                // Kita bisa fetch jenis muatan juga di background jika diperlukan dropdown relasi
+                if (jenisMuatanData.length === 0) fetchJenisMuatan(); 
+            } else {
+                fetchJenisMuatan(query);
+            }
+        }, 500),
+        [] // Dependency kosong agar fungsi debounce tidak dibuat ulang
+    );
 
-    const fetchKategoriMuatan = async () => {
+    // Effect memantau perubahan searchTerm dan activeTab
+    useEffect(() => {
+        setLoading(true); // Set loading true saat mengetik/pindah tab
+        debouncedFetch(searchTerm, activeTab);
+
+        return () => {
+            debouncedFetch.cancel();
+        };
+    }, [searchTerm, activeTab, debouncedFetch]);
+
+
+    // --- Fungsi Fetch API ---
+
+    const fetchKategoriMuatan = async (searchQuery = '') => {
         try {
-            let response = await axiosInstance.get('/kategori-muatan');
+            let params = {};
+            if (searchQuery) params.search = searchQuery;
+
+            let response = await axiosInstance.get('/kategori-muatan', { params });
             setKategoriMuatanData(response.data.datas || []);
         } catch (error) {
             toast.error("Gagal memuat data Kategori Muatan.");
             console.error("Fetch Kategori Muatan Error:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const fetchJenisMuatan = async () => {
+    const fetchJenisMuatan = async (searchQuery = '') => {
         try {
-            let response = await axiosInstance.get('/jenis-muatan');
+            let params = {};
+            if (searchQuery) params.search = searchQuery;
+
+            let response = await axiosInstance.get('/jenis-muatan', { params });
             setJenisMuatanData(response.data.datas || []);
         } catch (error) {
             toast.error("Gagal memuat data Jenis Muatan.");
             console.error("Fetch Jenis Muatan Error:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const fetchAllData = async () => {
-        setLoading(true);
-        await Promise.all([fetchKategoriMuatan(), fetchJenisMuatan()]);
-        setLoading(false);
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        setSearchTerm(''); // Reset search saat pindah tab
     };
+
+    const handleSuccess = () => {
+        // Refresh data sesuai tab aktif & search term saat ini
+        if (activeTab === 'kategori') {
+            fetchKategoriMuatan(searchTerm);
+            fetchJenisMuatan(); // Refresh opsi dropdown juga
+        } else {
+            fetchJenisMuatan(searchTerm);
+        }
+    };
+
+    // --- Modal Handlers ---
 
     const handleOpenModal = () => {
         setEditingItem(null);
@@ -80,7 +129,9 @@ function KategoriMuatan() {
                                 const response = await axiosInstance.delete(`/${endpoint}/delete/${itemId}`);
                                 if (response.status === 200) {
                                     toast.success('Data berhasil dihapus!');
-                                    fetchAllData();
+                                    // Refresh data
+                                    if (isKategoriTab) fetchKategoriMuatan(searchTerm);
+                                    else fetchJenisMuatan(searchTerm);
                                 }
                             } catch (error) {
                                 toast.error('Gagal menghapus data.');
@@ -109,17 +160,17 @@ function KategoriMuatan() {
         switch (activeTab) {
             case 'kategori':
                 return <MuatanTable
-                           muatanItems={kategoriMuatanData}
-                           jenisList={jenisMuatanData}
-                           onEdit={handleEdit}
-                           onDelete={handleDelete}
-                       />;
+                            muatanItems={kategoriMuatanData}
+                            jenisList={jenisMuatanData}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />;
             case 'jenisMuatan':
                 return <JenisMuatanTable
-                           data={jenisMuatanData}
-                           onEdit={handleEdit}
-                           onDelete={handleDelete}
-                       />;
+                            data={jenisMuatanData}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />;
             default:
                 return null;
         }
@@ -128,25 +179,27 @@ function KategoriMuatan() {
     return (
         <>
             <div className="p-4 md:p-6 space-y-6">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <h1 className="text-2xl font-bold text-gray-800">
                         {activeTab === 'kategori' ? 'Data Kategori Muatan' : 'Data Jenis Muatan'}
                     </h1>
                     <button
                         onClick={handleOpenModal}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors"
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap"
                     >
                         + Tambah Data
                     </button>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    
+                    {/* Tabs Navigation */}
                     <div className="border-b border-gray-200">
                         <nav className="-mb-px flex gap-x-6 px-4" aria-label="Tabs">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => handleTabChange(tab.id)}
                                     className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                                         activeTab === tab.id
                                             ? 'border-indigo-500 text-indigo-600'
@@ -158,6 +211,19 @@ function KategoriMuatan() {
                             ))}
                         </nav>
                     </div>
+
+                    {/* Search Bar Section */}
+                    <div className="p-4 border-b border-gray-200">
+                        <div className="w-full md:w-1/3">
+                            <SearchBar 
+                                searchTerm={searchTerm} 
+                                setSearchTerm={setSearchTerm} 
+                                placeholder={activeTab === 'kategori' ? "Cari kategori muatan..." : "Cari jenis muatan..."}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Table Content */}
                     <div className="p-4">
                         {renderContent()}
                     </div>
@@ -170,7 +236,7 @@ function KategoriMuatan() {
                     onClose={handleCloseModal}
                     currentItem={editingItem}
                     jenisMuatanOptions={jenisMuatanData}
-                    onSuccess={fetchAllData}
+                    onSuccess={handleSuccess}
                 />
             }
         </>

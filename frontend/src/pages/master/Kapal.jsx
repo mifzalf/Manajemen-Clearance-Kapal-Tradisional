@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import debounce from 'lodash.debounce';
 import KapalTable from '../../components/table/KapalTable';
 import JenisKapalTable from '../../components/table/JenisKapalTable';
 import KapalFormModal from '../../components/modal/KapalFormModal';
+import SearchBar from '../../components/common/SearchBar';
 import axiosInstance from '../../api/axiosInstance';
 
 function Kapal() {
-  const API_URL = import.meta.env.VITE_API_URL;
   const [activeTab, setActiveTab] = useState('kapal');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  
   const [kapalData, setKapalData] = useState([]);
   const [jenisKapalData, setJenisKapalData] = useState([]);
   const [negaraData, setNegaraData] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const tabs = [
     { id: 'kapal', label: 'Daftar Kapal' },
@@ -20,28 +25,76 @@ function Kapal() {
   ];
 
   useEffect(() => {
-    fetchAll();
+    fetchBendera();
+    fetchKapal(); 
+    fetchJenisKapal(); 
   }, []);
 
+  const debouncedFetch = useCallback(
+    debounce((query, tab) => {
+      if (tab === 'kapal') {
+        fetchKapal(query);
+      } else if (tab === 'jenisKapal') {
+        fetchJenisKapal(query);
+      }
+    }, 500),
+    []
+  );
+  useEffect(() => {
+    debouncedFetch(searchTerm, activeTab);
+    
+    return () => {
+      debouncedFetch.cancel();
+    };
+  }, [searchTerm, activeTab, debouncedFetch]);
+
   const fetchBendera = async () => {
-    let response = await axiosInstance.get('/negara');
-    setNegaraData(response?.data?.datas);
+    try {
+      let response = await axiosInstance.get('/negara');
+      setNegaraData(response?.data?.datas || []);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const fetchKapal = async () => {
-    let response = await axiosInstance.get('/kapal');
-    setKapalData(response?.data?.datas);
+  const fetchKapal = async (searchQuery = '') => {
+    setLoading(true);
+    try {
+      let params = {};
+      if (searchQuery) params.search = searchQuery;
+      
+      let response = await axiosInstance.get('/kapal', { params });
+      setKapalData(response?.data?.datas || []);
+    } catch (error) {
+      toast.error("Gagal memuat data kapal.");
+    } finally {
+      setLoading(false);
+    }
   };
   
-  const fetchJenisKapal = async () => {
-    let response = await axiosInstance.get('/jenis');
-    setJenisKapalData(response?.data?.datas);
+  const fetchJenisKapal = async (searchQuery = '') => {
+    setLoading(true);
+    try {
+      let params = {};
+      if (searchQuery) params.search = searchQuery;
+
+      let response = await axiosInstance.get('/jenis', { params });
+      setJenisKapalData(response?.data?.datas || []);
+    } catch (error) {
+      toast.error("Gagal memuat jenis kapal.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchAll = () => {
-    fetchJenisKapal();
-    fetchKapal();
-    fetchBendera();
+  const handleSuccess = () => {
+    if (activeTab === 'kapal') {
+        fetchKapal(searchTerm);
+        fetchJenisKapal(); 
+    } else {
+        fetchJenisKapal(searchTerm);
+        fetchKapal(); 
+    }
   };
   
   const handleOpenModal = () => {
@@ -71,15 +124,17 @@ function Kapal() {
         <div className="flex gap-2">
           <button 
             onClick={async () => {
-              toast.dismiss(t.id);
               try {
                 const response = await axiosInstance.delete(`/${endpoint}/delete/${itemId}`);
                 if (response.status === 200) {
                   toast.success('Data berhasil dihapus!');
-                  fetchAll();
+                  if (isKapalTab) fetchKapal(searchTerm);
+                  else fetchJenisKapal(searchTerm);
                 }
               } catch (error) {
                 toast.error('Gagal menghapus data.');
+              } finally {
+                toast.dismiss(t.id);
               }
             }}
             className="w-full px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
@@ -97,7 +152,16 @@ function Kapal() {
     ));
   };
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSearchTerm('');
+  };
+
   const renderContent = () => {
+    if (loading) {
+        return <p className="text-center text-gray-500 py-10">Memuat data...</p>;
+    }
+
     switch (activeTab) {
       case 'kapal':
         return <KapalTable data={kapalData} onEdit={handleEdit} onDelete={handleDelete} jenisList={jenisKapalData} benderaList={negaraData} />;
@@ -111,20 +175,24 @@ function Kapal() {
   return (
     <>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Data Kapal</h1>
-          <button onClick={handleOpenModal} className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors">
+          <button 
+            onClick={handleOpenModal} 
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-colors whitespace-nowrap"
+          >
             + Tambah Data
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+          
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex gap-x-6 px-4" aria-label="Tabs">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-indigo-500 text-indigo-600'
@@ -136,6 +204,17 @@ function Kapal() {
               ))}
             </nav>
           </div>
+
+          <div className="p-4 border-b border-gray-200">
+            <div className="w-full md:w-1/3">
+                <SearchBar 
+                    searchTerm={searchTerm} 
+                    setSearchTerm={setSearchTerm} 
+                    placeholder={activeTab === 'kapal' ? "Cari nama kapal..." : "Cari jenis kapal..."}
+                />
+            </div>
+          </div>
+
           <div className="p-4">
             {renderContent()}
           </div>
@@ -149,7 +228,7 @@ function Kapal() {
           currentItem={editingItem}
           jenisKapalOptions={jenisKapalData}
           negaraOptions={negaraData}
-          onSuccess={fetchAll}
+          onSuccess={handleSuccess}
         />
       )}
     </>
