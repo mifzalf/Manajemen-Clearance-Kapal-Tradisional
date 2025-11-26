@@ -1,11 +1,18 @@
+const { Op } = require("sequelize")
 const negara = require("../model/negaraModel")
 const provinsi = require("../model/provinsiModel")
 const logUserController = require("./logUserController")
 
 const getProvinsi = async (req, res) => {
+    let search = req.query.search || ""
     try {
         const datas = await provinsi.findAll({
-            order: [['id_provinsi', 'DESC']]
+            order: [['id_provinsi', 'DESC']],
+            where: {
+                nama_provinsi: {
+                    [Op.like]: `%${search}%`
+                }
+            }
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {

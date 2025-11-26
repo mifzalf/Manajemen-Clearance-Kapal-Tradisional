@@ -21,9 +21,15 @@ const getKapalOptions = async (req, res) => {
 };
 
 const getKapal = async (req, res) => {
+    let search = req.query.search || ""
     try {
         const datas = await kapal.findAll({
             order: [['id_kapal', 'DESC']],
+            where: {
+                nama_kapal: {
+                    [Op.like] : `%${search}%`
+                }
+            }
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {

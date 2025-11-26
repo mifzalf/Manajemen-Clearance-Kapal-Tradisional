@@ -1,10 +1,17 @@
+const { Op } = require("sequelize")
 const agen = require("../model/agenModel")
 const logUserController = require("./logUserController")
 
 const getAgen = async (req, res) => {
+    let search = req.query.search || ""
     try {
         const datas = await agen.findAll({
             order: [['id_agen', 'DESC']],
+            where: {
+                nama_agen: {
+                    [Op.like] : `%${search}%`
+                }
+            }
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
     } catch (error) {

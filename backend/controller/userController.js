@@ -20,7 +20,7 @@ const login = async (req, res) => {
         const token = jwt.sign({
             id: data.id_user,
             username: data.username
-        }, process.env.JWT_SECRET, { expiresIn: "1h" })
+        }, process.env.JWT_SECRET, { expiresIn: "3h" })
 
         return res.status(200).json({ msg: "Berhasil login", token })
     } catch (error) {
