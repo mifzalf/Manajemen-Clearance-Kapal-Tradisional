@@ -98,9 +98,33 @@ const getPerjalananByFilter = async (req, res) => {
                 { '$spb.no_spb$': { [Op.like]: `%${searchTerm}%` } }
             ];
         }
+        
+        // ... kode sebelumnya
         if(sort && data_name) {
-            orderBySort = [data_name, sort]
+            // Handle sorting untuk tabel relasi
+            switch(data_name) {
+                case 'nama_kapal':
+                    orderBySort = [{ model: kapal }, 'nama_kapal', sort];
+                    break;
+                case 'no_spb':
+                    orderBySort = [{ model: spb }, 'no_spb', sort];
+                    break;
+                case 'nama_nahkoda':
+                    orderBySort = [{ model: nahkoda }, 'nama_nahkoda', sort];
+                    break;
+                case 'nama_agen':
+                    orderBySort = [{ model: agen }, 'nama_agen', sort];
+                    break;
+                case 'tujuan_akhir':
+                    // Karena di include as: 'tujuan_akhir'
+                    orderBySort = [{ model: kecamatan, as: 'tujuan_akhir' }, 'nama_kecamatan', sort];
+                    break;
+                default:
+                    // Default untuk kolom tabel perjalanan (tanggal_berangkat, dll)
+                    orderBySort = [data_name, sort];
+            }
         }
+// ... lanjutkan ke findAndCountAll
 
         const { count, rows: datas } = await perjalanan.findAndCountAll({
             order: [orderBySort],

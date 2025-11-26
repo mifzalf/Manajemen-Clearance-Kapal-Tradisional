@@ -42,6 +42,11 @@ function Clearance() {
         selectedWilayah: '',
     });
 
+    const [sortConfig, setSortConfig] = useState({
+        key: 'id_perjalanan', 
+        direction: 'DESC'
+    });
+
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState('5');
     const [totalData, setTotalData] = useState(0);
@@ -91,6 +96,14 @@ function Clearance() {
         }
     }, [authLoading]);
 
+    const handleSort = (key) => {
+        let direction = 'ASC';
+        if (sortConfig.key === key && sortConfig.direction === 'ASC') {
+            direction = 'DESC';
+        }
+        setSortConfig({ key, direction });
+    };
+
     const fetchData = useCallback(async () => {
         if (!authLoading) setLoading(true);
 
@@ -107,6 +120,8 @@ function Clearance() {
                 tanggal_akhir: filters.endDate,
                 kategori: filters.selectedCategory,
                 wilker: filters.selectedWilayah,
+                sort: sortConfig.direction,
+                data_name: sortConfig.key
             };
 
             const goods = filters.selectedGoods
@@ -151,7 +166,7 @@ function Clearance() {
         } finally {
             if (!authLoading) setLoading(false);
         }
-    }, [currentPage, rowsPerPage, filters, authLoading]);
+    }, [currentPage, rowsPerPage, filters, authLoading, sortConfig]);
 
     useEffect(() => {
         fetchData();
@@ -601,6 +616,8 @@ function Clearance() {
                             <ClearanceTable 
                                 clearanceItems={pageData} 
                                 onSuccess={refreshData} 
+                                onSort={handleSort}
+                                sortConfig={sortConfig}
                             />
                         )}
 

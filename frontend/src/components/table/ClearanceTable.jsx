@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { DropdownItem } from '../ui/dropdown/DropdownItem';
@@ -9,7 +9,6 @@ import axiosInstance from '../../api/axiosInstance';
 const ActionDropdown = ({ item, onSuccess }) => {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef(null);
-  const navigate = useNavigate();
 
   const handleDelete = (itemToDelete) => {
     toast((t) => (
@@ -72,26 +71,72 @@ const ActionDropdown = ({ item, onSuccess }) => {
   );
 };
 
-const ClearanceTable = ({ clearanceItems = [], onSuccess }) => {
+const getSortIcon = (columnKey, sortConfig) => {
+    const baseClasses = "ml-2 h-4 w-4 inline-block flex-none rounded";
+    
+    if (!sortConfig || sortConfig.key !== columnKey) {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" className={`${baseClasses} text-gray-300`} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+        );
+    }
+
+    if (sortConfig.direction === 'ASC') {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" className={`${baseClasses} text-indigo-600 bg-indigo-50`} viewBox="0 0 20 20" fill="currentColor">
+                 <path d="M3 10h14l-7-7-7 7z" />
+            </svg>
+        );
+    } 
+    
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className={`${baseClasses} text-indigo-600 bg-indigo-50`} viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 10h14l-7 7-7-7z" />
+        </svg>
+    );
+};
+
+const ClearanceTable = ({ clearanceItems = [], onSuccess, onSort, sortConfig }) => {
+  
+  const renderHeader = (label, sortKey) => (
+    <th 
+        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 hover:text-gray-700 select-none transition-colors group"
+        onClick={() => {
+            if (onSort) {
+                onSort(sortKey);
+            }
+        }}
+    >
+        <div className="flex items-center">
+            {label}
+            {getSortIcon(sortKey, sortConfig)}
+        </div>
+    </th>
+  );
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomor SPB</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kapal</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nahkoda</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tujuan</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tgl Berangkat</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pukul Berangkat</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agen</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+            {renderHeader("Nomor SPB", "no_spb")}
+            {renderHeader("Nama Kapal", "nama_kapal")}
+            {renderHeader("Nahkoda", "nama_nahkoda")}
+            {renderHeader("Tujuan", "tujuan_akhir")}
+            {renderHeader("Tgl Berangkat", "tanggal_berangkat")}
+            {renderHeader("Pukul Berangkat", "pukul_kapal_berangkat")}
+            {renderHeader("Agen", "nama_agen")}
+            
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Aksi
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {clearanceItems?.length > 0 ? (
             clearanceItems.map((item) => (
-              <tr key={item.id_perjalanan} className="hover:bg-gray-50">
+              <tr key={item.id_perjalanan} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.spb?.no_spb || '-'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.kapal?.nama_kapal || '-'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.nahkoda?.nama_nahkoda || '-'}</td>
@@ -108,7 +153,7 @@ const ClearanceTable = ({ clearanceItems = [], onSuccess }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
+              <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500 italic">
                 Tidak ada data clearance yang cocok dengan filter.
               </td>
             </tr>
