@@ -32,7 +32,9 @@ const getPerjalananByFilter = async (req, res) => {
         limit, 
         page, 
         wilker,
-        searchTerm 
+        searchTerm,
+        sort,
+        data_name
     } = req.query;
 
     try {
@@ -41,6 +43,7 @@ const getPerjalananByFilter = async (req, res) => {
         if (wilker && wilker.toLowerCase() != dataWilker.toLowerCase() && dataWilker.toLowerCase() != "pusat")
             return res.status(500).json({ msg: "Tidak ada akses" });
 
+        let orderBySort = ["id_perjalanan", "DESC"]
         let wherePerjalanan = {};
         let whereKapal = {};
         let whereMuatanKendaraan = {}
@@ -95,9 +98,12 @@ const getPerjalananByFilter = async (req, res) => {
                 { '$spb.no_spb$': { [Op.like]: `%${searchTerm}%` } }
             ];
         }
+        if(sort && data_name) {
+            orderBySort = [data_name, sort]
+        }
 
         const { count, rows: datas } = await perjalanan.findAndCountAll({
-            order: [['id_perjalanan', 'DESC']],
+            order: [orderBySort],
             where: {
                 ...wherePerjalanan,
             },
