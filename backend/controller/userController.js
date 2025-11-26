@@ -6,6 +6,7 @@ const salt = 10
 const perjalanan = require("../model/perjalananModel")
 const users = require("../model/userModel")
 const logUserController = require("./logUserController")
+const { Op } = require("sequelize")
 
 const login = async (req, res) => {
     try {
@@ -30,11 +31,31 @@ const login = async (req, res) => {
 }
 
 const getUser = async (req, res) => {
+    let search = req.query.search || ""
     try {
         const datas = await users.findAll({
             order: [['id_user', 'DESC']],
             attributes: {
                 exclude: ['password']
+            },
+            where: {
+                [Op.or]: {
+                    username: {
+                        [Op.like]: `%${search}%`
+                    },
+                    nama_lengkap: {
+                        [Op.like]: `%${search}%`
+                    },
+                    wilayah_kerja: {
+                        [Op.like]: `%${search}%`
+                    },
+                    role: {
+                        [Op.like]: `%${search}%`
+                    },
+                    jabatan: {
+                        [Op.like]: `%${search}%`
+                    },
+                }
             }
         })
         return res.status(200).json({ msg: "Berhasil mengambil data", datas })
