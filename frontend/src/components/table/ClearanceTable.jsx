@@ -124,8 +124,8 @@ const ClearanceTable = ({ clearanceItems = [], onSuccess, onSort, sortConfig }) 
             {renderHeader("Nama Kapal", "nama_kapal")}
             {renderHeader("Nahkoda", "nama_nahkoda")}
             {renderHeader("Tujuan", "tujuan_akhir")}
-            {renderHeader("Tgl Berangkat", "tanggal_berangkat")}
-            {renderHeader("Pukul Berangkat", "pukul_kapal_berangkat")}
+            {renderHeader("Tgl Brngkt", "tanggal_berangkat")}
+            {renderHeader("Waktu Brngkt", "pukul_kapal_berangkat")}
             {renderHeader("Agen", "nama_agen")}
             
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
