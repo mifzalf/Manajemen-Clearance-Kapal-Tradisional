@@ -93,6 +93,7 @@ const DetailClearance = () => {
                         <h3 className="text-xl font-bold text-gray-800">Informasi Umum & Kapal</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <DetailItem label="Jenis PPK" value={data.ppk || '-'} />
+                            <DetailItem label="Nomor Register" value={data.no_urut || '-'} />
                             <DetailItem label="No SPB Asal" value={data.spb?.no_spb_asal || '-'} />
                             <DetailItem label="Tanggal Clearance" value={formatDate(data.tanggal_clearance)} />
                             <DetailItem label="Pukul Clearance" value={data.pukul_agen_clearance || '-'} />
