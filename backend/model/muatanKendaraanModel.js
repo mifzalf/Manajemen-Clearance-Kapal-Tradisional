@@ -20,8 +20,8 @@ const muatanKendaraan = db.define("muatan_kendaraan", {
     jenis_perjalanan: DataTypes.ENUM("berangkat", "datang"),
     golongan_kendaraan: DataTypes.ENUM("I", "II", "III", "IV", "V", "VI"),
     unit: DataTypes.INTEGER,
-    ton: DataTypes.INTEGER,
-    m3: DataTypes.INTEGER,
+    ton: DataTypes.DOUBLE,
+    m3: DataTypes.DOUBLE,
 },
 {
     freezeTableName: true
