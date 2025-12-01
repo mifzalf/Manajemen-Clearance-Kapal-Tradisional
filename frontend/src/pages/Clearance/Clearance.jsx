@@ -142,7 +142,7 @@ function Clearance() {
                     for (const key in params) {
                         const value = params[key];
                         if (Array.isArray(value)) {
-                            value.forEach(v => searchParams.append(`${key}[]`, v));
+                            value.forEach(v => searchParams.append(key, v));
                         } else if (value !== null && value !== undefined && value !== '') {
                             searchParams.append(key, value);
                         }
